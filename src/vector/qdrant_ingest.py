@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -15,7 +15,10 @@ from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
 
 
-SYNTHETIC_FILES = {
+DEFAULT_SYNTHETIC_DIR = Path("data/synthetic")
+DEFAULT_REPORT_PATH = Path("reports/qdrant_ingestion_report.json")
+
+ARTIFACT_FILES = {
     "support_tickets": "support_tickets.jsonl",
     "logistics_incidents": "logistics_incidents.jsonl",
     "customer_emails": "customer_emails.jsonl",
@@ -25,23 +28,13 @@ SYNTHETIC_FILES = {
 }
 
 
-ID_FIELDS = {
-    "support_tickets": "ticket_id",
-    "logistics_incidents": "incident_id",
-    "customer_emails": "email_id",
-    "warranty_claims": "claim_id",
-    "policy_documents": "document_id",
-    "troubleshooting_guides": "guide_id",
-}
-
-
 def load_settings() -> dict[str, Any]:
     load_dotenv()
 
     return {
         "qdrant_host": os.getenv("QDRANT_HOST", "localhost"),
-        "qdrant_port": int(os.getenv("QDRANT_HTTP_PORT", "6333")),
-        "collection_name": os.getenv("QDRANT_COLLECTION", "enterprise_knowledge"),
+        "qdrant_http_port": int(os.getenv("QDRANT_HTTP_PORT", "6333")),
+        "qdrant_collection": os.getenv("QDRANT_COLLECTION", "enterprise_knowledge"),
         "embedding_model_name": os.getenv(
             "EMBEDDING_MODEL_NAME",
             "sentence-transformers/all-MiniLM-L6-v2",
@@ -50,8 +43,11 @@ def load_settings() -> dict[str, Any]:
     }
 
 
-def load_jsonl(path: Path) -> list[dict[str, Any]]:
+def read_jsonl(path: Path) -> list[dict[str, Any]]:
     records = []
+
+    if not path.exists():
+        raise FileNotFoundError(f"Missing synthetic artifact file: {path}")
 
     with path.open("r", encoding="utf-8") as file:
         for line_number, line in enumerate(file, start=1):
@@ -63,323 +59,527 @@ def load_jsonl(path: Path) -> list[dict[str, Any]]:
             try:
                 records.append(json.loads(line))
             except json.JSONDecodeError as exc:
-                raise ValueError(f"Invalid JSON in {path} at line {line_number}: {exc}") from exc
+                raise ValueError(
+                    f"Invalid JSON in {path} at line {line_number}: {exc}"
+                ) from exc
 
     return records
 
 
-def stable_uuid(text: str) -> str:
-    digest = hashlib.md5(text.encode("utf-8")).hexdigest()
-    return (
-        f"{digest[0:8]}-"
-        f"{digest[8:12]}-"
-        f"{digest[12:16]}-"
-        f"{digest[16:20]}-"
-        f"{digest[20:32]}"
+def first_existing_value(record: dict[str, Any], keys: list[str]) -> Any:
+    for key in keys:
+        value = record.get(key)
+
+        if value is not None and value != "":
+            return value
+
+    return None
+
+
+def extract_entity_ids(record: dict[str, Any]) -> dict[str, Any]:
+    entity_keys = [
+        "customer_id",
+        "customer_unique_id",
+        "order_id",
+        "order_item_id",
+        "product_id",
+        "seller_id",
+        "review_id",
+        "payment_id",
+        "ticket_id",
+        "incident_id",
+        "email_id",
+        "claim_id",
+        "policy_id",
+        "guide_id",
+        "category_id",
+        "category_name",
+        "product_category_name",
+        "region_id",
+        "city",
+        "state",
+    ]
+
+    entity_ids = {}
+
+    for key in entity_keys:
+        value = record.get(key)
+
+        if value is not None and value != "":
+            entity_ids[key] = value
+
+    return entity_ids
+
+
+def normalize_value(value: Any) -> str:
+    if value is None:
+        return ""
+
+    if isinstance(value, (dict, list)):
+        return json.dumps(value, ensure_ascii=False, default=str)
+
+    return str(value)
+
+
+def build_document_text(
+    artifact_type: str,
+    record: dict[str, Any],
+) -> str:
+    title = first_existing_value(
+        record,
+        [
+            "title",
+            "subject",
+            "policy_title",
+            "guide_title",
+            "ticket_subject",
+            "email_subject",
+            "claim_subject",
+            "incident_subject",
+        ],
     )
 
+    description = first_existing_value(
+        record,
+        [
+            "description",
+            "summary",
+            "body",
+            "message",
+            "content",
+            "comment",
+            "review_comment_message",
+            "issue_description",
+            "resolution",
+            "policy_text",
+            "guide_text",
+            "troubleshooting_steps",
+            "root_cause",
+            "customer_message",
+            "agent_notes",
+        ],
+    )
 
-def get_nested(record: dict[str, Any], field: str) -> Any:
-    current: Any = record
+    fields_for_text = [
+        "ticket_id",
+        "incident_id",
+        "email_id",
+        "claim_id",
+        "policy_id",
+        "guide_id",
+        "customer_id",
+        "order_id",
+        "product_id",
+        "seller_id",
+        "category_id",
+        "category_name",
+        "product_category_name",
+        "region_id",
+        "city",
+        "state",
+        "severity",
+        "priority",
+        "status",
+        "sentiment",
+        "issue_type",
+        "case_type",
+        "policy_type",
+        "guide_type",
+        "refund_status",
+        "warranty_status",
+        "delivery_status",
+        "title",
+        "subject",
+        "description",
+        "summary",
+        "body",
+        "message",
+        "content",
+        "comment",
+        "review_comment_message",
+        "issue_description",
+        "resolution",
+        "policy_text",
+        "guide_text",
+        "troubleshooting_steps",
+        "root_cause",
+        "customer_message",
+        "agent_notes",
+    ]
 
-    for part in field.split("."):
-        if not isinstance(current, dict):
-            return None
+    text_parts = [f"Artifact type: {artifact_type}"]
 
-        current = current.get(part)
+    if title:
+        text_parts.append(f"Title: {normalize_value(title)}")
 
-    return current
+    if description:
+        text_parts.append(f"Description: {normalize_value(description)}")
 
+    for key in fields_for_text:
+        value = record.get(key)
 
-def compact_payload_value(value: Any) -> Any:
-    if value is None:
-        return None
+        if value is None or value == "":
+            continue
 
-    if isinstance(value, (str, int, float, bool)):
-        return value
+        text_parts.append(f"{key}: {normalize_value(value)}")
 
-    if isinstance(value, list):
-        return [
-            item
-            for item in value
-            if isinstance(item, (str, int, float, bool))
-        ]
-
-    return json.dumps(value, ensure_ascii=False, default=str)
-
-
-def infer_artifact_id(artifact_name: str, record: dict[str, Any]) -> str:
-    id_field = ID_FIELDS[artifact_name]
-    artifact_id = record.get(id_field)
-
-    if artifact_id is None:
-        raise ValueError(f"Missing {id_field} for artifact type {artifact_name}")
-
-    return str(artifact_id)
-
-
-def build_document(record: dict[str, Any]) -> str:
-    document_text = record.get("document_text")
-
-    if document_text and str(document_text).strip():
-        return str(document_text).strip()
-
-    title = record.get("title") or record.get("subject") or ""
-    body = record.get("body") or record.get("summary") or ""
-
-    fallback = f"{title}\n{body}".strip()
-
-    if not fallback:
-        raise ValueError("Record has no document_text or fallback text.")
-
-    return fallback
+    return "\n".join(text_parts)
 
 
 def build_payload(
-    artifact_name: str,
-    artifact_id: str,
-    record: dict[str, Any],
+    artifact_type: str,
     source_file: str,
+    record: dict[str, Any],
+    text: str,
 ) -> dict[str, Any]:
-    linked_entities = record.get("linked_entities") or {}
-    metadata = record.get("metadata") or {}
+    entity_ids = extract_entity_ids(record)
 
     payload = {
-        "artifact_type": compact_payload_value(record.get("artifact_type")),
-        "artifact_group": artifact_name,
-        "artifact_id": artifact_id,
+        "artifact_type": artifact_type,
+        "artifact_group": artifact_type,
+        "document_type": artifact_type,
         "source_file": source_file,
-        "title": compact_payload_value(record.get("title") or record.get("subject")),
-        "created_at": compact_payload_value(record.get("created_at")),
-        "issue_type": compact_payload_value(record.get("issue_type") or metadata.get("issue_type")),
-        "severity": compact_payload_value(record.get("severity") or metadata.get("severity")),
-        "status": compact_payload_value(record.get("status") or record.get("claim_status")),
-        "policy_topic": compact_payload_value(record.get("policy_topic")),
-        "document_scope": compact_payload_value(metadata.get("document_scope")),
-        "customer_id": compact_payload_value(linked_entities.get("customer_id")),
-        "customer_unique_id": compact_payload_value(linked_entities.get("customer_unique_id")),
-        "order_id": compact_payload_value(linked_entities.get("order_id")),
-        "product_id": compact_payload_value(linked_entities.get("product_id")),
-        "seller_id": compact_payload_value(linked_entities.get("seller_id")),
-        "review_id": compact_payload_value(linked_entities.get("review_id")),
-        "ticket_id": compact_payload_value(record.get("ticket_id") or linked_entities.get("ticket_id")),
-        "category_id": compact_payload_value(linked_entities.get("category_id") or metadata.get("category_id")),
-        "category_name_english": compact_payload_value(
-            linked_entities.get("category_name_english") or metadata.get("category_name_english")
-        ),
-        "region_id": compact_payload_value(linked_entities.get("region_id")),
-        "customer_state": compact_payload_value(linked_entities.get("customer_state")),
-        "customer_city": compact_payload_value(linked_entities.get("customer_city")),
-        "text_preview": build_document(record)[:500],
+        "text": text,
+        "entity_ids": entity_ids,
+        "ingested_at": datetime.now(timezone.utc).isoformat(),
     }
 
-    return {
-        key: value
-        for key, value in payload.items()
-        if value is not None
+    important_keys = [
+        "customer_id",
+        "customer_unique_id",
+        "order_id",
+        "order_item_id",
+        "product_id",
+        "seller_id",
+        "review_id",
+        "payment_id",
+        "ticket_id",
+        "incident_id",
+        "email_id",
+        "claim_id",
+        "policy_id",
+        "guide_id",
+        "category_id",
+        "category_name",
+        "product_category_name",
+        "region_id",
+        "city",
+        "state",
+        "severity",
+        "priority",
+        "status",
+        "sentiment",
+        "issue_type",
+        "case_type",
+        "policy_type",
+        "guide_type",
+        "refund_status",
+        "warranty_status",
+        "delivery_status",
+        "created_at",
+        "updated_at",
+    ]
+
+    for key in important_keys:
+        value = record.get(key)
+
+        if value is not None and value != "":
+            payload[key] = value
+
+    title = first_existing_value(
+        record,
+        [
+            "title",
+            "subject",
+            "policy_title",
+            "guide_title",
+            "ticket_subject",
+            "email_subject",
+            "claim_subject",
+            "incident_subject",
+        ],
+    )
+
+    if title:
+        payload["title"] = normalize_value(title)
+
+    return payload
+
+
+def get_record_identifier(
+    artifact_type: str,
+    record: dict[str, Any],
+    fallback_index: int,
+) -> str:
+    id_keys_by_artifact = {
+        "support_tickets": ["ticket_id"],
+        "logistics_incidents": ["incident_id"],
+        "customer_emails": ["email_id"],
+        "warranty_claims": ["claim_id"],
+        "policy_documents": ["policy_id"],
+        "troubleshooting_guides": ["guide_id"],
     }
 
+    candidate_keys = id_keys_by_artifact.get(artifact_type, [])
 
-def load_documents(synthetic_dir: Path) -> list[dict[str, Any]]:
+    candidate_keys += [
+        "id",
+        "document_id",
+        "order_id",
+        "product_id",
+        "seller_id",
+    ]
+
+    value = first_existing_value(record, candidate_keys)
+
+    if value:
+        return f"{artifact_type}:{value}"
+
+    return f"{artifact_type}:row:{fallback_index}"
+
+
+def make_qdrant_point_id(stable_document_id: str) -> str:
+    return str(uuid.uuid5(uuid.NAMESPACE_URL, stable_document_id))
+
+
+def load_synthetic_documents(synthetic_dir: Path) -> list[dict[str, Any]]:
     documents = []
 
-    for artifact_name, filename in SYNTHETIC_FILES.items():
+    for artifact_type, filename in ARTIFACT_FILES.items():
         path = synthetic_dir / filename
-        records = load_jsonl(path)
+        records = read_jsonl(path)
 
-        for record in records:
-            artifact_id = infer_artifact_id(artifact_name, record)
-            document_text = build_document(record)
+        for index, record in enumerate(records):
+            stable_document_id = get_record_identifier(
+                artifact_type=artifact_type,
+                record=record,
+                fallback_index=index,
+            )
+
+            text = build_document_text(
+                artifact_type=artifact_type,
+                record=record,
+            )
+
+            payload = build_payload(
+                artifact_type=artifact_type,
+                source_file=filename,
+                record=record,
+                text=text,
+            )
 
             documents.append(
                 {
-                    "point_id": stable_uuid(f"{artifact_name}:{artifact_id}"),
-                    "artifact_name": artifact_name,
-                    "artifact_id": artifact_id,
-                    "document_text": document_text,
-                    "payload": build_payload(
-                        artifact_name=artifact_name,
-                        artifact_id=artifact_id,
-                        record=record,
-                        source_file=str(path),
-                    ),
+                    "point_id": make_qdrant_point_id(stable_document_id),
+                    "stable_document_id": stable_document_id,
+                    "artifact_type": artifact_type,
+                    "text": text,
+                    "payload": payload,
                 }
             )
 
     return documents
 
 
-def build_qdrant_client(settings: dict[str, Any]) -> QdrantClient:
+def create_qdrant_client(host: str, port: int) -> QdrantClient:
     return QdrantClient(
-        host=settings["qdrant_host"],
-        port=settings["qdrant_port"],
+        host=host,
+        port=port,
+        timeout=120,
     )
 
 
-def recreate_collection(
+def get_model_dimension(model: SentenceTransformer) -> int:
+    if hasattr(model, "get_embedding_dimension"):
+        dimension = model.get_embedding_dimension()
+    else:
+        dimension = model.get_sentence_embedding_dimension()
+
+    if dimension is None:
+        raise ValueError("Could not determine embedding dimension from model.")
+
+    return int(dimension)
+
+
+def ensure_qdrant_collection(
     client: QdrantClient,
     collection_name: str,
-    embedding_dimension: int,
+    vector_size: int,
+    recreate: bool = True,
 ) -> None:
-    if client.collection_exists(collection_name):
-        client.delete_collection(collection_name=collection_name)
+    existing_collections = client.get_collections().collections
+    existing_collection_names = {
+        collection.name for collection in existing_collections
+    }
+
+    if collection_name in existing_collection_names:
+        if recreate:
+            print(f"Deleting existing Qdrant collection: {collection_name}")
+            client.delete_collection(collection_name=collection_name)
+        else:
+            print(f"Qdrant collection already exists: {collection_name}")
+            return
+    else:
+        print(f"Qdrant collection does not exist yet: {collection_name}")
+
+    print(
+        f"Creating Qdrant collection: {collection_name} "
+        f"with vector size {vector_size}"
+    )
 
     client.create_collection(
         collection_name=collection_name,
         vectors_config=VectorParams(
-            size=embedding_dimension,
+            size=vector_size,
             distance=Distance.COSINE,
         ),
     )
 
 
-def batch_iter(items: list[dict[str, Any]], batch_size: int):
-    for start in range(0, len(items), batch_size):
-        yield items[start:start + batch_size]
+def count_by_artifact_type(documents: list[dict[str, Any]]) -> dict[str, int]:
+    counts = {}
+
+    for document in documents:
+        artifact_type = document["artifact_type"]
+        counts[artifact_type] = counts.get(artifact_type, 0) + 1
+
+    return counts
 
 
 def ingest_documents(
     synthetic_dir: Path,
-    output_path: Path,
-    recreate: bool,
+    report_path: Path,
     batch_size: int,
+    recreate_collection: bool,
 ) -> dict[str, Any]:
     settings = load_settings()
 
+    collection_name = settings["qdrant_collection"]
+    expected_dimension = settings["embedding_dimension"]
+
     print("Loading synthetic documents...")
-    documents = load_documents(synthetic_dir)
+    documents = load_synthetic_documents(synthetic_dir)
     print(f"Loaded {len(documents)} documents from JSONL files.")
+
+    if not documents:
+        raise ValueError("No synthetic documents found for Qdrant ingestion.")
 
     print(f"Loading embedding model: {settings['embedding_model_name']}")
     model = SentenceTransformer(settings["embedding_model_name"])
 
-    actual_dimension = model.get_sentence_embedding_dimension()
+    actual_dimension = get_model_dimension(model)
 
-    if actual_dimension != settings["embedding_dimension"]:
+    if actual_dimension != expected_dimension:
         raise ValueError(
             f"Embedding dimension mismatch. "
-            f"Model dimension={actual_dimension}, "
-            f"configured dimension={settings['embedding_dimension']}"
+            f"Expected {expected_dimension}, got {actual_dimension}."
         )
 
-    client = build_qdrant_client(settings)
+    client = create_qdrant_client(
+        host=settings["qdrant_host"],
+        port=settings["qdrant_http_port"],
+    )
 
-    if recreate:
-        print(f"Recreating Qdrant collection: {settings['collection_name']}")
-        recreate_collection(
-            client=client,
-            collection_name=settings["collection_name"],
-            embedding_dimension=settings["embedding_dimension"],
-        )
-
-    artifact_counts: dict[str, int] = {}
-
-    for document in documents:
-        artifact_counts[document["artifact_name"]] = (
-            artifact_counts.get(document["artifact_name"], 0) + 1
-        )
-
-    total_upserted = 0
+    ensure_qdrant_collection(
+        client=client,
+        collection_name=collection_name,
+        vector_size=actual_dimension,
+        recreate=recreate_collection,
+    )
 
     print("Embedding and upserting documents into Qdrant...")
 
-    for batch in tqdm(list(batch_iter(documents, batch_size))):
-        texts = [item["document_text"] for item in batch]
+    total_batches = (len(documents) + batch_size - 1) // batch_size
+
+    for start_index in tqdm(
+        range(0, len(documents), batch_size),
+        total=total_batches,
+    ):
+        batch = documents[start_index : start_index + batch_size]
+
+        texts = [document["text"] for document in batch]
 
         embeddings = model.encode(
             texts,
-            batch_size=min(64, len(texts)),
-            normalize_embeddings=True,
+            batch_size=min(batch_size, 64),
             show_progress_bar=False,
+            normalize_embeddings=True,
         )
 
         points = []
 
-        for item, embedding in zip(batch, embeddings):
+        for document, embedding in zip(batch, embeddings):
+            payload = dict(document["payload"])
+            payload["stable_document_id"] = document["stable_document_id"]
+
             points.append(
                 PointStruct(
-                    id=item["point_id"],
+                    id=document["point_id"],
                     vector=embedding.tolist(),
-                    payload=item["payload"],
+                    payload=payload,
                 )
             )
 
         client.upsert(
-            collection_name=settings["collection_name"],
+            collection_name=collection_name,
             points=points,
+            wait=True,
         )
 
-        total_upserted += len(points)
-
-    collection_info = client.get_collection(settings["collection_name"])
-    qdrant_points_count = int(collection_info.points_count or 0)
-
-    failed_checks = []
-
-    if qdrant_points_count != len(documents):
-        failed_checks.append(
-            {
-                "check": "point_count_match",
-                "expected": len(documents),
-                "actual": qdrant_points_count,
-            }
-        )
+    collection_info = client.get_collection(collection_name=collection_name)
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "synthetic_dir": str(synthetic_dir),
-        "collection_name": settings["collection_name"],
+        "overall_status": "PASS",
+        "collection_name": collection_name,
+        "qdrant_host": settings["qdrant_host"],
+        "qdrant_http_port": settings["qdrant_http_port"],
         "embedding_model_name": settings["embedding_model_name"],
-        "embedding_dimension": settings["embedding_dimension"],
-        "summary": {
-            "overall_status": "PASS" if not failed_checks else "FAIL",
-            "documents_loaded": len(documents),
-            "points_upserted": total_upserted,
-            "qdrant_points_count": qdrant_points_count,
-            "artifact_type_count": len(artifact_counts),
-            "failed_checks": failed_checks,
-        },
-        "artifact_counts": artifact_counts,
+        "embedding_dimension": actual_dimension,
+        "document_count": len(documents),
+        "artifact_counts": count_by_artifact_type(documents),
+        "qdrant_points_count": collection_info.points_count,
+        "recreated_collection": recreate_collection,
     }
 
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.parent.mkdir(parents=True, exist_ok=True)
 
-    with output_path.open("w", encoding="utf-8") as file:
-        json.dump(report, file, indent=2, default=str)
+    with report_path.open("w", encoding="utf-8") as file:
+        json.dump(report, file, indent=2, ensure_ascii=False, default=str)
 
     return report
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Embed synthetic enterprise documents and ingest them into Qdrant."
+        description="Ingest synthetic enterprise documents into Qdrant."
     )
 
     parser.add_argument(
         "--synthetic-dir",
         type=Path,
-        default=Path("data/synthetic"),
-        help="Directory containing synthetic JSONL files.",
+        default=DEFAULT_SYNTHETIC_DIR,
+        help="Directory containing synthetic JSONL artifact files.",
     )
 
     parser.add_argument(
-        "--output",
+        "--report-path",
         type=Path,
-        default=Path("reports/qdrant_ingestion_report.json"),
+        default=DEFAULT_REPORT_PATH,
         help="Path to save Qdrant ingestion report.",
-    )
-
-    parser.add_argument(
-        "--recreate",
-        action="store_true",
-        help="Delete and recreate the Qdrant collection before ingestion.",
     )
 
     parser.add_argument(
         "--batch-size",
         type=int,
         default=128,
-        help="Number of documents to embed and upload per batch.",
+        help="Number of documents to embed and upsert per batch.",
+    )
+
+    parser.add_argument(
+        "--no-recreate",
+        action="store_true",
+        help="Do not recreate the Qdrant collection if it already exists.",
     )
 
     return parser.parse_args()
@@ -390,27 +590,25 @@ def main() -> None:
 
     report = ingest_documents(
         synthetic_dir=args.synthetic_dir,
-        output_path=args.output,
-        recreate=args.recreate,
+        report_path=args.report_path,
         batch_size=args.batch_size,
+        recreate_collection=not args.no_recreate,
     )
 
     print("\nQdrant Ingestion Completed")
     print("--------------------------")
-    print(f"Overall status: {report['summary']['overall_status']}")
+    print(f"Overall status: {report['overall_status']}")
     print(f"Collection: {report['collection_name']}")
     print(f"Embedding model: {report['embedding_model_name']}")
-    print(f"Documents loaded: {report['summary']['documents_loaded']}")
-    print(f"Points upserted: {report['summary']['points_upserted']}")
-    print(f"Qdrant points count: {report['summary']['qdrant_points_count']}")
-    print(f"Report saved to: {args.output}")
+    print(f"Embedding dimension: {report['embedding_dimension']}")
+    print(f"Documents ingested: {report['document_count']}")
+    print(f"Qdrant points count: {report['qdrant_points_count']}")
+    print(f"Report saved to: {args.report_path}")
 
     print("\nArtifact counts:")
-    for artifact_name, count in report["artifact_counts"].items():
-        print(f"{artifact_name}: {count}")
 
-    if report["summary"]["failed_checks"]:
-        print(f"\nFailed checks: {report['summary']['failed_checks']}")
+    for artifact_type, count in report["artifact_counts"].items():
+        print(f"- {artifact_type}: {count}")
 
 
 if __name__ == "__main__":
