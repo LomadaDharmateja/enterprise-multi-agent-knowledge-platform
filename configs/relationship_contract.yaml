@@ -1,0 +1,104 @@
+version: 1
+
+entities:
+  customer:
+    source: customers
+    primary_key: customer_id
+    business_description: "Unique customer profile"
+
+  order:
+    source: orders
+    primary_key: order_id
+    business_description: "Customer transaction/order lifecycle"
+
+  product:
+    source: products
+    primary_key: product_id
+    business_description: "Sellable catalog product"
+
+  seller:
+    source: sellers
+    primary_key: seller_id
+    business_description: "Marketplace seller or vendor"
+
+  order_item:
+    source: order_items
+    primary_key:
+      - order_id
+      - order_item_id
+    business_description: "Line item inside an order"
+
+  payment:
+    source: payments
+    primary_key:
+      - order_id
+      - payment_sequential
+    business_description: "Payment event linked to an order"
+
+  review:
+    source: reviews
+    primary_key:
+      - review_id
+      - order_id
+    business_description: "Customer review and satisfaction signal"
+
+relationships:
+  customer_places_order:
+    from_entity: customer
+    to_entity: order
+    from_key: customer_id
+    to_key: customer_id
+    cardinality: one_to_many
+    sql_foreign_key: true
+    graph_edge: PLACED
+    business_meaning: "A customer places one or more orders"
+
+  order_contains_item:
+    from_entity: order
+    to_entity: order_item
+    from_key: order_id
+    to_key: order_id
+    cardinality: one_to_many
+    sql_foreign_key: true
+    graph_edge: CONTAINS_ITEM
+    business_meaning: "An order contains one or more order line items"
+
+  order_item_references_product:
+    from_entity: order_item
+    to_entity: product
+    from_key: product_id
+    to_key: product_id
+    cardinality: many_to_one
+    sql_foreign_key: true
+    graph_edge: REFERENCES_PRODUCT
+    business_meaning: "An order line item refers to a purchased product"
+
+  order_item_sold_by_seller:
+    from_entity: order_item
+    to_entity: seller
+    from_key: seller_id
+    to_key: seller_id
+    cardinality: many_to_one
+    sql_foreign_key: true
+    graph_edge: SOLD_BY
+    business_meaning: "A seller sells a product within an order"
+
+  order_has_payment:
+    from_entity: order
+    to_entity: payment
+    from_key: order_id
+    to_key: order_id
+    cardinality: one_to_many
+    sql_foreign_key: true
+    graph_edge: HAS_PAYMENT
+    business_meaning: "An order can have one or more payment records"
+
+  order_has_review:
+    from_entity: order
+    to_entity: review
+    from_key: order_id
+    to_key: order_id
+    cardinality: one_to_many_or_zero
+    sql_foreign_key: true
+    graph_edge: HAS_REVIEW
+    business_meaning: "An order may receive one or more review records"

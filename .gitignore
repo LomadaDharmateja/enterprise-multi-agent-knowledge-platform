@@ -1,0 +1,83 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
+logs/
+
+
+# Notebooks / experiments
+notebooks/
+
+# Runtime reports and generated outputs
+reports/*
+!reports/.gitkeep
+
+# Large or generated data
+data/raw/*
+data/processed/*
+data/synthetic/*
+!data/.gitkeep
+!data/raw/
+!data/raw/.gitkeep
+!data/processed/
+!data/processed/.gitkeep
+!data/synthetic/
+!data/synthetic/.gitkeep
+
+# Local database volumes
+postgres_data/
+neo4j_data/
+qdrant_storage/
+database/postgres/data/
+database/neo4j/data/
+database/qdrant/storage/
+
+# Model/cache files
+.cache/
+.cache/**
+huggingface/
+sentence_transformers/
+models/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Docker temporary files
+*.pid
+*.sock
+
+# Generated CSV/JSONL artifacts
+*.jsonl
+*.parquet
+
+# Keep documentation and source code
+!README.md
+!docs/**
+!src/**
+!database/**
+!configs/**
+
