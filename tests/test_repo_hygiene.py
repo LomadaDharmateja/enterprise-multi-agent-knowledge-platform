@@ -265,3 +265,33 @@ def test_test_dependency_is_pinned():
     was pinned (M0 task 6)."""
     text = (PROJECT_ROOT / "pyproject.toml").read_text(encoding="utf-8")
     assert re.search(r'test = \["pytest==[\d.]+"\]', text), text
+
+
+# --- M1 task 1: the pinned revision reaches the runtime, not just the test ----
+
+
+def test_runtime_settings_expose_the_pinned_embedding_revision():
+    """M0 pinned the revision in .env.example; nothing read it at runtime."""
+    import sys
+
+    sys.path.insert(0, str(SRC))
+    from retrieval.hybrid_retriever import load_settings
+
+    assert load_settings()["embedding_model_revision"] == PINNED_MODEL_REVISION
+
+
+def test_every_sentence_transformer_load_passes_a_revision():
+    """A model loaded without `revision=` resolves refs/main at load time.
+
+    Guards the query side (hybrid_retriever) and the ingest side, which must
+    agree or the stored vectors and the query vectors come from different
+    snapshots.
+    """
+    unpinned = []
+    for path in sorted(SRC.rglob("*.py")):
+        text = path.read_text(encoding="utf-8")
+        for match in re.finditer(r"SentenceTransformer\((.*?)\)", text, re.DOTALL):
+            if "revision=" not in match.group(1):
+                line = text[: match.start()].count("\n") + 1
+                unpinned.append(f"{path.relative_to(PROJECT_ROOT)}:{line}")
+    assert unpinned == [], f"SentenceTransformer loaded without a pinned revision: {unpinned}"

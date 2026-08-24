@@ -74,6 +74,10 @@ def load_settings() -> dict[str, Any]:
             "EMBEDDING_MODEL_NAME",
             "sentence-transformers/all-MiniLM-L6-v2",
         ),
+        "embedding_model_revision": os.getenv(
+            "EMBEDDING_MODEL_REVISION",
+            "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+        ),
         "embedding_dimension": int(os.getenv("EMBEDDING_DIMENSION", "384")),
     }
 
@@ -300,8 +304,14 @@ def validate_qdrant(output_path: Path) -> dict[str, Any]:
         collection_name=settings["collection_name"],
     )
 
-    print(f"Loading embedding model: {settings['embedding_model_name']}")
-    model = SentenceTransformer(settings["embedding_model_name"])
+    print(
+        f"Loading embedding model: {settings['embedding_model_name']}"
+        f" @ {settings['embedding_model_revision']}"
+    )
+    model = SentenceTransformer(
+        settings["embedding_model_name"],
+        revision=settings["embedding_model_revision"],
+    )
 
     print("Running semantic search tests...")
     search_checks = run_search_tests(
@@ -325,6 +335,7 @@ def validate_qdrant(output_path: Path) -> dict[str, Any]:
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "collection_name": settings["collection_name"],
         "embedding_model_name": settings["embedding_model_name"],
+        "embedding_model_revision": settings["embedding_model_revision"],
         "summary": {
             "overall_status": "PASS" if not failed_sections else "FAIL",
             "failed_sections": failed_sections,

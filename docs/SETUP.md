@@ -295,10 +295,11 @@ python src/vector/qdrant_validator.py
 first run and embeds 8,152 documents. Allow several minutes on CPU.
 
 The pinned model revision is recorded in `.env.example` as
-`EMBEDDING_MODEL_REVISION=1110a243fdf4706b3f48f1d95db1a4f5529b4d41`. Nothing reads
-it at runtime yet — `SentenceTransformer()` is still constructed from the model name
-alone, which resolves `refs/main` at load time. `pytest` checks the local cache
-against the pin.
+`EMBEDDING_MODEL_REVISION=1110a243fdf4706b3f48f1d95db1a4f5529b4d41`, and it is read
+at runtime: every `SentenceTransformer()` construction — ingest, query and the
+Qdrant validator — passes `revision=`, so a moved `refs/main` upstream cannot
+silently change the vectors on either side of the store. `pytest` checks the local
+cache against the pin and fails if any load site drops the `revision=` argument.
 
 ---
 

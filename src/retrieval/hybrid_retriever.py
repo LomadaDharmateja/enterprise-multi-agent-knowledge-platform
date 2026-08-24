@@ -41,6 +41,10 @@ def load_settings() -> dict[str, Any]:
             "EMBEDDING_MODEL_NAME",
             "sentence-transformers/all-MiniLM-L6-v2",
         ),
+        "embedding_model_revision": os.getenv(
+            "EMBEDDING_MODEL_REVISION",
+            "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+        ),
     }
 
 
@@ -506,8 +510,14 @@ def run_hybrid_retrieval(
     neo4j_driver = build_neo4j_driver(settings)
     qdrant_client = build_qdrant_client(settings)
 
-    print(f"Loading embedding model: {settings['embedding_model_name']}")
-    embedding_model = SentenceTransformer(settings["embedding_model_name"])
+    print(
+        f"Loading embedding model: {settings['embedding_model_name']}"
+        f" @ {settings['embedding_model_revision']}"
+    )
+    embedding_model = SentenceTransformer(
+        settings["embedding_model_name"],
+        revision=settings["embedding_model_revision"],
+    )
     forced_sql_intent = None
     forced_graph_intent = None
     forced_vector_groups = None
