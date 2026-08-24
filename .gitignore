@@ -74,10 +74,26 @@ models/
 *.jsonl
 *.parquet
 
-# Keep documentation and source code
-!README.md
-!docs/**
-!src/**
-!database/**
-!configs/**
+# Do not add blanket negations here.
+#
+# This block used to read:
+#     !README.md
+#     !docs/**
+#     !src/**
+#     !database/**
+#     !configs/**
+#
+# None of those paths is ignored by any rule above, so the negations bought
+# nothing -- but a negation re-includes everything it matches. `!src/**` therefore
+# defeated the `__pycache__/` and `*.py[cod]` rules at the top of this file and 8
+# compiled .pyc files were committed (AUDIT.md F-20). `!database/**` did the same
+# to the database volume directories ignored above, so postgres/neo4j/qdrant data
+# was one `git add -A` away from the repository.
+#
+# If a negation is ever genuinely needed, scope it to the single path that needs
+# it and add a comment saying which rule above it is meant to override.
+
+# Belt and braces: bytecode is never tracked, wherever it lives.
+**/__pycache__/
+**/*.py[cod]
 

@@ -163,3 +163,66 @@ def test_data_cleaning_script_is_committed():
     tracked = _tracked()
     assert "scripts/clean_data.py" in tracked
     assert "scripts/verify_clean_data.py" in tracked
+
+
+# --- Task 4: no compiled bytecode, and the rule that let it in is gone --------
+
+
+def test_no_compiled_bytecode_is_tracked():
+    """AUDIT.md F-20: 8 .pyc files were committed."""
+    tracked = [path for path in _tracked() if path.endswith((".pyc", ".pyo", ".pyd"))]
+    assert tracked == [], tracked
+
+
+@pytest.mark.parametrize(
+    "probe",
+    [
+        "src/retrieval/__pycache__/hybrid_retriever.cpython-312.pyc",
+        "src/api/__pycache__/main.cpython-312.pyc",
+        "scripts/__pycache__/clean_data.cpython-312.pyc",
+        "tests/__pycache__/conftest.cpython-312.pyc",
+    ],
+)
+def test_bytecode_paths_are_ignored_everywhere(probe):
+    result = subprocess.run(
+        ["git", "check-ignore", "-v", probe],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, (
+        f"{probe} is NOT ignored. check-ignore said: {result.stdout or result.stderr!r}"
+    )
+
+
+@pytest.mark.parametrize(
+    "probe",
+    [
+        "database/postgres/data/base",
+        "database/neo4j/data/databases",
+        "database/qdrant/storage/collections",
+    ],
+)
+def test_database_volume_directories_are_ignored(probe):
+    """`!database/**` used to re-include these, one `git add -A` from committing
+    a database volume."""
+    result = subprocess.run(
+        ["git", "check-ignore", "-v", probe],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, (
+        f"{probe} is NOT ignored. check-ignore said: {result.stdout or result.stderr!r}"
+    )
+
+
+def test_gitignore_has_no_blanket_negations():
+    """A negation re-includes everything it matches, including bytecode."""
+    lines = [
+        line.strip()
+        for line in (PROJECT_ROOT / ".gitignore").read_text(encoding="utf-8").splitlines()
+        if line.strip().startswith("!") and not line.strip().startswith("#")
+    ]
+    blanket = [line for line in lines if line.endswith("/**") or line.endswith("/*")]
+    assert blanket == [], blanket
