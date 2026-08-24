@@ -169,9 +169,29 @@ RELATIONSHIP_CYPHER = {
         );
     """,
 
+    # A policy applies to a SET of categories and a SET of sellers, not one of
+    # each. AUDIT.md F-15: v1 policies linked to no seller at all, while the
+    # flagship question asks for "sellers associated with relevant support
+    # policies". The category list drives both edges.
     "policy_documents": """
         UNWIND $rows AS row
         MATCH (d:PolicyDocument {document_id: row.document_id})
+
+        FOREACH (cid IN row.category_ids |
+            FOREACH (cat IN [x IN [cid] WHERE x IS NOT NULL] |
+                MERGE (c:Category {category_id: cat})
+                MERGE (d)-[:APPLIES_TO_CATEGORY]->(c)
+            )
+        )
+
+        WITH row, d
+        UNWIND (CASE WHEN size(row.seller_ids) = 0 THEN [null] ELSE row.seller_ids END) AS sid
+        OPTIONAL MATCH (s:Seller {seller_id: sid})
+        FOREACH (_ IN CASE WHEN s IS NULL THEN [] ELSE [1] END |
+            MERGE (d)-[:APPLIES_TO_SELLER]->(s)
+        )
+
+        WITH row, d LIMIT 1
         OPTIONAL MATCH (cat:Category {category_id: row.category_id})
 
         FOREACH (_ IN CASE WHEN cat IS NULL THEN [] ELSE [1] END |
@@ -217,6 +237,7 @@ RELATIONSHIP_COUNT_CYPHER = {
     "CLAIM_FOR_TICKET": "MATCH ()-[r:CLAIM_FOR_TICKET]->() RETURN count(r) AS count;",
     "CLAIMS_PRODUCT": "MATCH ()-[r:CLAIMS_PRODUCT]->() RETURN count(r) AS count;",
     "APPLIES_TO_CATEGORY": "MATCH ()-[r:APPLIES_TO_CATEGORY]->() RETURN count(r) AS count;",
+    "APPLIES_TO_SELLER": "MATCH ()-[r:APPLIES_TO_SELLER]->() RETURN count(r) AS count;",
     "GUIDE_FOR_CATEGORY": "MATCH ()-[r:GUIDE_FOR_CATEGORY]->() RETURN count(r) AS count;",
 }
 
@@ -256,14 +277,18 @@ def sanitize_value(value: Any) -> Any:
     if value is None:
         return None
 
+    # The dict/list branch has to come before pd.isna(): pd.isna() on a list
+    # returns an elementwise array, so `if pd.isna(value)` raised
+    # "truth value of an empty array is ambiguous" and the JSON branch below
+    # was unreachable for exactly the values it was written for.
+    if isinstance(value, (dict, list)):
+        return json.dumps(value, ensure_ascii=False, default=str)
+
     if isinstance(value, float) and pd.isna(value):
         return None
 
     if pd.isna(value):
         return None
-
-    if isinstance(value, (dict, list)):
-        return json.dumps(value, ensure_ascii=False, default=str)
 
     return value
 
@@ -335,6 +360,9 @@ def prepare_rows(records: list[dict[str, Any]], id_field: str) -> list[dict[str,
                 "category_id": properties.get("category_id"),
                 "region_id": properties.get("region_id"),
                 "review_key": properties.get("review_key"),
+                # Policy documents carry sets, not scalars; metadata holds them.
+                "category_ids": (record.get("metadata") or {}).get("in_scope_categories") or [],
+                "seller_ids": (record.get("metadata") or {}).get("seller_ids") or [],
             }
         )
 

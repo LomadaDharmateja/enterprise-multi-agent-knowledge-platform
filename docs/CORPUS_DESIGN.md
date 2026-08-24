@@ -1,7 +1,9 @@
 # Synthetic corpus — design and determinism
 
 Working document for milestone M1. Part 1 diagnoses why the current corpus does not
-regenerate identically. Part 2 specifies the replacement corpus.
+regenerate identically. Part 2 specifies the replacement corpus. Part 3 records the
+decisions taken at design review. Part 4 records what the implementation actually
+measured.
 
 Nothing in Part 1 is fixed. It is a diagnosis, written before the rewrite so the rewrite
 can be checked against it.
@@ -656,3 +658,297 @@ silently invented as NULL). No column is ever created implicitly.
 
 **Stopping here for review, as instructed. No generation code will be written until you
 confirm.**
+
+---
+
+# Part 3 — Decisions confirmed at review
+
+Part 2 was approved on 2026-08-24. The five open questions are settled as follows, and
+this section is the record of what was decided and why.
+
+## D-1 — The latent operational trait is confirmed
+
+Approved as designed. `rho ~ 0.9` restates a PostgreSQL column the same way `rho ~ 0.87`
+did. The 0.3–0.6 band stands as the specification, not as a tuning preference.
+
+## D-2 — Sign convention
+
+**`rho(complaint_count, late_delivery_rate)` is the headline statistic**, and the CI test
+asserts `abs(rho)` falls in `[0.3, 0.6]`.
+
+Recorded for completeness, from the design prototype: the corresponding correlation against
+seller review score is **−0.415** (95% CI [−0.444, −0.386]). The sign is negative because
+`mean_review` is a quality measure while `late_rate` is a defect measure — more complaints
+means a worse seller on both, which reads as a positive correlation with lateness and a
+negative one with review score. Both describe the same relationship. Asserting on `abs(rho)`
+lets the test accept either framing without the sign convention becoming a silent trap.
+
+## D-3 — CI sample size is 400, and that is a measurement
+
+**Not a magic number.** It comes from simulating the CI test 300 times at each candidate
+sample size against a corpus known to be correct, and recording how often it lands in the
+0.3–0.6 band:
+
+| sample size | mean rho | 5th pct | 95th pct | P(in 0.3–0.6) | verdict |
+|---:|---:|---:|---:|---:|---|
+| 100 | +0.411 | +0.260 | +0.558 | **0.87** | fails 13% of runs on correct data |
+| 200 | +0.418 | +0.308 | +0.512 | 0.97 | fails 3% of runs |
+| 400 | +0.424 | +0.354 | +0.487 | **1.00** | 0 failures in 300 trials |
+
+A test that fails 13% of the time on correct data is worse than no test: it trains everyone
+to re-run CI until it goes green, which is precisely how a real regression gets waved
+through. At n=400 the sampling interval [+0.354, +0.487] sits comfortably inside the band on
+both sides, so the test fails when the corpus is wrong rather than when the sampler is
+unlucky.
+
+The sample is drawn with a **committed seed**, so the same 400 sellers are selected on every
+run and the test is deterministic rather than merely usually-passing.
+
+## D-4 — Artifact count drops to ~6,400, intentionally
+
+Approved. The corpus goes from 8,152 records to roughly 6,400, and **this reduction is
+deliberate, not attrition.** Recording it here so nobody later reads the smaller number as a
+regression:
+
+| artifact | v1 | M1 | why |
+|---|---:|---:|---|
+| support_tickets | 3,000 | 3,000 | unchanged |
+| customer_emails | 3,000 | ~1,200 | v1 was a 1:1 clone of tickets reusing `linked_entities` **by reference**; a clone cannot corroborate its original |
+| logistics_incidents | 1,000 | 1,000 | unchanged |
+| warranty_claims | 1,000 | 1,000 | no longer a prefix slice of tickets |
+| policy_documents | 79 | ~24 | F-15: 73 of the 79 were one sentence with the category name swapped — near-duplicates in cosine space |
+| troubleshooting_guides | 73 | 73 | unchanged in count, rewritten in content |
+
+AUDIT.md's own accounting is the argument: of "8,152 records", the true *entity* information
+content was 3,000 + 1,000, because emails duplicated tickets exactly and warranty claims
+were a subset. The record count fell by 21%; the number of distinct entity–artifact
+relationships went up. **Documentation must be updated to the real number when M1 completes
+— 8,152 is retired and must not be quoted again.**
+
+## D-5 — F-04 is M1 scope and is fixed
+
+Confirmed as M1 scope and completed before any generation ran (commit `6f23ce6`). Details in
+§10 and in the commit; the summary is that `standardize_columns` no longer invents columns,
+and making it strict immediately surfaced a third instance of the same defect —
+`orders.shipment_status`, NULL for all 99,441 rows.
+
+## D-6 — Truncation stays at 9.4% until M2, and here is the handoff
+
+**Requested explicitly at review, so that M2 can pick this up without re-diagnosing it.**
+
+**The document truncation rate will remain at 763 of 8,152 documents — 9.4% — after M1
+completes, and M1 cannot fix it.** The cause is not in the generator. It is in
+`src/vector/qdrant_ingest.py`, in `build_document_text()` (`qdrant_ingest.py:128`), which
+discards the generator's authored `document_text` field and rebuilds the embedded string
+from top-level record keys. The rebuild inflates the text past the 256 word-piece window of
+`all-MiniLM-L6-v2`.
+
+Measured, per artifact group, comparing the two candidate strings:
+
+| artifact group | authored `document_text` over 256 | ingest-rebuilt text over 256 |
+|---|---:|---:|
+| support_tickets | 0 / 3000 (0.0%) | 1 / 3000 (0.0%) |
+| customer_emails | 0 / 3000 (0.0%) | **708 / 3000 (23.6%)** |
+| logistics_incidents | 0 / 1000 (0.0%) | 0 / 1000 (0.0%) |
+| warranty_claims | 0 / 1000 (0.0%) | 0 / 1000 (0.0%) |
+| policy_documents | 0 / 79 (0.0%) | 0 / 79 (0.0%) |
+| troubleshooting_guides | 0 / 73 (0.0%) | **54 / 73 (74.0%)** |
+| **total** | **0 / 8152 (0.0%)** | **763 / 8152 (9.4%)** |
+
+Troubleshooting guides go from a median of 120 word-pieces as authored to 262 as rebuilt;
+customer emails from 139 to 212. **The authored text never exceeds the window — guides peak
+at 152 word-pieces, under 60% of the limit.** Every one of the 763 truncations is created by
+the rebuild.
+
+This is the same root cause as **F-01**: ingest reads top-level record keys and ignores the
+generator's own `document_text`, which is why entity IDs are lost *and* why the text
+overflows. The rebuild plan assigns F-01 and F-02 to **M2**, so the fix belongs there.
+
+**Handoff to M2 — one change closes F-01, F-02 and F-10 together:** have `build_payload()`
+and the ingest path embed the generator's `document_text` verbatim instead of calling
+`build_document_text()`, and write it to the payload key the retriever actually reads
+(`text_preview`, per F-02). M1's contribution is to make that field authoritative and to
+assert at generation time that every record tokenises under 256 word-pieces with margin, so
+the guarantee is already in place when M2 stops rebuilding. Expected result after M2:
+truncation 0.0%.
+
+Until then, any report quoting truncation must say 9.4%, not zero.
+
+---
+
+# Part 4 — Implementation results (M1 tasks 4 and 5)
+
+Measured on the corpus in `data/synthetic`, corpus hash
+`3a70b8ddb3da0a1ee45dc503897a99b2893e88f6cce759f2bf4b210fe75b5310`.
+
+## Determinism: bit-identical
+
+Two consecutive runs into separate directories, same database:
+
+```
+IDENTICAL  support_tickets          IDENTICAL  warranty_claims
+IDENTICAL  logistics_incidents      IDENTICAL  policy_documents
+IDENTICAL  customer_emails          IDENTICAL  troubleshooting_guides
+REPORTS IDENTICAL
+```
+
+All nine causes from Part 1 are addressed. The report no longer carries a
+`generated_at` wall-clock field; a SHA-256 `corpus_hash` over the six file hashes
+identifies the run instead, so two runs of the same corpus produce the same report.
+
+## Correlations on the generated corpus
+
+The design prototype predicted +0.425 from the pre-fix database. Re-measured on the
+real corpus after the loader reload rebuilt `vw_order_summary`:
+
+| statistic | prototype | **generated corpus** | 95% CI | requirement | |
+|---|---:|---:|---|---|---|
+| `rho(complaints, late_rate)` — headline | +0.425 | **+0.427** | [+0.397, +0.456] | in 0.3–0.6 | PASS |
+| `rho(complaints, mean_review)` | −0.415 | **−0.412** | [−0.440, −0.383] | \|rho\| in 0.3–0.6 | PASS |
+| `rho(complaints, n_orders)` | +0.374 | **+0.376** | [+0.345, +0.407] | far from +0.867 | PASS |
+
+The loader reload did not move the correlations materially — the columns it repaired
+(`sentiment_label`, `shipment_status`, `product_category_name_english`) do not feed the
+allocation. **`DEFICIT_WEIGHT` was left at 0.45; no adjustment was needed.**
+
+Top-vs-bottom quartile by late-delivery rate (`n_orders >= 5`):
+
+| quartile | sellers | mean complaints | median | % with ≥1 | mean late_rate | mean review |
+|---|---:|---:|---:|---:|---:|---:|
+| Q1 (best) | 440 | 0.645 | 0 | 41.4% | 0.000 | 4.267 |
+| Q2 | 440 | 1.259 | 1 | 56.8% | 0.028 | 4.228 |
+| Q3 | 440 | 1.677 | 1 | 63.4% | 0.086 | 4.105 |
+| Q4 (worst) | 440 | 1.848 | 2 | 76.4% | 0.196 | 3.874 |
+
+**2.86×**, monotone across all four, Mann-Whitney U p = 5.99e-37.
+
+## Field variance — the zero-variance problem is gone
+
+v1: `severity = 'high'` on all 3,000 tickets, `review_score = 1` on all 3,000,
+`is_late_delivery = True` on all 3,000.
+
+```
+severity     high 1058, medium 1056, critical 447, low 439
+sentiment    resigned 883, frustrated 729, satisfied_after_resolution 528,
+             neutral 476, angry 384
+resolution   unresolved 886, refund_issued 550, replacement_shipped 492,
+             partial_refund 426, explained_no_action 403, withdrawn 243
+escalation   none 1458, tier_2 1105, ops_review 267, seller_account_review 170
+```
+
+47.1% of complaints land on sellers rated ≥ 4.0; 116 of the 303 top-decile-volume
+sellers are well rated with ≤ 1 complaint. A complaint no longer implies a bad seller.
+
+### Threshold calibration — a correction to the first implementation
+
+The first working generator produced `critical` on 55% of tickets and `unresolved` on
+71%. That is variance, but not *realistic* variance: "critical" has to be the rare tail
+or the field carries no ranking signal, and a 71% unresolved rate made the email subset a
+near-clone of the ticket set again — the exact v1 defect the split exists to remove.
+
+The thresholds were re-derived from the measured score distributions rather than guessed:
+`SEVERITY_MEDIUM/HIGH/CRITICAL_THRESHOLD` are the p15/p50/p85 of the severity score, and
+`RESOLUTION_MIXED/UNRESOLVED_THRESHOLD` the p65/p80 of the resolution pressure. The
+constants are committed with that provenance recorded next to them.
+
+## Final artifact counts
+
+| artifact | v1 | design estimate | **actual** |
+|---|---:|---:|---:|
+| support_tickets | 3,000 | 3,000 | **3,000** |
+| logistics_incidents | 1,000 | 1,000 | **1,000** |
+| customer_emails | 3,000 | ~1,200 | **985** |
+| warranty_claims | 1,000 | 1,000 | **1,000** |
+| policy_documents | 79 | ~24 | **40** |
+| troubleshooting_guides | 73 | 73 | **73** |
+| **total** | **8,152** | ~6,400 | **6,098** |
+
+Two departures from the design estimate, both deliberate:
+
+- **Policies are 40, not ~24.** The design said 8 topics × 3 scopes; the category-scoped
+  scope expands to 3 category groups, so it is 8 × (1 all-sellers + 3 category groups +
+  1 high-volume) = 40. All 40 have distinct bodies, against v1's 73 near-duplicates.
+- **Emails are 985, not ~1,200.** The eligibility rule was tightened after measurement:
+  the first rule matched 2,745 of 3,000 tickets, which recreated the v1 clone problem. A
+  follow-up thread now requires the case to have actually dragged — unresolved, escalated
+  to ops or seller review, or four contacts.
+
+**8,152 is retired. The corpus is 6,098 records and the reduction is intentional.**
+
+## Two defects found while wiring the corpus into Neo4j
+
+Neither is in AUDIT.md; both were found by loading the new corpus.
+
+1. **`synthetic_neo4j_loader.sanitize_value` could not handle list values.** It called
+   `pd.isna(value)` before the `isinstance(value, (dict, list))` branch, and `pd.isna()`
+   on a list returns an elementwise array — so `if pd.isna(value)` raised *"truth value of
+   an empty array is ambiguous"* and the JSON-encoding branch was unreachable for exactly
+   the values it was written for. Reordered.
+2. **`CustomerEmail -> SupportTicket` edges required a `ticket_id` key** the email records
+   did not expose (they had `related_ticket_id`). `RELATED_TO_TICKET` was 0.
+
+## Graph linkage now materialised
+
+```
+RELATED_TO_TICKET   985     (was 0 -- emails now expose ticket_id)
+CLAIM_FOR_TICKET     79     (warranty/ticket order overlap; see below)
+APPLIES_TO_CATEGORY 264
+APPLIES_TO_SELLER 15,072    (did not exist in v1)
+```
+
+**`APPLIES_TO_SELLER` is the linkage AUDIT.md F-15 said was absent** — *"policies link to
+no seller… the flagship question asks for sellers associated with relevant support
+policies; that association does not exist in the data."* It exists now, driven by the
+categories each seller actually sells.
+
+`CLAIM_FOR_TICKET` at 79 is low **by design, not by defect.** v1's warranty claims were
+`tickets[:1000]` — a prefix slice, so every claim had a ticket by construction and the two
+could never disagree. They are now allocated independently, and 79 is the genuine overlap
+where a warranty claim and a complaint happen to land on the same order. That
+independence is what allows a well-rated seller to carry an unresolved warranty issue with
+no complaint against it.
+
+An "all sellers" policy stores its selection *rule* rather than enumerating 3,030 IDs:
+enumerating them added ~800 KB to the corpus and 24k graph edges that discriminate
+nothing. Category-scoped and high-volume policies carry their explicit seller sets.
+
+## Qdrant: entity IDs now survive ingest
+
+```
+points: 6098
+points carrying seller_id / order_id / product_id / customer_id: 5985 of 6098
+support_ticket points with seller_id: 3000 of 3000
+```
+
+**v1 was 0 of 8,152 (F-01).** The 113 points without entity IDs are the 40 policies and 73
+guides, which reference a category rather than a single order — correct, not a gap.
+
+This is the *producer's* half of F-01: `qdrant_ingest.build_payload()` reads entity keys
+from the top level of each record, so the generator now writes them there as well as in
+`linked_entities`. **The consumer's half — ingest reading `linked_entities` and embedding
+the authored `document_text` instead of rebuilding it — remains M2**, and until it lands
+the truncation figure stays at the 9.4% recorded in D-6.
+
+## The boundary test
+
+`tests/test_corpus_signal.py`, four tests, in CI. It reads complaint counts from **Qdrant
+payload metadata** and seller quality from **PostgreSQL**; nothing in it reads the
+generator's output, so it fails if the JSONL → Qdrant handoff loses the linkage. That is
+the direct answer to F-12, where twelve validators passed while the retrieval layer was
+inert because none of them looked at a seam.
+
+Sample: 400 sellers, seed `20260824`, committed. Assertion:
+`0.3 <= abs(rho(complaints, late_delivery_rate)) <= 0.6`.
+
+**The test was verified to fail on corpora that are wrong**, which matters more than that
+it passes on this one:
+
+| corpus | rho | test |
+|---|---:|---|
+| **actual (sampled n=400)** | **+0.380** | **PASSES** |
+| seller linkage shuffled (v1's uniform null) | +0.021 | FAILS the band |
+| complaints ∝ order count (v1's actual defect) | — | FAILS the volume test at rho=1.00 |
+| complaints a pure function of `late_rate` | +0.9998 | FAILS the band |
+
+The sampled +0.380 against the population +0.427 is ordinary sampling variation, and sits
+inside the band as D-3's sizing predicted.

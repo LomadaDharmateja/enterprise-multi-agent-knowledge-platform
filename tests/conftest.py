@@ -33,3 +33,31 @@ def project_root() -> Path:
 @pytest.fixture(scope="session")
 def baseline_path() -> Path:
     return PROJECT_ROOT / "tests" / "baseline" / "baseline_results.json"
+
+
+@pytest.fixture(scope="session")
+def connection(project_root):
+    """A live PostgreSQL connection, or a skip.
+
+    Session-scoped and shared: test_corpus_signal.py needs it alongside
+    test_frozen_defects.py, which defines its own module-scoped copy.
+    """
+    import os
+
+    from dotenv import load_dotenv
+    from sqlalchemy import create_engine, text
+
+    load_dotenv(project_root / ".env")
+    url = (
+        f"postgresql+psycopg2://{os.getenv('POSTGRES_USER', 'enterprise_user')}:"
+        f"{os.getenv('POSTGRES_PASSWORD', 'enterprise_password')}@"
+        f"{os.getenv('POSTGRES_HOST', 'localhost')}:{os.getenv('POSTGRES_PORT', '5432')}/"
+        f"{os.getenv('POSTGRES_DB', 'enterprise_ai')}"
+    )
+    try:
+        engine = create_engine(url)
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+            yield conn
+    except Exception as exc:  # noqa: BLE001 -- any connection failure means "no stack"
+        pytest.skip(f"PostgreSQL not reachable: {exc}")
