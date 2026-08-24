@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  tests:
+    name: pytest (python 3.12, ubuntu)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          # test_repo_hygiene.py shells out to `git ls-files`, so it needs real history.
+          fetch-depth: 1
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install pinned runtime dependencies
+        # Installing the full pinned requirements.txt on a clean Linux runner is
+        # itself the check that the pins resolve away from the author's machine.
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install test dependencies
+        run: pip install -e ".[test]"
+
+      - name: Show resolved environment
+        run: pip freeze
+
+      - name: Run pytest
+        run: pytest -ra -v

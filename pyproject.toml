@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "enterprise-ai"
+version = "0.1.0"
+description = "Enterprise multi-agent knowledge platform over PostgreSQL, Neo4j and Qdrant."
+requires-python = ">=3.12"
+readme = "README.md"
+
+[project.optional-dependencies]
+test = ["pytest>=8.0"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+# NOTE (M0): the modules under src/ are executed as scripts (`python src/x/y.py`) and
+# import their siblings by bare module name after patching sys.path themselves
+# (see src/orchestration/agentic_workflow.py:19-32). Declaring the packages here makes
+# them discoverable and gives pytest a stable rootdir; it does NOT make
+# `import src.retrieval.hybrid_retriever` work. That is recorded, not fixed, in M0.
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "requires_stack: needs a live Postgres/Neo4j/Qdrant stack",
+    "requires_gemini: needs a working GEMINI_API_KEY",
+]
