@@ -153,3 +153,13 @@ def test_pinned_revision_matches_the_locally_cached_model():
     if not ref.exists():
         pytest.skip("HuggingFace cache for the embedding model is not present")
     assert ref.read_text(encoding="utf-8").strip() == PINNED_MODEL_REVISION
+
+
+# --- Task 3: the data-cleaning stage is committed -----------------------------
+
+
+def test_data_cleaning_script_is_committed():
+    """AUDIT.md P4: stage 1 of the pipeline lived only in a gitignored notebook."""
+    tracked = _tracked()
+    assert "scripts/clean_data.py" in tracked
+    assert "scripts/verify_clean_data.py" in tracked
