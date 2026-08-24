@@ -239,3 +239,29 @@ def test_baseline_and_its_tooling_are_committed():
         "scripts/check_template_determinism.py",
     ]:
         assert path in tracked, path
+
+
+# --- Task 6: the setup path is documented ------------------------------------
+
+
+def test_setup_document_is_committed():
+    assert "docs/SETUP.md" in _tracked()
+
+
+def test_setup_documents_the_steps_the_readme_omits():
+    """AUDIT.md P4 listed four undocumented prerequisites for a clean clone."""
+    text = (PROJECT_ROOT / "docs" / "SETUP.md").read_text(encoding="utf-8")
+    for required in [
+        "kaggle.com/datasets/olistbr/brazilian-ecommerce",  # the raw download
+        "scripts/clean_data.py",                            # the cleaning stage
+        "src/synthetic/synthetic_data_generator.py",        # the missing pipeline step
+        "database/postgres/schema.sql",                     # never invoked before
+    ]:
+        assert required in text, f"docs/SETUP.md does not mention {required}"
+
+
+def test_test_dependency_is_pinned():
+    """A clean clone resolved a different pytest than the author's machine until this
+    was pinned (M0 task 6)."""
+    text = (PROJECT_ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    assert re.search(r'test = \["pytest==[\d.]+"\]', text), text

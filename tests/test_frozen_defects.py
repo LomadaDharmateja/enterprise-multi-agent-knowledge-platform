@@ -131,30 +131,43 @@ def test_ticket_orders_have_zero_variance_on_the_flagship_variables(connection):
     assert rows[0] > 0
 
 
-def test_exactly_one_retrieval_template_is_non_deterministic(project_root):
-    """Found in M0 task 5; not in the original audit.
+def test_review_intelligence_limit_boundary_is_ambiguous(connection):
+    """Found in M0 task 5-6; not in the original audit.
 
-    review_intelligence orders by review_score alone. 11,424 rows tie at score 1 and
-    LIMIT 10 takes an arbitrary ten, so the same question can be answered from
-    different evidence on different runs. The other ten templates are stable.
+    review_intelligence is `ORDER BY review_score ASC ... LIMIT :limit` with no unique
+    tiebreaker. 11,424 negative reviews tie at score 1, so which ten come back is left
+    to PostgreSQL. Whether that actually varies depends on physical storage: on the
+    freshly loaded clean-clone database the same query returned the same ten rows five
+    times out of five, while on the original database -- aged by weeks of queries and
+    the audit's write probes -- five runs returned three distinct result sets.
+
+    So the runtime probe is not a reliable assertion. What IS always true, and is
+    what this test pins, is that the query is under-determined: strictly more rows
+    qualify at the boundary score than the LIMIT returns, so the ten rows the LLM
+    reasons over are an arbitrary choice PostgreSQL is free to change.
+
+    scripts/check_template_determinism.py measures the runtime behaviour on whatever
+    database is in front of it.
     """
-    import subprocess
-    import sys
+    limit = 10
+    boundary_score = connection.execute(
+        text(
+            "SELECT review_score FROM ecommerce.vw_review_intelligence "
+            "WHERE is_negative_review = TRUE "
+            f"ORDER BY review_score ASC NULLS LAST LIMIT {limit}"
+        )
+    ).scalars().all()[-1]
 
-    result = subprocess.run(
-        [
-            sys.executable,
-            str(project_root / "scripts" / "check_template_determinism.py"),
-            "--runs",
-            "5",
-        ],
-        capture_output=True,
-        text=True,
-        cwd=project_root,
+    tied = connection.execute(
+        text(
+            "SELECT count(*) FROM ecommerce.vw_review_intelligence "
+            "WHERE is_negative_review = TRUE AND review_score = :score"
+        ),
+        {"score": boundary_score},
+    ).scalar_one()
+
+    assert tied > limit, (
+        f"only {tied} rows tie at the boundary score {boundary_score}; the LIMIT is no "
+        "longer ambiguous -- a unique tiebreaker may have been added, so update this test"
     )
-    if result.returncode != 0:
-        pytest.skip(f"stack not reachable: {result.stderr[-300:]}")
-    assert "1 unstable template(s) out of 11" in result.stdout, result.stdout
-    assert "review_intelligence        distinct result sets: 2" in result.stdout or (
-        "review_intelligence" in result.stdout and "UNSTABLE" in result.stdout
-    ), result.stdout
+    assert tied > 10000, tied  # 11,424 at capture time

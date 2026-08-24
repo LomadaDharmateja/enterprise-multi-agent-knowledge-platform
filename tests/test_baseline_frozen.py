@@ -144,14 +144,17 @@ def test_different_questions_still_return_identical_evidence(baseline):
     assert len(collided) >= 4, collided
 
 
-def test_review_intelligence_evidence_is_not_reproducible(baseline):
+def test_review_intelligence_evidence_was_not_reproducible_at_capture(baseline):
     """Found during M0 task 5; not in the original audit.
 
-    The two questions that routed to review_intelligence got different rows. The
-    template orders by review_score alone, 11,424 rows tie at score 1, and LIMIT 10
-    takes an arbitrary ten -- so the same question asked twice can be answered from
-    different evidence. scripts/check_template_determinism.py measures it directly:
-    1 unstable template out of 11.
+    The two baseline questions that routed to review_intelligence got different rows.
+    The template orders by review_score alone with no unique tiebreaker, 11,424 rows
+    tie at score 1, and LIMIT 10 takes an arbitrary ten.
+
+    Whether that actually varies depends on physical storage: it did on the original
+    database and did not on a freshly loaded one (M0 task 6). This test pins the
+    observation as captured; the always-true version of the same defect is
+    test_review_intelligence_limit_boundary_is_ambiguous in test_frozen_defects.py.
     """
     per_intent = baseline["cross_question"]["sql_evidence_sets_per_intent"]
     assert per_intent.get("review_intelligence") == 2, per_intent
