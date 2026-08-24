@@ -111,15 +111,84 @@ def query_planner_node(state: EnterpriseWorkflowState) -> EnterpriseWorkflowStat
         planned_route = plan_query_with_gemini(query)
 
         span["output"] = {
+            "answerable": planned_route.get("answerable", True),
             "sql_intent": planned_route.get("sql_intent"),
             "graph_intent": planned_route.get("graph_intent"),
             "vector_artifact_groups": planned_route.get("vector_artifact_groups", []),
+            "sql_filters": (planned_route.get("sql_plan") or {}).get("filters"),
+            "sql_sort_by": (planned_route.get("sql_plan") or {}).get("sort_by"),
+            "graph_filters": (planned_route.get("graph_plan") or {}).get("filters"),
+            "dropped_filters": planned_route.get("dropped_filters", []),
             "model": planned_route.get("model"),
         }
 
     return {
         "planned_route": planned_route,
     }
+
+
+def refusal_node(state: EnterpriseWorkflowState) -> EnterpriseWorkflowState:
+    """Terminal node for a plan that selected no retrieval route.
+
+    "purple monkey dishwasher" used to raise ValueError here, because a plan with no
+    routes was unrepresentable. It is now a first-class outcome: no database is
+    queried, no answer is generated, and the refusal says so. The alternative --
+    routing an unanswerable question to a plausible-looking template -- is exactly
+    the F-03 behaviour where the control question and a business question came back
+    with the same evidence.
+    """
+    planned_route = state["planned_route"]
+    run_id = state["run_id"]
+
+    reason = planned_route.get("refusal_reason") or (
+        "The planner selected no retrieval route for this query."
+    )
+
+    with trace_span(
+        run_id=run_id,
+        component="hybrid_retrieval_tools",
+        operation="refuse_unanswerable_query",
+        metadata={"query": state["query"], "refusal_reason": reason},
+    ) as span:
+        span["output"] = {"answerable": False, "refusal_reason": reason}
+
+    final_response = {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "overall_status": "REFUSED",
+        "answerable": False,
+        "refusal_reason": reason,
+        "query": state["query"],
+        "planned_route": planned_route,
+        "source_summary": {
+            "sql": {"intent": None, "records": 0, "skipped": True},
+            "graph": {"intent": None, "records": 0, "skipped": True},
+            "vector": {"artifact_groups": [], "records": 0, "skipped": True},
+        },
+        "evidence_quality": {
+            "confidence": "none",
+            "reasons": ["no retrieval route was selected; no evidence was gathered"],
+        },
+        "run_id": run_id,
+        "answer_preview": reason,
+    }
+
+    return {"final_response": final_response}
+
+
+def route_after_planning(state: EnterpriseWorkflowState) -> str:
+    planned_route = state.get("planned_route") or {}
+
+    if planned_route.get("answerable", True) is False:
+        return "refusal"
+
+    if not (
+        planned_route.get("sql_intent")
+        or planned_route.get("graph_intent")
+        or planned_route.get("vector_artifact_groups")
+    ):
+        return "refusal"
+
+    return "retrieve"
 
 
 def retrieval_context_node(state: EnterpriseWorkflowState) -> EnterpriseWorkflowState:
@@ -160,6 +229,9 @@ def retrieval_context_node(state: EnterpriseWorkflowState) -> EnterpriseWorkflow
             "sql_records": source_summary.get("sql", {}).get("record_count"),
             "graph_records": source_summary.get("graph", {}).get("record_count"),
             "vector_records": source_summary.get("vector", {}).get("record_count"),
+            "evidence_confidence": (context.get("evidence_quality") or {}).get(
+                "confidence"
+            ),
         }
 
     return {
@@ -270,6 +342,9 @@ def final_response_node(state: EnterpriseWorkflowState) -> EnterpriseWorkflowSta
         "answer_model": answer_result["model"],
         "answer_length_chars": answer_result["summary"]["answer_length_chars"],
         "evaluation_summary": evaluation_summary,
+        "answerable": True,
+        "refusal_reason": None,
+        "evidence_quality": context.get("evidence_quality"),
         "run_id": state["run_id"],
         "output_files": {
             "raw_retrieval": state["raw_retrieval_path"],
@@ -293,13 +368,19 @@ def build_enterprise_workflow():
     workflow = StateGraph(EnterpriseWorkflowState)
 
     workflow.add_node("query_planner", query_planner_node)
+    workflow.add_node("refusal", refusal_node)
     workflow.add_node("retrieval_context_builder", retrieval_context_node)
     workflow.add_node("answer_generator", answer_generation_node)
     workflow.add_node("answer_evaluator", answer_evaluation_node)
     workflow.add_node("final_response", final_response_node)
 
     workflow.add_edge(START, "query_planner")
-    workflow.add_edge("query_planner", "retrieval_context_builder")
+    workflow.add_conditional_edges(
+        "query_planner",
+        route_after_planning,
+        {"retrieve": "retrieval_context_builder", "refusal": "refusal"},
+    )
+    workflow.add_edge("refusal", END)
     workflow.add_edge("retrieval_context_builder", "answer_generator")
     workflow.add_edge("answer_generator", "answer_evaluator")
     workflow.add_edge("answer_evaluator", "final_response")
@@ -338,6 +419,9 @@ def run_agentic_workflow(
     with workflow_report_path.open("w", encoding="utf-8") as file:
         json.dump(final_response, file, indent=2, ensure_ascii=False, default=str)
 
+    # A refusal produces no answer, prompt or evaluation artefacts, so it carries no
+    # output_files block of its own.
+    final_response.setdefault("output_files", {})
     final_response["output_files"]["workflow_report"] = str(workflow_report_path)
 
     return final_response

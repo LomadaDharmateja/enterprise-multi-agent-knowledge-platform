@@ -80,39 +80,81 @@ def first_existing_value(record: dict[str, Any], keys: list[str]) -> Any:
     return None
 
 
-def extract_entity_ids(record: dict[str, Any]) -> dict[str, Any]:
-    entity_keys = [
-        "customer_id",
-        "customer_unique_id",
-        "order_id",
-        "order_item_id",
-        "product_id",
-        "seller_id",
-        "review_id",
-        "payment_id",
-        "ticket_id",
-        "incident_id",
-        "email_id",
-        "claim_id",
-        "policy_id",
-        "guide_id",
-        "category_id",
-        "category_name",
-        "product_category_name",
-        "region_id",
-        "city",
-        "state",
-    ]
+ENTITY_KEYS = [
+    "customer_id",
+    "customer_unique_id",
+    "order_id",
+    "order_item_id",
+    "product_id",
+    "seller_id",
+    "review_id",
+    "payment_id",
+    "ticket_id",
+    "incident_id",
+    "email_id",
+    "claim_id",
+    "policy_id",
+    "guide_id",
+    "category_id",
+    "category_name",
+    "product_category_name",
+    "region_id",
+    "city",
+    "state",
+]
 
-    entity_ids = {}
+# The four IDs that let a vector hit join back to a SQL row or a graph node.
+# F-01 was that none of them reached the payload.
+JOIN_KEYS = ["customer_id", "order_id", "product_id", "seller_id"]
 
-    for key in entity_keys:
-        value = record.get(key)
+# Artifact groups whose records describe a single order, and must therefore carry
+# the join keys. Policies and guides are scoped to a category rather than an order,
+# so their absence is correct and not a defect (see docs/CORPUS_DESIGN.md Part 4).
+ARTIFACT_GROUPS_REQUIRING_JOIN_KEYS = {
+    "support_tickets",
+    "customer_emails",
+    "logistics_incidents",
+    "warranty_claims",
+}
+
+# The generator names a policy's identifier `document_id`; ingest looked up
+# `policy_id` and found nothing, so policy documents carried no ID at all (F-01).
+ID_KEY_ALIASES = {
+    "policy_id": ["policy_id", "document_id"],
+}
+
+
+def resolve_entity_values(record: dict[str, Any]) -> dict[str, Any]:
+    """Flatten every entity value a record exposes, wherever it lives.
+
+    F-01: ingest read `record.get(key)` at the top level only, while the generator
+    writes every ID one level down under `linked_entities`. Reading both -- with the
+    top level authoritative on conflict -- is what makes the payload joinable and
+    what keeps it joinable if the generator stops duplicating the IDs upward.
+    """
+    linked_entities = record.get("linked_entities")
+
+    if not isinstance(linked_entities, dict):
+        linked_entities = {}
+
+    resolved = {}
+
+    for key in ENTITY_KEYS:
+        candidate_keys = ID_KEY_ALIASES.get(key, [key])
+
+        value = first_existing_value(record, candidate_keys)
+
+        if value is None:
+            value = first_existing_value(linked_entities, candidate_keys)
 
         if value is not None and value != "":
-            entity_ids[key] = value
+            resolved[key] = value
 
-    return entity_ids
+    return resolved
+
+
+def extract_entity_ids(record: dict[str, Any]) -> dict[str, Any]:
+    return resolve_entity_values(record)
 
 
 def normalize_value(value: Any) -> str:
@@ -230,13 +272,47 @@ def build_document_text(
     return "\n".join(text_parts)
 
 
+def build_policy_scope(record: dict[str, Any]) -> dict[str, Any]:
+    """Carry a policy's seller and category scope into the payload.
+
+    A policy document has no single `seller_id`; it applies to a *set* of sellers.
+    That set is the "sellers associated with relevant support policies" linkage the
+    flagship question asks for, and it is unusable from the vector leg unless it is
+    on the point. Kept under distinct keys so nothing mistakes "this policy covers
+    seller X" for "this document is about seller X".
+    """
+    metadata = record.get("metadata")
+
+    if not isinstance(metadata, dict):
+        return {}
+
+    scope = {}
+
+    seller_ids = metadata.get("seller_ids")
+
+    if isinstance(seller_ids, list) and seller_ids:
+        scope["policy_seller_ids"] = seller_ids
+
+    in_scope_categories = metadata.get("in_scope_categories")
+
+    if isinstance(in_scope_categories, list) and in_scope_categories:
+        scope["policy_categories"] = in_scope_categories
+
+    selection_rule = metadata.get("seller_selection_rule")
+
+    if selection_rule:
+        scope["policy_seller_selection_rule"] = selection_rule
+
+    return scope
+
+
 def build_payload(
     artifact_type: str,
     source_file: str,
     record: dict[str, Any],
     text: str,
 ) -> dict[str, Any]:
-    entity_ids = extract_entity_ids(record)
+    entity_values = resolve_entity_values(record)
 
     payload = {
         "artifact_type": artifact_type,
@@ -244,7 +320,7 @@ def build_payload(
         "document_type": artifact_type,
         "source_file": source_file,
         "text": text,
-        "entity_ids": entity_ids,
+        "entity_ids": entity_values,
         "ingested_at": datetime.now(timezone.utc).isoformat(),
     }
 
@@ -285,10 +361,17 @@ def build_payload(
     ]
 
     for key in important_keys:
-        value = record.get(key)
+        # Entity IDs come from the resolved view (top level OR linked_entities);
+        # everything else is a plain descriptive field and stays top-level only.
+        value = entity_values.get(key)
+
+        if value is None:
+            value = record.get(key)
 
         if value is not None and value != "":
             payload[key] = value
+
+    payload.update(build_policy_scope(record))
 
     title = first_existing_value(
         record,
@@ -320,7 +403,7 @@ def get_record_identifier(
         "logistics_incidents": ["incident_id"],
         "customer_emails": ["email_id"],
         "warranty_claims": ["claim_id"],
-        "policy_documents": ["policy_id"],
+        "policy_documents": ["policy_id", "document_id"],
         "troubleshooting_guides": ["guide_id"],
     }
 
@@ -382,7 +465,52 @@ def load_synthetic_documents(synthetic_dir: Path) -> list[dict[str, Any]]:
                 }
             )
 
+    assert_join_keys_present(documents)
+
     return documents
+
+
+def assert_join_keys_present(documents: list[dict[str, Any]]) -> None:
+    """Fail the ingest rather than shipping a corpus that cannot join (F-01).
+
+    F-01 survived because losing every entity ID produced no error -- ingest
+    reported 8,152 points upserted and every validator passed. The count was never
+    the thing to check. This is the same lesson as F-06: schema drift must be loud.
+    """
+    missing_by_group: dict[str, int] = {}
+    total_by_group: dict[str, int] = {}
+
+    for document in documents:
+        artifact_type = document["artifact_type"]
+
+        if artifact_type not in ARTIFACT_GROUPS_REQUIRING_JOIN_KEYS:
+            continue
+
+        total_by_group[artifact_type] = total_by_group.get(artifact_type, 0) + 1
+
+        payload = document["payload"]
+
+        if not any(payload.get(key) for key in JOIN_KEYS):
+            missing_by_group[artifact_type] = missing_by_group.get(artifact_type, 0) + 1
+
+    if missing_by_group:
+        detail = ", ".join(
+            f"{group}: {count} of {total_by_group[group]}"
+            for group, count in sorted(missing_by_group.items())
+        )
+        raise ValueError(
+            "Refusing to ingest: records carry none of "
+            f"{JOIN_KEYS} in their payload ({detail}). "
+            "Entity IDs live under `linked_entities` in the generator output; "
+            "if this fires, the ingest path has stopped reading them (F-01)."
+        )
+
+    for group in sorted(total_by_group):
+        print(
+            f"  join keys present: {group} "
+            f"{total_by_group[group] - missing_by_group.get(group, 0)}"
+            f"/{total_by_group[group]}"
+        )
 
 
 def create_qdrant_client(host: str, port: int) -> QdrantClient:

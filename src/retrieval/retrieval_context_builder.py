@@ -21,7 +21,14 @@ ENTITY_KEYS = [
     "review_id",
     "category_id",
     "region_id",
+    "policy_id",
+    "guide_id",
+    "email_id",
 ]
+
+# The IDs that can actually join a vector hit to a SQL row or a graph node. F-01 was
+# that none of them survived ingest, so no cross-source grouping was possible at all.
+JOIN_KEYS = ["seller_id", "order_id", "product_id", "customer_id"]
 
 
 IMPORTANT_SQL_FIELDS = [
@@ -72,6 +79,9 @@ IMPORTANT_GRAPH_FIELDS = [
     "region_state",
     "region_city",
     "policy_document_id",
+    "policy_id",
+    "policy_topic",
+    "applicability_scope",
     "policy_title",
     "guide_id",
     "guide_title",
@@ -95,6 +105,11 @@ IMPORTANT_VECTOR_FIELDS = [
     "product_id",
     "seller_id",
     "ticket_id",
+    "claim_id",
+    "incident_id",
+    "email_id",
+    "policy_id",
+    "guide_id",
     "category_id",
     "region_id",
     "text_preview",
@@ -190,6 +205,112 @@ def collect_entity_ids(report: dict[str, Any]) -> dict[str, list[str]]:
     }
 
 
+def record_reference(source: str, record: dict[str, Any]) -> str:
+    """A short, human-checkable handle for one evidence record."""
+    for key in (
+        "artifact_id",
+        "ticket_id",
+        "claim_id",
+        "incident_id",
+        "email_id",
+        "policy_id",
+        "policy_document_id",
+        "guide_id",
+        "review_id",
+        "order_id",
+        "seller_id",
+        "product_id",
+        "customer_unique_id",
+        "customer_id",
+    ):
+        value = record.get(key)
+
+        if value:
+            return f"{source}:{key}={stringify_value(value)}"
+
+    return f"{source}:record"
+
+
+def build_entity_cross_references(
+    report: dict[str, Any],
+    max_entities_per_key: int = 10,
+    max_references_per_entity: int = 5,
+) -> dict[str, Any]:
+    """Group evidence by entity ID, showing which sources agree on it.
+
+    This is the point of F-01. A flat list of IDs tells the answer agent nothing about
+    which SQL row belongs with which document; a vector hit that joins to a SQL row is
+    only useful if the join is visible. Entities seen in more than one leg are listed
+    first, because those are the ones that carry a cross-source claim.
+    """
+    results = report["retrieval_results"]
+
+    legs = {
+        "sql": results["sql"]["records"],
+        "graph": results["graph"]["records"],
+    }
+
+    vector_records = []
+
+    for group_records in results["vector"]["results_by_artifact_group"].values():
+        vector_records.extend(group_records)
+
+    legs["vector"] = vector_records
+
+    grouped: dict[str, dict[str, dict[str, list[str]]]] = {key: {} for key in JOIN_KEYS}
+
+    for source, records in legs.items():
+        for record in records:
+            for key in JOIN_KEYS:
+                value = record.get(key)
+
+                if not value:
+                    continue
+
+                entity_id = stringify_value(value)
+                entry = grouped[key].setdefault(entity_id, {})
+                references = entry.setdefault(source, [])
+
+                reference = record_reference(source, record)
+
+                if (
+                    reference not in references
+                    and len(references) < max_references_per_entity
+                ):
+                    references.append(reference)
+
+    cross_references: dict[str, Any] = {}
+    summary: dict[str, Any] = {}
+
+    for key, entities in grouped.items():
+        if not entities:
+            continue
+
+        # Multi-source entities first, then by how much evidence they carry.
+        ranked = sorted(
+            entities.items(),
+            key=lambda item: (-len(item[1]), -sum(len(v) for v in item[1].values()), item[0]),
+        )
+
+        kept = dict(ranked[:max_entities_per_key])
+
+        cross_references[key] = {
+            entity_id: {
+                "sources": sorted(sources),
+                "source_count": len(sources),
+                "references": sorted(r for refs in sources.values() for r in refs),
+            }
+            for entity_id, sources in kept.items()
+        }
+
+        summary[key] = {
+            "distinct_entities": len(entities),
+            "in_multiple_sources": sum(1 for _, s in entities.items() if len(s) > 1),
+        }
+
+    return {"by_key": cross_references, "summary": summary}
+
+
 def build_sql_evidence(
     sql_result: dict[str, Any],
     max_records: int,
@@ -253,19 +374,29 @@ def build_source_summary(
     sql_evidence: dict[str, Any],
     graph_evidence: dict[str, Any],
     document_evidence: dict[str, Any],
+    sql_result: dict[str, Any] | None = None,
+    graph_result: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    sql_result = sql_result or {}
+    graph_result = graph_result or {}
+
     return {
         "sql": {
             "source": "postgresql",
             "intent": sql_evidence["intent"],
             "records": sql_evidence["total_records_returned"],
             "role": sql_evidence["retrieval_role"],
+            "skipped": bool(sql_result.get("skipped")),
+            "filters": sql_result.get("filters", {}),
+            "sort_by": sql_result.get("sort_by"),
         },
         "graph": {
             "source": "neo4j",
             "intent": graph_evidence["intent"],
             "records": graph_evidence["total_records_returned"],
             "role": graph_evidence["retrieval_role"],
+            "skipped": bool(graph_result.get("skipped")),
+            "filters": graph_result.get("filters", {}),
         },
         "vector": {
             "source": "qdrant",
@@ -326,19 +457,54 @@ def build_context_text(context: dict[str, Any]) -> str:
     lines.append("")
 
     lines.append("Source summary:")
-    lines.append(
-        f"- PostgreSQL intent: {context['source_summary']['sql']['intent']} "
-        f"({context['source_summary']['sql']['records']} records)"
-    )
-    lines.append(
-        f"- Neo4j intent: {context['source_summary']['graph']['intent']} "
-        f"({context['source_summary']['graph']['records']} records)"
-    )
+
+    sql_summary = context["source_summary"]["sql"]
+    graph_summary = context["source_summary"]["graph"]
+
+    if sql_summary.get("skipped"):
+        lines.append("- PostgreSQL: not selected by the plan; no SQL evidence gathered")
+    else:
+        lines.append(
+            f"- PostgreSQL intent: {sql_summary['intent']} "
+            f"({sql_summary['records']} records); "
+            f"filters={sql_summary.get('filters') or 'none'}; "
+            f"ranked by {sql_summary.get('sort_by')}"
+        )
+
+    if graph_summary.get("skipped"):
+        lines.append("- Neo4j: not selected by the plan; no graph evidence gathered")
+    else:
+        lines.append(
+            f"- Neo4j intent: {graph_summary['intent']} "
+            f"({graph_summary['records']} records); "
+            f"filters={graph_summary.get('filters') or 'none'}"
+        )
+
     lines.append(
         f"- Qdrant artifact groups: {context['source_summary']['vector']['artifact_groups']} "
         f"({context['source_summary']['vector']['records']} records)"
     )
     lines.append("")
+
+    # The dangerous case is not an error, it is a question whose filters all failed
+    # to resolve: the query silently degrades to the unfiltered one F-03 was about,
+    # and the resulting table looks exactly like a filtered one. Say so in the prompt.
+    evidence_quality = context.get("evidence_quality") or {}
+
+    if evidence_quality:
+        lines.append(f"Evidence confidence: {evidence_quality.get('confidence')}")
+
+        for reason in evidence_quality.get("reasons", []):
+            lines.append(f"- {reason}")
+
+        if evidence_quality.get("all_filters_dropped"):
+            lines.append(
+                "- TREAT THIS EVIDENCE AS UNFILTERED. State in the answer that the "
+                "question could not be narrowed to the entities it named, and do not "
+                "present these rows as if they were selected for this question."
+            )
+
+        lines.append("")
 
     lines.append("Recommended next actions:")
     for action in context["recommended_next_actions"]:
@@ -349,6 +515,26 @@ def build_context_text(context: dict[str, Any]) -> str:
     lines.append("Key entity IDs:")
     for key, values in context["entity_ids"].items():
         lines.append(f"- {key}: {', '.join(values[:10])}")
+
+    cross_references = (context.get("entity_cross_references") or {}).get("by_key", {})
+
+    if cross_references:
+        lines.append("")
+        lines.append(
+            "Entities linked across sources (an entity listed under two or more "
+            "sources is supported by evidence from each of them):"
+        )
+
+        for key, entities in cross_references.items():
+            for entity_id, detail in entities.items():
+                if detail["source_count"] < 2:
+                    continue
+
+                lines.append(
+                    f"- {key}={entity_id} appears in "
+                    f"{', '.join(detail['sources'])}: "
+                    f"{'; '.join(detail['references'][:5])}"
+                )
 
     return "\n".join(lines)
 
@@ -399,9 +585,12 @@ def build_retrieval_context(
         sql_evidence=sql_evidence,
         graph_evidence=graph_evidence,
         document_evidence=document_evidence,
+        sql_result=sql_result,
+        graph_result=graph_result,
     )
 
     entity_ids = collect_entity_ids(raw_report)
+    entity_cross_references = build_entity_cross_references(raw_report)
 
     recommended_next_actions = build_recommended_next_actions(
         sql_intent=sql_result["intent"],
@@ -421,6 +610,7 @@ def build_retrieval_context(
                 "graph_evidence",
                 "document_evidence",
                 "entity_ids",
+                "entity_cross_references",
                 "recommended_next_actions",
                 "answer_context_text",
             ],
@@ -429,10 +619,12 @@ def build_retrieval_context(
             "document_artifact_groups": document_evidence["artifact_groups"],
         },
         "source_summary": source_summary,
+        "evidence_quality": raw_report.get("summary", {}).get("evidence_quality", {}),
         "sql_evidence": sql_evidence,
         "graph_evidence": graph_evidence,
         "document_evidence": document_evidence,
         "entity_ids": entity_ids,
+        "entity_cross_references": entity_cross_references,
         "recommended_next_actions": recommended_next_actions,
     }
 

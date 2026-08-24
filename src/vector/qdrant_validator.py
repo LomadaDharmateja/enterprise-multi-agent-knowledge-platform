@@ -225,7 +225,7 @@ def compact_search_result(point: Any) -> dict[str, Any]:
         "product_id": payload.get("product_id"),
         "seller_id": payload.get("seller_id"),
         "category_id": payload.get("category_id"),
-        "text_preview": payload.get("text_preview"),
+        "text_preview": payload.get("text"),
     }
 
 

@@ -270,11 +270,16 @@ def test_test_dependency_is_pinned():
 # --- M1 task 1: the pinned revision reaches the runtime, not just the test ----
 
 
-def test_runtime_settings_expose_the_pinned_embedding_revision():
-    """M0 pinned the revision in .env.example; nothing read it at runtime."""
-    import sys
+def test_runtime_settings_expose_the_pinned_embedding_revision(monkeypatch):
+    """M0 pinned the revision in .env.example; nothing read it at runtime.
 
-    sys.path.insert(0, str(SRC))
+    `monkeypatch.syspath_prepend` rather than a bare `sys.path.insert`: the bare
+    version leaked `src/` onto sys.path for the rest of the session, after which
+    `import observability` resolved to the empty package `src/observability/__init__.py`
+    instead of `src/observability/observability.py`, and importing agentic_workflow
+    failed in the full suite while passing on its own. monkeypatch restores the path.
+    """
+    monkeypatch.syspath_prepend(str(SRC))
     from retrieval.hybrid_retriever import load_settings
 
     assert load_settings()["embedding_model_revision"] == PINNED_MODEL_REVISION

@@ -57,6 +57,88 @@ def compact_json(value: Any, max_chars: int = 12000) -> str:
     return text[:max_chars].strip() + "\n...TRUNCATED..."
 
 
+def fit_document_evidence(
+    document_evidence: dict[str, Any],
+    max_chars: int,
+) -> tuple[dict[str, Any], list[str]]:
+    """Shrink document evidence to a budget WITHOUT losing an artifact group.
+
+    The tail-chop in `compact_json` cut the last group out entirely. Measured on the
+    flagship question: document evidence was 12,597 chars against a 9,000 budget, and
+    all five `policy_documents` records -- the whole group -- fell off the end. The
+    evaluator then reported the policy IDs in the answer as unsupported claims, which
+    was correct from what it had been shown and wrong about the system.
+
+    Groups are kept and trimmed evenly instead: long previews first, then records per
+    group, never below one record per group. What was trimmed is returned so the
+    prompt can say so, because the failure mode being fixed here is silent loss.
+    """
+    groups = document_evidence.get("results_by_artifact_group", {})
+
+    if not groups:
+        return document_evidence, []
+
+    def rendered(candidate: dict[str, Any]) -> int:
+        return len(json.dumps(candidate, indent=2, ensure_ascii=False, default=str))
+
+    notes: list[str] = []
+
+    for preview_length, records_per_group in (
+        (None, None),
+        (200, None),
+        (120, None),
+        (120, 3),
+        (120, 2),
+        (100, 1),
+    ):
+        trimmed_groups = {}
+
+        for group, records in groups.items():
+            kept = records if records_per_group is None else records[:records_per_group]
+            trimmed_records = []
+
+            for record in kept:
+                item = dict(record)
+                preview = item.get("text_preview")
+
+                if preview_length is not None and isinstance(preview, str):
+                    if len(preview) > preview_length:
+                        item["text_preview"] = preview[:preview_length].strip() + "..."
+
+                trimmed_records.append(item)
+
+            trimmed_groups[group] = trimmed_records
+
+        candidate = dict(document_evidence)
+        candidate["results_by_artifact_group"] = trimmed_groups
+
+        if rendered(candidate) <= max_chars:
+            if preview_length is not None:
+                notes.append(f"document previews shortened to {preview_length} chars")
+
+            if records_per_group is not None:
+                notes.append(
+                    f"document evidence limited to {records_per_group} record(s) "
+                    "per artifact group"
+                )
+
+            if notes:
+                candidate["trimmed_for_evaluation"] = notes
+
+            return candidate, notes
+
+    # Still over budget at the tightest setting: keep every group, accept the size.
+    candidate = dict(document_evidence)
+    candidate["results_by_artifact_group"] = trimmed_groups
+    notes.append(
+        "document evidence exceeds the evaluation budget even at one record per "
+        "group; every artifact group is still represented"
+    )
+    candidate["trimmed_for_evaluation"] = notes
+
+    return candidate, notes
+
+
 def build_evaluation_prompt(
     context: dict[str, Any],
     answer_result: dict[str, Any],
@@ -66,8 +148,12 @@ def build_evaluation_prompt(
 
     sql_evidence = context.get("sql_evidence", {})
     graph_evidence = context.get("graph_evidence", {})
-    document_evidence = context.get("document_evidence", {})
+    document_evidence, trim_notes = fit_document_evidence(
+        context.get("document_evidence", {}),
+        max_chars=9000,
+    )
     entity_ids = context.get("entity_ids", {})
+    entity_cross_references = context.get("entity_cross_references", {})
     recommended_next_actions = context.get("recommended_next_actions", [])
 
     prompt = f"""
@@ -96,6 +182,12 @@ Document evidence:
 Entity IDs:
 {compact_json(entity_ids, max_chars=3000)}
 
+Entities linked across sources (the same ID found in more than one retrieval leg):
+{compact_json(entity_cross_references, max_chars=4000)}
+
+Evidence trimming applied before this prompt (if any):
+{compact_json(trim_notes, max_chars=800)}
+
 Recommended next actions:
 {compact_json(recommended_next_actions, max_chars=3000)}
 
@@ -107,6 +199,9 @@ Evaluate the answer using these rules:
 - The answer should use graph evidence for connected entity relationships.
 - The answer should use document evidence for retrieved support tickets, policies, guides, incidents, emails, or warranty claims.
 - The answer should not invent unsupported facts.
+- An entity or document identifier that appears anywhere in the SQL evidence, graph
+  evidence, document evidence or entity IDs above IS supported. Do not report such an
+  identifier as an unsupported claim.
 - The answer should include limitations if evidence is incomplete.
 - The answer should be useful for a business user.
 - Do not fail the answer only because it is cautious.

@@ -10,6 +10,7 @@ Nothing here talks to a database, a network, or Gemini.
 from __future__ import annotations
 
 import ast
+import re
 from pathlib import Path
 
 import pytest
@@ -99,6 +100,7 @@ VALID_PLAN = {
     "graph_intent": "seller_ticket_product_paths",
     "vector_artifact_groups": ["support_tickets", "warranty_claims"],
     "reasoning": "frozen baseline plan",
+    "answerable": True,
 }
 
 
@@ -123,9 +125,9 @@ def test_duplicate_vector_groups_are_deduplicated_in_order():
     [
         ("sql_intent", "'; DROP TABLE ecommerce.orders; --"),
         ("sql_intent", "SELECT * FROM pg_shadow"),
-        ("sql_intent", None),
+        ("sql_intent", "seller_performance; DROP TABLE x"),
         ("graph_intent", "MATCH (n) DETACH DELETE n"),
-        ("graph_intent", None),
+        ("graph_intent", "CALL apoc.load.json('http://evil')"),
     ],
 )
 def test_out_of_allowlist_scalar_intents_are_rejected(field, value):
@@ -139,8 +141,7 @@ def test_out_of_allowlist_scalar_intents_are_rejected(field, value):
     "groups",
     [
         ["support_tickets", "pg_catalog"],
-        [],
-        None,
+        ["support_tickets", "'; DROP TABLE x; --"],
         "support_tickets",
     ],
 )
@@ -150,39 +151,105 @@ def test_bad_vector_groups_are_rejected(groups):
         validate_and_normalize_plan(plan)
 
 
-def test_sql_only_plan_is_currently_unrepresentable():
-    """Frozen defect, not a fix.
+def test_sql_only_plan_is_representable():
+    """M2 fix of the defect M0 froze.
 
-    A null graph_intent raises, which is why 'Which seller had the highest revenue?'
-    crashes the workflow (AUDIT.md P3). M2 changes this; M0 records it.
+    A null graph_intent used to raise, which is why "Which seller had the highest
+    revenue?" crashed the workflow (AUDIT.md P3). Gemini was answering correctly --
+    the question needs no graph traversal -- and the schema could not represent it.
     """
     plan = dict(VALID_PLAN, graph_intent=None)
-    with pytest.raises(ValueError, match="Invalid graph intent"):
+    out = validate_and_normalize_plan(plan)
+    assert out["sql_intent"] == "seller_performance"
+    assert out["graph_intent"] is None
+    assert out["answerable"] is True
+
+
+def test_graph_only_plan_is_representable():
+    plan = dict(VALID_PLAN, sql_intent=None)
+    out = validate_and_normalize_plan(plan)
+    assert out["sql_intent"] is None
+    assert out["graph_intent"] == "seller_ticket_product_paths"
+
+
+def test_vector_only_plan_is_representable():
+    plan = dict(VALID_PLAN, sql_intent=None, graph_intent=None)
+    out = validate_and_normalize_plan(plan)
+    assert out["vector_artifact_groups"] == ["support_tickets", "warranty_claims"]
+
+
+def test_empty_vector_groups_are_legal_when_another_leg_is_selected():
+    plan = dict(VALID_PLAN, vector_artifact_groups=[])
+    assert validate_and_normalize_plan(plan)["vector_artifact_groups"] == []
+
+
+def test_answerable_plan_with_no_legs_at_all_is_rejected():
+    """Nullable intents must not become a way to smuggle through an empty plan."""
+    plan = dict(
+        VALID_PLAN, sql_intent=None, graph_intent=None, vector_artifact_groups=[]
+    )
+    with pytest.raises(ValueError, match="at least one retrieval leg"):
         validate_and_normalize_plan(plan)
 
 
-def test_templates_bind_only_limit():
-    """Frozen defect: no template accepts any parameter except the row limit.
+def test_unanswerable_plan_with_no_legs_is_accepted_as_a_refusal():
+    plan = dict(
+        VALID_PLAN,
+        answerable=False,
+        refusal_reason="nonsense query",
+        sql_intent=None,
+        graph_intent=None,
+        vector_artifact_groups=[],
+    )
+    out = validate_and_normalize_plan(plan)
+    assert out["answerable"] is False
+    assert out["refusal_reason"] == "nonsense query"
 
-    This is F-03 -- the reason a business question and 'purple monkey dishwasher'
-    return byte-identical evidence. The test asserts the current state so that M2's
-    parameterisation work shows up as a deliberate, visible change to this file.
+
+def test_templates_bind_exactly_their_declared_parameters():
+    """F-03 fix, replacing M0's `test_templates_bind_only_limit`.
+
+    M0 froze the defect: no template accepted any bind parameter except the row
+    limit, which is why a business question and "purple monkey dishwasher" returned
+    byte-identical evidence. The freeze now runs the other way -- every placeholder
+    in a template must be a parameter that template declares, so a typo'd or
+    undeclared bind is caught here rather than at runtime.
     """
+    from retrieval_parameters import (
+        GRAPH_PARAMETER_SPECS,
+        SQL_PARAMETER_SPECS,
+    )
+
     source = RETRIEVER.read_text(encoding="utf-8")
     tree = ast.parse(source)
-    placeholders = set()
+
+    found: dict[str, set[str]] = {"sql_retrieve": set(), "graph_retrieve": set()}
+
     for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef) and node.name in {"sql_retrieve", "graph_retrieve"}:
+        if isinstance(node, ast.FunctionDef) and node.name in found:
             for stmt in ast.walk(node):
                 if isinstance(stmt, ast.Constant) and isinstance(stmt.value, str):
-                    for token in (":limit", "$limit"):
-                        if token in stmt.value:
-                            placeholders.add(token)
-                    # any other bind placeholder would be a colon/dollar word
-                    import re
-
                     for match in re.findall(r"(?<![:\w]):([a-z_]+)\b", stmt.value):
-                        placeholders.add(f":{match}")
+                        found[node.name].add(match)
                     for match in re.findall(r"\$([a-z_]+)\b", stmt.value):
-                        placeholders.add(f"${match}")
-    assert placeholders == {":limit", "$limit"}, placeholders
+                        found[node.name].add(match)
+
+    sql_declared = {"limit", "sort_by"}
+    for spec in SQL_PARAMETER_SPECS.values():
+        sql_declared |= set(spec)
+
+    graph_declared = {"limit"}
+    for spec in GRAPH_PARAMETER_SPECS.values():
+        graph_declared |= set(spec)
+
+    undeclared_sql = found["sql_retrieve"] - sql_declared
+    undeclared_graph = found["graph_retrieve"] - graph_declared
+
+    assert not undeclared_sql, f"SQL templates bind undeclared params: {undeclared_sql}"
+    assert not undeclared_graph, (
+        f"Cypher templates bind undeclared params: {undeclared_graph}"
+    )
+
+    # And the defect must not come back: the templates must bind more than the limit.
+    assert found["sql_retrieve"] > {"limit"}, "SQL templates still bind only :limit"
+    assert found["graph_retrieve"] > {"limit"}, "Cypher templates still bind only $limit"

@@ -1,0 +1,529 @@
+{
+  "generated_at": "2026-08-24T22:11:58.184987+00:00",
+  "milestone": "M2",
+  "baseline_milestone": "M0",
+  "questions": [
+    {
+      "id": "seller_complaint_warranty_policy",
+      "group": "five_validation_cases",
+      "query": "Find sellers with negative customer complaints, warranty issues, and relevant support policies",
+      "baseline": {
+        "outcome": "completed",
+        "sql_intent": "seller_performance",
+        "graph_intent": "warranty_product_seller_paths",
+        "vector_artifact_groups": [
+          "support_tickets",
+          "warranty_claims",
+          "policy_documents"
+        ],
+        "exception_type": null,
+        "exception_message": null
+      },
+      "m2": {
+        "outcome": "completed",
+        "overall_status": "PASS",
+        "answerable": true,
+        "refusal_reason": null,
+        "sql_intent": "seller_performance",
+        "graph_intent": "warranty_product_seller_paths",
+        "vector_artifact_groups": [
+          "support_tickets",
+          "warranty_claims",
+          "policy_documents"
+        ],
+        "sql_filters": {
+          "max_avg_review_score": 3.0
+        },
+        "sql_sort_by": "avg_review_score_worst",
+        "graph_filters": {},
+        "dropped_filters": [],
+        "sql_records": 10,
+        "graph_records": 10,
+        "vector_records": 15,
+        "sql_evidence_hash": "df86cc73f0d32774",
+        "graph_evidence_hash": "da1fdd35770dfc78",
+        "answer_length_chars": 3241,
+        "grounding_score": 5,
+        "completeness_score": 5,
+        "business_readiness_score": 5,
+        "evidence_quality": {
+          "confidence": "medium",
+          "reasons": [
+            "postgresql returned nothing for the entity IDs found in the retrieved documents, so it was re-run without them; these rows are not restricted to the entities the documents named",
+            "neo4j returned nothing for the entity IDs found in the retrieved documents, so it was re-run without them; these rows are not restricted to the entities the documents named"
+          ],
+          "filters_proposed": 1,
+          "filters_accepted": 1,
+          "filters_dropped": 0,
+          "all_filters_dropped": false
+        }
+      }
+    },
+    {
+      "id": "late_delivery_logistics_region_guidance",
+      "group": "five_validation_cases",
+      "query": "Investigate late delivery logistics incidents by customer region and find troubleshooting guidance",
+      "baseline": {
+        "outcome": "completed",
+        "sql_intent": "order_summary",
+        "graph_intent": "logistics_region_paths",
+        "vector_artifact_groups": [
+          "logistics_incidents",
+          "troubleshooting_guides"
+        ],
+        "exception_type": null,
+        "exception_message": null
+      },
+      "m2": {
+        "outcome": "completed",
+        "overall_status": "PASS",
+        "answerable": true,
+        "refusal_reason": null,
+        "sql_intent": "order_summary",
+        "graph_intent": "logistics_region_paths",
+        "vector_artifact_groups": [
+          "logistics_incidents",
+          "troubleshooting_guides"
+        ],
+        "sql_filters": {
+          "is_late_delivery": true
+        },
+        "sql_sort_by": "delivery_delay_days",
+        "graph_filters": {},
+        "dropped_filters": [],
+        "sql_records": 5,
+        "graph_records": 10,
+        "vector_records": 10,
+        "sql_evidence_hash": "02238669aa2807a6",
+        "graph_evidence_hash": "4ee0886099e228b8",
+        "answer_length_chars": 3340,
+        "grounding_score": 5,
+        "completeness_score": 5,
+        "business_readiness_score": 5,
+        "evidence_quality": {
+          "confidence": "high",
+          "reasons": [],
+          "filters_proposed": 1,
+          "filters_accepted": 1,
+          "filters_dropped": 0,
+          "all_filters_dropped": false
+        }
+      }
+    },
+    {
+      "id": "payment_refund_policy",
+      "group": "five_validation_cases",
+      "query": "Find payment questions, refund policies, and customer support cases",
+      "baseline": {
+        "outcome": "completed",
+        "sql_intent": "payment_summary",
+        "graph_intent": "customer_ticket_order_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets",
+          "policy_documents"
+        ],
+        "exception_type": null,
+        "exception_message": null
+      },
+      "m2": {
+        "outcome": "completed",
+        "overall_status": "PASS",
+        "answerable": true,
+        "refusal_reason": null,
+        "sql_intent": "payment_summary",
+        "graph_intent": "customer_ticket_order_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets",
+          "policy_documents"
+        ],
+        "sql_filters": {},
+        "sql_sort_by": "total_payment_value",
+        "graph_filters": {},
+        "dropped_filters": [],
+        "sql_records": 5,
+        "graph_records": 5,
+        "vector_records": 10,
+        "sql_evidence_hash": "d09978bc35da8603",
+        "graph_evidence_hash": "f3defaadc109767b",
+        "answer_length_chars": 2534,
+        "grounding_score": 5,
+        "completeness_score": 5,
+        "business_readiness_score": 5,
+        "evidence_quality": {
+          "confidence": "high",
+          "reasons": [],
+          "filters_proposed": 0,
+          "filters_accepted": 0,
+          "filters_dropped": 0,
+          "all_filters_dropped": false
+        }
+      }
+    },
+    {
+      "id": "product_quality_troubleshooting",
+      "group": "five_validation_cases",
+      "query": "Investigate product quality complaints and find troubleshooting procedures",
+      "baseline": {
+        "outcome": "completed",
+        "sql_intent": "review_intelligence",
+        "graph_intent": "customer_ticket_order_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets",
+          "troubleshooting_guides"
+        ],
+        "exception_type": null,
+        "exception_message": null
+      },
+      "m2": {
+        "outcome": "completed",
+        "overall_status": "PASS",
+        "answerable": true,
+        "refusal_reason": null,
+        "sql_intent": "review_intelligence",
+        "graph_intent": "customer_ticket_order_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets",
+          "troubleshooting_guides"
+        ],
+        "sql_filters": {
+          "negative_only": true
+        },
+        "sql_sort_by": "review_score_worst",
+        "graph_filters": {},
+        "dropped_filters": [
+          {
+            "leg": "graph",
+            "key": "issue_types",
+            "value": "quality",
+            "reason": "not in vocabulary issue_types"
+          }
+        ],
+        "sql_records": 3,
+        "graph_records": 5,
+        "vector_records": 10,
+        "sql_evidence_hash": "ca9d810b31104dca",
+        "graph_evidence_hash": "5c3691cb23b5ba26",
+        "answer_length_chars": 2728,
+        "grounding_score": 5,
+        "completeness_score": 5,
+        "business_readiness_score": 5,
+        "evidence_quality": {
+          "confidence": "medium",
+          "reasons": [
+            "1 filter value(s) were dropped as unresolvable: issue_types='quality' (not in vocabulary issue_types)"
+          ],
+          "filters_proposed": 2,
+          "filters_accepted": 1,
+          "filters_dropped": 1,
+          "all_filters_dropped": false
+        }
+      }
+    },
+    {
+      "id": "seller_negative_ticket_paths",
+      "group": "five_validation_cases",
+      "query": "Show seller ticket paths for negative complaints and product issues",
+      "baseline": {
+        "outcome": "completed",
+        "sql_intent": "seller_performance",
+        "graph_intent": "seller_ticket_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "exception_type": null,
+        "exception_message": null
+      },
+      "m2": {
+        "outcome": "completed",
+        "overall_status": "PASS",
+        "answerable": true,
+        "refusal_reason": null,
+        "sql_intent": "seller_performance",
+        "graph_intent": "seller_ticket_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "sql_filters": {},
+        "sql_sort_by": "late_delivery_rate",
+        "graph_filters": {},
+        "dropped_filters": [
+          {
+            "leg": "graph",
+            "key": "issue_types",
+            "value": "complaint",
+            "reason": "not in vocabulary issue_types"
+          },
+          {
+            "leg": "graph",
+            "key": "issue_types",
+            "value": "product issue",
+            "reason": "not in vocabulary issue_types"
+          }
+        ],
+        "sql_records": 2,
+        "graph_records": 10,
+        "vector_records": 5,
+        "sql_evidence_hash": "10ffa1e407d3d0c2",
+        "graph_evidence_hash": "fac4f57629440cae",
+        "answer_length_chars": 3065,
+        "grounding_score": 5,
+        "completeness_score": 5,
+        "business_readiness_score": 5,
+        "evidence_quality": {
+          "confidence": "low",
+          "reasons": [
+            "all 1 filter value(s) proposed for this question failed to resolve, so the queries ran unfiltered: issue_types='complaint' (not in vocabulary issue_types); issue_types='product issue' (not in vocabulary issue_types)"
+          ],
+          "filters_proposed": 1,
+          "filters_accepted": 0,
+          "filters_dropped": 2,
+          "all_filters_dropped": true
+        }
+      }
+    },
+    {
+      "id": "paraphrase_most_complaints",
+      "group": "document_paraphrases",
+      "query": "Which sellers have the most complaints?",
+      "baseline": {
+        "outcome": "completed",
+        "sql_intent": "review_intelligence",
+        "graph_intent": "seller_ticket_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "exception_type": null,
+        "exception_message": null
+      },
+      "m2": {
+        "outcome": "completed",
+        "overall_status": "PASS",
+        "answerable": true,
+        "refusal_reason": null,
+        "sql_intent": "review_intelligence",
+        "graph_intent": "seller_ticket_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "sql_filters": {
+          "negative_only": true
+        },
+        "sql_sort_by": "review_score_worst",
+        "graph_filters": {},
+        "dropped_filters": [],
+        "sql_records": 5,
+        "graph_records": 10,
+        "vector_records": 5,
+        "sql_evidence_hash": "f66b4cd9c99ce209",
+        "graph_evidence_hash": "600b595e9d605a0d",
+        "answer_length_chars": 2662,
+        "grounding_score": 5,
+        "completeness_score": 5,
+        "business_readiness_score": 5,
+        "evidence_quality": {
+          "confidence": "high",
+          "reasons": [],
+          "filters_proposed": 1,
+          "filters_accepted": 1,
+          "filters_dropped": 0,
+          "all_filters_dropped": false
+        }
+      }
+    },
+    {
+      "id": "paraphrase_vendors_poor_experience",
+      "group": "document_paraphrases",
+      "query": "Find vendors connected to poor customer experiences.",
+      "baseline": {
+        "outcome": "completed",
+        "sql_intent": "seller_performance",
+        "graph_intent": "seller_ticket_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets",
+          "customer_emails"
+        ],
+        "exception_type": null,
+        "exception_message": null
+      },
+      "m2": {
+        "outcome": "completed",
+        "overall_status": "PASS",
+        "answerable": true,
+        "refusal_reason": null,
+        "sql_intent": "review_intelligence",
+        "graph_intent": "seller_ticket_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "sql_filters": {
+          "negative_only": true
+        },
+        "sql_sort_by": "review_score_worst",
+        "graph_filters": {},
+        "dropped_filters": [],
+        "sql_records": 2,
+        "graph_records": 10,
+        "vector_records": 5,
+        "sql_evidence_hash": "21bd00434669e6e8",
+        "graph_evidence_hash": "8d577c8cc633ab60",
+        "answer_length_chars": 2849,
+        "grounding_score": 5,
+        "completeness_score": 5,
+        "business_readiness_score": 5,
+        "evidence_quality": {
+          "confidence": "high",
+          "reasons": [],
+          "filters_proposed": 1,
+          "filters_accepted": 1,
+          "filters_dropped": 0,
+          "all_filters_dropped": false
+        }
+      }
+    },
+    {
+      "id": "paraphrase_suppliers_negative_reviews",
+      "group": "document_paraphrases",
+      "query": "Show suppliers associated with negative reviews and warranty issues.",
+      "baseline": {
+        "outcome": "completed",
+        "sql_intent": "seller_performance",
+        "graph_intent": "warranty_product_seller_paths",
+        "vector_artifact_groups": [
+          "support_tickets",
+          "warranty_claims"
+        ],
+        "exception_type": null,
+        "exception_message": null
+      },
+      "m2": {
+        "outcome": "completed",
+        "overall_status": "PASS",
+        "answerable": true,
+        "refusal_reason": null,
+        "sql_intent": "review_intelligence",
+        "graph_intent": "warranty_product_seller_paths",
+        "vector_artifact_groups": [
+          "support_tickets",
+          "warranty_claims"
+        ],
+        "sql_filters": {
+          "negative_only": true
+        },
+        "sql_sort_by": "review_score_worst",
+        "graph_filters": {},
+        "dropped_filters": [],
+        "sql_records": 2,
+        "graph_records": 3,
+        "vector_records": 10,
+        "sql_evidence_hash": "816b72ccea0b83d2",
+        "graph_evidence_hash": "31543cc542be11cb",
+        "answer_length_chars": 3055,
+        "grounding_score": 5,
+        "completeness_score": 4,
+        "business_readiness_score": 4,
+        "evidence_quality": {
+          "confidence": "high",
+          "reasons": [],
+          "filters_proposed": 1,
+          "filters_accepted": 1,
+          "filters_dropped": 0,
+          "all_filters_dropped": false
+        }
+      }
+    },
+    {
+      "id": "control_purple_monkey_dishwasher",
+      "group": "controls",
+      "query": "purple monkey dishwasher",
+      "baseline": {
+        "outcome": "crashed",
+        "sql_intent": null,
+        "graph_intent": null,
+        "vector_artifact_groups": null,
+        "exception_type": "ValueError",
+        "exception_message": "Invalid SQL intent from Gemini: None. Allowed: ['seller_performance', 'product_performance', 'review_intelligence', 'payment_summary', 'customer_history', 'order_summary']"
+      },
+      "m2": {
+        "outcome": "refused",
+        "overall_status": "REFUSED",
+        "answerable": false,
+        "refusal_reason": "The query is not a business question about this data and names no entity, metric, or document type.",
+        "sql_intent": null,
+        "graph_intent": null,
+        "vector_artifact_groups": [],
+        "sql_filters": null,
+        "sql_sort_by": null,
+        "graph_filters": null,
+        "dropped_filters": [],
+        "sql_records": 0,
+        "graph_records": 0,
+        "vector_records": 0,
+        "sql_evidence_hash": "4f53cda18c2baa0c",
+        "graph_evidence_hash": "4f53cda18c2baa0c",
+        "answer_length_chars": null,
+        "grounding_score": null,
+        "completeness_score": null,
+        "business_readiness_score": null,
+        "evidence_quality": {
+          "confidence": "none",
+          "reasons": [
+            "no retrieval route was selected; no evidence was gathered"
+          ]
+        }
+      }
+    },
+    {
+      "id": "control_highest_revenue_seller",
+      "group": "controls",
+      "query": "Which seller had the highest revenue?",
+      "baseline": {
+        "outcome": "crashed",
+        "sql_intent": null,
+        "graph_intent": null,
+        "vector_artifact_groups": null,
+        "exception_type": "ValueError",
+        "exception_message": "Invalid graph intent from Gemini: None. Allowed: ['warranty_product_seller_paths', 'logistics_region_paths', 'category_policy_guide_paths', 'seller_ticket_product_paths', 'customer_ticket_order_product_paths']"
+      },
+      "m2": {
+        "outcome": "completed",
+        "overall_status": "PASS",
+        "answerable": true,
+        "refusal_reason": null,
+        "sql_intent": "seller_performance",
+        "graph_intent": null,
+        "vector_artifact_groups": [],
+        "sql_filters": {},
+        "sql_sort_by": "total_item_revenue",
+        "graph_filters": null,
+        "dropped_filters": [],
+        "sql_records": 10,
+        "graph_records": 0,
+        "vector_records": 0,
+        "sql_evidence_hash": "dc3c356b0d15c215",
+        "graph_evidence_hash": "4f53cda18c2baa0c",
+        "answer_length_chars": 1431,
+        "grounding_score": 5,
+        "completeness_score": 5,
+        "business_readiness_score": 5,
+        "evidence_quality": {
+          "confidence": "medium",
+          "reasons": [
+            "neo4j was not selected by the plan",
+            "qdrant was not selected by the plan"
+          ],
+          "filters_proposed": 0,
+          "filters_accepted": 0,
+          "filters_dropped": 0,
+          "all_filters_dropped": false
+        }
+      }
+    }
+  ],
+  "cross_question": {
+    "questions_run": 10,
+    "distinct_sql_evidence_hashes": 10,
+    "distinct_graph_evidence_hashes": 9,
+    "baseline_distinct_sql_evidence_hashes": 5,
+    "baseline_distinct_graph_evidence_hashes": 4
+  }
+}
