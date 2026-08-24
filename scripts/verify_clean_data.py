@@ -144,7 +144,7 @@ def diff(expected: dict[str, Any], actual: dict[str, Any], path: str = "") -> li
 
 
 def check_translations(engine, scratch: Path) -> tuple[bool, list[str]]:
-    """The loader synthesised this table from products; verify that is still true."""
+    """Every category must carry an English name (M1 fixed AUDIT.md F-04)."""
     products = read_csv(scratch / "products_cleaned.csv")
     expected = sorted(products["product_category_name"].dropna().unique().tolist())
     with engine.connect() as connection:
@@ -161,9 +161,10 @@ def check_translations(engine, scratch: Path) -> tuple[bool, list[str]]:
         problems.append(
             f"category set differs: csv has {len(expected)}, db has {len(actual)}"
         )
-    if english_present != 0:
+    if english_present != len(rows):
         problems.append(
-            f"expected 0 english names (AUDIT.md F-06), found {english_present}"
+            f"expected an english name for all {len(rows)} categories "
+            f"(AUDIT.md F-04, fixed in M1), found {english_present}"
         )
     return not problems, problems
 

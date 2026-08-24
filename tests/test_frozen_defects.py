@@ -60,27 +60,38 @@ def test_row_counts_are_frozen(connection):
     assert actual == expected
 
 
-def test_sentiment_label_is_null_for_every_review(connection):
-    """AUDIT.md F-05.
+def test_sentiment_label_is_populated_for_every_review(connection):
+    """AUDIT.md F-05 -- FIXED in M1 task 4.
 
-    scripts/clean_data.py emits a column called `sentiment`;
-    postgres_loader.py:129 expects `sentiment_label`; standardize_columns()
-    (postgres_loader.py:233-235) invents the missing column as NULL.
+    Was: clean_data.py emits `sentiment`, TABLE_COLUMNS expects
+    `sentiment_label`, and standardize_columns() invented the missing column as
+    NULL for all 99,224 rows. Now a declared rename in COLUMN_RENAMES["reviews"],
+    and standardize_columns() raises SchemaDriftError rather than inventing.
     """
     total, filled = _count(
         connection, "SELECT count(*), count(sentiment_label) FROM ecommerce.reviews"
     )
     assert total == 99224
-    assert filled == 0, "sentiment_label is populated -- F-05 was fixed; update this test"
+    assert filled == 99224, f"F-05 regressed: {total - filled} NULL sentiment_label"
+
+    labels = connection.execute(
+        text("SELECT DISTINCT sentiment_label FROM ecommerce.reviews ORDER BY 1")
+    ).scalars().all()
+    assert labels == ["negative", "neutral", "positive"], labels
 
 
-def test_category_english_name_is_null_for_every_category(connection):
-    """AUDIT.md F-06.
+def test_category_english_name_is_populated_for_every_category(connection):
+    """AUDIT.md F-04 -- FIXED in M1 task 4.
 
-    FILE_CANDIDATES (postgres_loader.py:54-58) does not list
-    translations_cleaned.csv, so resolve_dataset_path found nothing and the loader
-    synthesised the table from distinct product categories with no English column.
-    reports/postgres_load_report.json records "source_file": null for this table.
+    Was: FILE_CANDIDATES did not list translations_cleaned.csv, the glob fallback
+    required the substring "product_category_translations", so
+    resolve_dataset_path(required=False) returned None and the loader built an
+    empty frame; the outer merge then filled all 73 English names with NULL.
+
+    M1 needs this: policy documents are titled from the English category name and
+    are linked to sellers by category, so a NULL here reaches an LLM prompt as
+    "None". Olist's own file covers 71 of 73; the two it omits are supplied by
+    MANUAL_CATEGORY_TRANSLATIONS and the loader raises if any remain unfilled.
     """
     total, filled = _count(
         connection,
@@ -88,23 +99,24 @@ def test_category_english_name_is_null_for_every_category(connection):
         "FROM ecommerce.product_category_translations",
     )
     assert total == 73
-    assert filled == 0, "english names are populated -- F-06 was fixed; update this test"
+    assert filled == 73, f"F-04 regressed: {total - filled} categories with no english name"
 
 
-def test_shipment_status_is_null_for_every_order(connection):
-    """Third instance of the same mechanism, found in M0 and not in the original audit.
+def test_shipment_status_is_populated_for_every_order(connection):
+    """Third instance of the same mechanism -- FIXED in M1 task 4.
 
-    clean_data.py writes `shipping_status` (notebook cell 21);
-    TABLE_COLUMNS["orders"] (postgres_loader.py:99-111) expects `shipment_status`;
-    standardize_columns() invents it as NULL. The CSV's `delivery_delay_days` is
-    dropped for the same reason -- it is not in TABLE_COLUMNS at all, so
-    vw_order_summary recomputes it from the timestamps (views.sql:75).
+    Found in M0, not in the original audit. clean_data.py writes
+    `shipping_status`; TABLE_COLUMNS["orders"] expects `shipment_status`;
+    standardize_columns() invented it as NULL for all 99,441 orders. Now a
+    declared rename. The CSV's `delivery_delay_days` is still dropped, but
+    deliberately -- it is not in TABLE_COLUMNS, and vw_order_summary recomputes
+    it from the timestamps (views.sql:75).
     """
     total, filled = _count(
         connection, "SELECT count(*), count(shipment_status) FROM ecommerce.orders"
     )
     assert total == 99441
-    assert filled == 0, "shipment_status is populated -- this defect was fixed; update this test"
+    assert filled == 99441, f"regressed: {total - filled} NULL shipment_status"
 
     columns = connection.execute(
         text(

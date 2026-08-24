@@ -52,6 +52,7 @@ FILE_CANDIDATES = {
         "olist_order_reviews_dataset.csv",
     ],
     "product_category_translations": [
+        "translations_cleaned.csv",
         "product_category_translations_cleaned.csv",
         "product_category_name_translation.csv",
         "product_category_name_translation_cleaned.csv",
@@ -131,11 +132,36 @@ TABLE_COLUMNS = {
 }
 
 
+# Olist's own translation file covers 71 of the 73 categories that appear in
+# products. These two have no upstream English name; we supply one explicitly
+# rather than letting the outer merge leave them NULL, because policy documents
+# are titled from the English category name and a NULL there is invisible until
+# it reaches an LLM prompt. Declared here so the provenance is obvious.
+MANUAL_CATEGORY_TRANSLATIONS = {
+    "pc_gamer": "pc_gamer",
+    "portateis_cozinha_e_preparadores_de_alimentos": "kitchen_portables_and_food_preparers",
+}
+
+
 COLUMN_RENAMES = {
     "products": {
         "product_name_length": "product_name_lenght",
         "product_description_length": "product_description_lenght",
-    }
+    },
+    "orders": {
+        # scripts/clean_data.py emits `shipping_status`; the schema column is
+        # `shipment_status`. Not in AUDIT.md; found in M0 and pinned by
+        # tests/test_frozen_defects.py. It had been NULL for all 99,441 orders,
+        # a third instance of the F-06 mechanism alongside F-04 and F-05.
+        "shipping_status": "shipment_status",
+    },
+    "reviews": {
+        # scripts/clean_data.py emits `sentiment`; the schema column is
+        # `sentiment_label`. AUDIT.md F-05: this was not declared, so
+        # standardize_columns invented sentiment_label as NULL for all
+        # 99,224 rows and a B-tree index was built on the empty column.
+        "sentiment": "sentiment_label",
+    },
 }
 
 
@@ -224,15 +250,34 @@ def read_csv(path: Path) -> pd.DataFrame:
     return pd.read_csv(path, dtype=str, keep_default_na=False)
 
 
+class SchemaDriftError(RuntimeError):
+    """A source file does not carry the columns the target table requires."""
+
+
 def standardize_columns(table_name: str, df: pd.DataFrame) -> pd.DataFrame:
+    """Project a source frame onto its table's columns, failing on drift.
+
+    AUDIT.md F-06: this function used to create any missing column as None
+    with no log, no warning and no failure. That single construct was the
+    delivery mechanism for F-04 (product_category_name_english NULL in 73/73
+    rows) and F-05 (sentiment_label NULL in 99,224/99,224), and it would have
+    swallowed every future schema change the same way. Missing columns are now
+    an error naming what was expected, what is missing, and what the file
+    actually provides.
+    """
     rename_map = COLUMN_RENAMES.get(table_name, {})
     df = df.rename(columns=rename_map)
 
     expected_columns = TABLE_COLUMNS[table_name]
+    missing = [column for column in expected_columns if column not in df.columns]
 
-    for column in expected_columns:
-        if column not in df.columns:
-            df[column] = None
+    if missing:
+        raise SchemaDriftError(
+            f"Table '{table_name}' is missing {len(missing)} required column(s): "
+            f"{missing}. Columns present in the source file: {sorted(df.columns)}. "
+            f"Declare a rename in COLUMN_RENAMES or fix the upstream file — "
+            f"this column will NOT be silently created as NULL."
+        )
 
     return df[expected_columns].copy()
 
@@ -340,27 +385,22 @@ def load_product_category_translations(
     data_dir: Path,
     products_df: pd.DataFrame,
 ) -> tuple[pd.DataFrame, str | None]:
+    # required=True: AUDIT.md F-04 -- resolving this to None built an empty
+    # frame, and the outer merge then filled all 73 English names with NULL.
+    # The corpus links policies to sellers by category name, so a NULL here
+    # silently produces 73 policies titled "... : None".
     translation_path = resolve_dataset_path(
         data_dir,
         "product_category_translations",
-        required=False,
+        required=True,
     )
 
-    if translation_path is not None:
-        translations_df = read_csv(translation_path)
-        translations_df = prepare_table_dataframe(
-            "product_category_translations",
-            translations_df,
-        )
-        source_file = str(translation_path)
-    else:
-        translations_df = pd.DataFrame(
-            columns=[
-                "product_category_name",
-                "product_category_name_english",
-            ]
-        )
-        source_file = None
+    translations_df = read_csv(translation_path)
+    translations_df = prepare_table_dataframe(
+        "product_category_translations",
+        translations_df,
+    )
+    source_file = str(translation_path)
 
     product_categories = (
         products_df["product_category_name"]
@@ -389,6 +429,31 @@ def load_product_category_translations(
     ].drop_duplicates(subset=["product_category_name"])
 
     translations_df = translations_df.dropna(subset=["product_category_name"])
+
+    # Fill the two categories Olist never translated, then assert none are left.
+    translations_df["product_category_name_english"] = translations_df.apply(
+        lambda row: (
+            row["product_category_name_english"]
+            if pd.notna(row["product_category_name_english"])
+            else MANUAL_CATEGORY_TRANSLATIONS.get(row["product_category_name"])
+        ),
+        axis=1,
+    )
+
+    untranslated = sorted(
+        translations_df.loc[
+            translations_df["product_category_name_english"].isna(),
+            "product_category_name",
+        ]
+    )
+
+    if untranslated:
+        raise SchemaDriftError(
+            f"{len(untranslated)} product categories have no English name: "
+            f"{untranslated}. AUDIT.md F-04 -- these used to pass through as NULL "
+            f"and reach LLM prompts as 'None'. Add them to "
+            f"MANUAL_CATEGORY_TRANSLATIONS or fix the translation file."
+        )
 
     return translations_df, source_file
 
