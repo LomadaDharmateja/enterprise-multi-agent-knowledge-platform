@@ -952,3 +952,32 @@ it passes on this one:
 
 The sampled +0.380 against the population +0.427 is ordinary sampling variation, and sits
 inside the band as D-3's sizing predicted.
+
+### The CI gap, and how it is closed
+
+`tests/test_corpus_signal.py` is marked `requires_stack`, and the CI runner has no
+PostgreSQL, Neo4j or Qdrant. **In CI it skips.** A test that always skips is not a test
+that runs, and shipping one as the M1 exit criterion would reproduce the audit's own
+central finding about this project — validators reporting PASS while unable to fail.
+
+So the live test's inputs are snapshotted by `scripts/export_corpus_signal_sample.py`
+into `tests/baseline/corpus_signal_sample.json` (400 sellers, seed 20260824, plus the
+Qdrant seller-ID coverage counts), and `tests/test_corpus_signal_ci.py` recomputes the
+correlation from that fixture with no stack at all.
+
+| test | what it proves | runs in CI |
+|---|---|---|
+| `test_corpus_signal.py` | the linkage survives the JSONL → Qdrant seam | no — skips without a stack |
+| `test_corpus_signal_ci.py` | the committed corpus still carries the required signal | **yes** |
+
+The CI test was verified to go red on injected regressions rather than assumed to:
+
+```
+shuffled seller linkage  -> rho(complaints, late_delivery_rate) = +0.0212, outside [0.3, 0.6]  FAILED
+seller_ids stripped      -> 3000 of 3000 ticket points carried no seller_id (F-01)             FAILED
+restored                 -> 6 passed
+```
+
+**The fixture must be regenerated whenever the corpus is**, or the CI test is checking a
+corpus that no longer exists. That is a real maintenance obligation and it is stated here
+rather than left implicit.

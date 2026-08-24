@@ -1,0 +1,2809 @@
+{
+  "_comment": "Snapshot of what tests/test_corpus_signal.py reads live. Regenerate with scripts/export_corpus_signal_sample.py after any corpus change.",
+  "qdrant_ticket_points": 3000,
+  "qdrant_ticket_points_with_seller_id": 3000,
+  "sample_seed": 20260824,
+  "sample_size": 400,
+  "sellers": [
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.0,
+      "n_orders": 3,
+      "seller_id": "9c54608f0996c32ae4743089d915f845"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 1.0,
+      "mean_review": 1.0,
+      "n_orders": 1,
+      "seller_id": "6d04126aba80df143fd038e711b8fd96"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "e732329483fd5f27367dd997b47f598a"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 4.75,
+      "n_orders": 4,
+      "seller_id": "0b64bcdb0784abc139af04077d49a20e"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 1.0,
+      "n_orders": 1,
+      "seller_id": "880eda903e719a5f179f7e9fceb3a69d"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "2235cf78d3e2073a88146a9cb60f0dd0"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 2,
+      "seller_id": "9b76ad3d04236f76bc71c59470305e13"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "a663d9c3797e90eac99ff60939416a56"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.25,
+      "mean_review": 3.0,
+      "n_orders": 4,
+      "seller_id": "09883d9ab71c8fe8a9bfc7fc3075b07e"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "c7246702dc991a06d788120dc7544391"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 4.333333333333333,
+      "n_orders": 3,
+      "seller_id": "ef728fa1f17436c91ed1ccd03dcf9631"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.022727272727272728,
+      "mean_review": 4.093023255813954,
+      "n_orders": 44,
+      "seller_id": "3d8fa2f5b647373c8620330c4e077a9f"
+    },
+    {
+      "complaints": 5,
+      "late_rate": 0.08571428571428572,
+      "mean_review": 3.9696969696969697,
+      "n_orders": 35,
+      "seller_id": "93dc87703c046b603023e75222018b45"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.14285714285714285,
+      "mean_review": 3.2857142857142856,
+      "n_orders": 7,
+      "seller_id": "9c7fd21e0aa159b20da593371f08ff7c"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 2.6363636363636362,
+      "n_orders": 11,
+      "seller_id": "48fb026ed7455a42f5d3e9390ed5088e"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.125,
+      "mean_review": 4.25,
+      "n_orders": 8,
+      "seller_id": "15fa791d5e017f66402dc28c44480657"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.23684210526315788,
+      "mean_review": 3.533333333333333,
+      "n_orders": 76,
+      "seller_id": "cac4c8e7b1ca6252d8f20b2fc1a2e4af"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 4,
+      "seller_id": "6c17baf138731a4aaacc3210adf2037b"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.75,
+      "n_orders": 4,
+      "seller_id": "a080fc8a850289b27500f6b49cca2553"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.0,
+      "mean_review": 3.0,
+      "n_orders": 2,
+      "seller_id": "9bade61a92bed55a25d2b67b9f4ed739"
+    },
+    {
+      "complaints": 6,
+      "late_rate": 0.055710306406685235,
+      "mean_review": 4.222377622377622,
+      "n_orders": 718,
+      "seller_id": "a1043bafd471dff536d0c462352beb48"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "41958cbd3335433c8740300e8cd600d5"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.10714285714285714,
+      "mean_review": 4.357142857142857,
+      "n_orders": 28,
+      "seller_id": "c0563dd588b775f2e37747ef6ad6c92c"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.0625,
+      "mean_review": 4.125,
+      "n_orders": 16,
+      "seller_id": "5b33b527da3c5b969cc99dc435cad09a"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 3.875,
+      "n_orders": 17,
+      "seller_id": "93b9a99027bd8bd6af682aff18dd19bf"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 3.4,
+      "n_orders": 5,
+      "seller_id": "52ac6f920b7280e4c6d30dd94de6259b"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.0,
+      "n_orders": 1,
+      "seller_id": "f09b760d23495ac9a7e00d29b769007c"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.1,
+      "mean_review": 4.7,
+      "n_orders": 10,
+      "seller_id": "b2c97074649f92197d9387d9033dda5f"
+    },
+    {
+      "complaints": 3,
+      "late_rate": 0.09782608695652174,
+      "mean_review": 4.022222222222222,
+      "n_orders": 92,
+      "seller_id": "1d8dbc4f32378d715c717c1c1fc57bae"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.05,
+      "mean_review": 4.325,
+      "n_orders": 40,
+      "seller_id": "83deb69e889cf80f82be1dc6d5f2d486"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 1.0,
+      "n_orders": 1,
+      "seller_id": "c1dde11f12d05c478f5de2d7319ad3b2"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.25,
+      "mean_review": 4.5,
+      "n_orders": 4,
+      "seller_id": "1ca4bdb0cd7fc48e949bac066188ed26"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 3.0,
+      "n_orders": 1,
+      "seller_id": "a09a13f18ed27932d08438aa6f12756e"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 2,
+      "seller_id": "44717f64ec2a457979cf83c429077666"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "4dab98ca6cd6d3df586203cefd28a042"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0748663101604278,
+      "mean_review": 3.9572192513368982,
+      "n_orders": 187,
+      "seller_id": "f45122a9ab94eb4f3f8953578bc0c560"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.06666666666666667,
+      "mean_review": 4.25,
+      "n_orders": 60,
+      "seller_id": "6d803cb79cc31c41c4c789a75933b3c7"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "b00af24704019bd2e1b335e70ad11f7c"
+    },
+    {
+      "complaints": 4,
+      "late_rate": 0.1390728476821192,
+      "mean_review": 3.8378378378378377,
+      "n_orders": 151,
+      "seller_id": "7ad32824caee82087b3e2e5f33b1bf32"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.12345679012345678,
+      "mean_review": 4.154320987654321,
+      "n_orders": 162,
+      "seller_id": "a416b6a846a11724393025641d4edd5e"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.75,
+      "n_orders": 4,
+      "seller_id": "e51f22821f0c12a16ad5c020cdcd55e9"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.0,
+      "mean_review": 3.6739130434782608,
+      "n_orders": 46,
+      "seller_id": "81f89e42267213cb94da7ddc301651da"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.06896551724137931,
+      "mean_review": 4.071428571428571,
+      "n_orders": 29,
+      "seller_id": "8931a84a914b3fe9b1ddaa4d704947ca"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 4,
+      "seller_id": "918717417d88a9f9ae9735567e6c7682"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.039603960396039604,
+      "mean_review": 4.181818181818182,
+      "n_orders": 101,
+      "seller_id": "d94a40fd42351c259927028d163af842"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.046511627906976744,
+      "mean_review": 4.3023255813953485,
+      "n_orders": 43,
+      "seller_id": "e0a366315b1b726b6c7832d664c0f530"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.02702702702702703,
+      "mean_review": 4.594594594594595,
+      "n_orders": 37,
+      "seller_id": "594f9aaa48e5bf431f011ddc5669b0d5"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 1.5,
+      "n_orders": 2,
+      "seller_id": "ab75b89cc49c9ab3160d0c91565a442a"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "49f8d2ea7b718d0ce587d34207caf2b4"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.0,
+      "mean_review": 3.875,
+      "n_orders": 8,
+      "seller_id": "822b63912576852aea9a8436d72317b7"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.05555555555555555,
+      "mean_review": 4.5,
+      "n_orders": 18,
+      "seller_id": "c35672b10ad50968f567ea3f4b91e877"
+    },
+    {
+      "complaints": 4,
+      "late_rate": 0.16216216216216217,
+      "mean_review": 3.8333333333333335,
+      "n_orders": 37,
+      "seller_id": "3c03b12bab54d8b37d79d914bfdb1aa0"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.018518518518518517,
+      "mean_review": 4.425925925925926,
+      "n_orders": 54,
+      "seller_id": "2dee2ce60de9709b1a24083217181a1f"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 1.0,
+      "mean_review": 1.0,
+      "n_orders": 1,
+      "seller_id": "d1a5cc844736958c11b8efab9a2b4c87"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 3.6666666666666665,
+      "n_orders": 3,
+      "seller_id": "0015a82c2db000af6aaaf3ae2ecb0532"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.03333333333333333,
+      "mean_review": 4.2,
+      "n_orders": 30,
+      "seller_id": "3c487ae8f8d7542beff5788e2e0aea83"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.06,
+      "mean_review": 3.84,
+      "n_orders": 50,
+      "seller_id": "09f952a5f58d2285b0372551ae8f9b01"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 3.0,
+      "n_orders": 1,
+      "seller_id": "5b92bfa4120daa27c574daa2e386c693"
+    },
+    {
+      "complaints": 3,
+      "late_rate": 0.25,
+      "mean_review": 3.0,
+      "n_orders": 4,
+      "seller_id": "1d2732ef8321502ee8488e8bed1ab8cd"
+    },
+    {
+      "complaints": 3,
+      "late_rate": 0.16483516483516483,
+      "mean_review": 3.7,
+      "n_orders": 91,
+      "seller_id": "d20b021d3efdf267a402c402a48ea64b"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.333333333333333,
+      "n_orders": 3,
+      "seller_id": "1c56ffe0e9dea2657fc6e95b53f40b13"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "6624bc09786f0e41ae48dfc5eeb1a9e2"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "f90f77ef2799a27f80d90c425ca944f7"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 4.75,
+      "n_orders": 4,
+      "seller_id": "a35124e2d763d7ca3fbe3b97d143200f"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.04878048780487805,
+      "mean_review": 4.195121951219512,
+      "n_orders": 41,
+      "seller_id": "7dc8c42cc750eeafea6c85712ffee9bf"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.0,
+      "mean_review": 4.095238095238095,
+      "n_orders": 21,
+      "seller_id": "55d3daac7c404d59e51c2aa2f4dc5a23"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 1.0,
+      "mean_review": 1.0,
+      "n_orders": 1,
+      "seller_id": "da2782c804606d2a5d8e1760dbb3e7ec"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.14285714285714285,
+      "mean_review": 3.642857142857143,
+      "n_orders": 14,
+      "seller_id": "218f991754f360af9c2daa5e0b8e990c"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 3.0,
+      "n_orders": 1,
+      "seller_id": "d9b00a97818674c7f8d8b1ef0e689679"
+    },
+    {
+      "complaints": 3,
+      "late_rate": 0.3333333333333333,
+      "mean_review": 3.6666666666666665,
+      "n_orders": 3,
+      "seller_id": "578fa3a9cb6b6dceab39231ad59cdaca"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 2,
+      "seller_id": "173d56ffbd4c56cb80fc3615487d712b"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.16666666666666666,
+      "mean_review": 4.75,
+      "n_orders": 12,
+      "seller_id": "bbaff50f3b708fda865918715276cd87"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 1.0,
+      "mean_review": 4.0,
+      "n_orders": 1,
+      "seller_id": "6524b847b982cd56bb5d4b02b776ee42"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.0,
+      "n_orders": 1,
+      "seller_id": "28d162ab86bb49d719c32f0ee6186eaa"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 2,
+      "seller_id": "2fa13c8bd5705d279f7ed5cc9ec61c68"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 1.0,
+      "n_orders": 1,
+      "seller_id": "66d5ae34537110d3affc56174dad2b2f"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.6,
+      "n_orders": 5,
+      "seller_id": "4bcec44888b30ba9001234c534716d3f"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 1.0,
+      "mean_review": 2.0,
+      "n_orders": 1,
+      "seller_id": "9da15f4a4ea758d9eeb49000dbe57e22"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.037037037037037035,
+      "mean_review": 4.615384615384615,
+      "n_orders": 27,
+      "seller_id": "95ec4458365c4d11f452ccf538377619"
+    },
+    {
+      "complaints": 3,
+      "late_rate": 0.06666666666666667,
+      "mean_review": 3.3378378378378377,
+      "n_orders": 75,
+      "seller_id": "a7f13822ceb966b076af67121f87b063"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.625,
+      "n_orders": 8,
+      "seller_id": "34f563c82a85b99ae9e6d60db5fc2e28"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.5,
+      "n_orders": 2,
+      "seller_id": "f1198c871e0171278b63f40d112caeec"
+    },
+    {
+      "complaints": 3,
+      "late_rate": 0.0,
+      "mean_review": 4.0,
+      "n_orders": 7,
+      "seller_id": "b1204cfda1d4948679db3cfc0d3cb95c"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 4.2,
+      "n_orders": 20,
+      "seller_id": "8ab42aa58097fd4668d60cc648225d5f"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.10864197530864197,
+      "mean_review": 3.945,
+      "n_orders": 405,
+      "seller_id": "4e922959ae960d389249c378d1c939f5"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 1.0,
+      "n_orders": 2,
+      "seller_id": "b7ba853e9551f4558440881fd3e5c815"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 4.333333333333333,
+      "n_orders": 18,
+      "seller_id": "ffdd9f82b9a447f6f8d4b91554cc7dd3"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 1.0,
+      "n_orders": 1,
+      "seller_id": "50c361bcf670d16f6df4d52de3dff924"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 2.0,
+      "n_orders": 1,
+      "seller_id": "d4828feed4cda2cd9d6b37899a95a71e"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.0,
+      "n_orders": 1,
+      "seller_id": "cb810bd318f51b3dc3c753944d61a1fa"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.058823529411764705,
+      "mean_review": 4.529411764705882,
+      "n_orders": 17,
+      "seller_id": "d06d019f72a04e5497a0b64190af170c"
+    },
+    {
+      "complaints": 4,
+      "late_rate": 0.2222222222222222,
+      "mean_review": 3.1666666666666665,
+      "n_orders": 18,
+      "seller_id": "ec4608a1f76453166bb312b2968aeaf4"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "e0b162a693bc7f9eab00f783a31d60ea"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.25,
+      "mean_review": 4.0,
+      "n_orders": 4,
+      "seller_id": "4deebb3199eeafb282ae33229144f94b"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.08843537414965986,
+      "mean_review": 4.375862068965517,
+      "n_orders": 294,
+      "seller_id": "fe2032dab1a61af8794248c8196565c9"
+    },
+    {
+      "complaints": 3,
+      "late_rate": 0.11538461538461539,
+      "mean_review": 4.0,
+      "n_orders": 78,
+      "seller_id": "34056b8b55c1775a22af2331670a799c"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 3.7727272727272725,
+      "n_orders": 22,
+      "seller_id": "eed78ac17f7f795a19a709745f00cd4e"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.02564102564102564,
+      "mean_review": 4.410256410256411,
+      "n_orders": 39,
+      "seller_id": "d23019c84ffae2d5ef2270367b8605fc"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 1.0,
+      "n_orders": 2,
+      "seller_id": "4e2627090e6e5b9fabba883a37897683"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 3.2,
+      "n_orders": 5,
+      "seller_id": "54219883e72aad869adfb2a54b7bfa0f"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.1111111111111111,
+      "mean_review": 4.777777777777778,
+      "n_orders": 9,
+      "seller_id": "457fe919b032a3f7dadba6fb92cf7855"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.0,
+      "mean_review": 3.0,
+      "n_orders": 2,
+      "seller_id": "933446e9a59dece7ae9175103820ca8f"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "4ddeb3e828550cddc8d45c8bc36ab2d1"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.10869565217391304,
+      "mean_review": 4.217391304347826,
+      "n_orders": 46,
+      "seller_id": "382229d1e840115ffe3dbf5ff460e417"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 3.75,
+      "n_orders": 4,
+      "seller_id": "35ef5aa32949680f627efec3c23e705c"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.05,
+      "mean_review": 4.65,
+      "n_orders": 20,
+      "seller_id": "b494891378bd8f4560abe576c52deacd"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 4.619047619047619,
+      "n_orders": 21,
+      "seller_id": "02ecc2a19303f05e59ce133fd923fff7"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.583333333333333,
+      "n_orders": 13,
+      "seller_id": "02c988090b766852e088c69d7fb3b551"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.0,
+      "n_orders": 2,
+      "seller_id": "69a43819c758c65a5befb0b471c954d7"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 4.8,
+      "n_orders": 5,
+      "seller_id": "101a3a003516bc11253298b2fad3cb65"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.16666666666666666,
+      "mean_review": 4.0,
+      "n_orders": 6,
+      "seller_id": "a254c682cc01e119f83530446f1df9a9"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.10344827586206896,
+      "mean_review": 4.0,
+      "n_orders": 29,
+      "seller_id": "238fac594e170b59c6d228f5a4f4f1d9"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 3.5,
+      "n_orders": 2,
+      "seller_id": "091065b789659bc3cd9af9cb3a6253ff"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.3333333333333333,
+      "mean_review": 2.3333333333333335,
+      "n_orders": 3,
+      "seller_id": "191d55f7edb8524d525ed01b20fe32e8"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 1.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "2a73cba571d90c694b7caca072ccf6ce"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.13793103448275862,
+      "mean_review": 3.896551724137931,
+      "n_orders": 29,
+      "seller_id": "4aba391bc3b88717ce08eb11e44937b2"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.0,
+      "mean_review": 3.8333333333333335,
+      "n_orders": 6,
+      "seller_id": "ad87df7699e83b8a91822a4a0b765c3a"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 2.5,
+      "n_orders": 2,
+      "seller_id": "fc5a0d7a310a7a41abf86a458585ff2b"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.10869565217391304,
+      "mean_review": 4.277777777777778,
+      "n_orders": 92,
+      "seller_id": "827f8f69dfa529c561901c4f2e0f332f"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "0a198e95d32b1be2da9424c962a6ebfa"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0945945945945946,
+      "mean_review": 4.0,
+      "n_orders": 74,
+      "seller_id": "1336efc61c316ddf92c899eb817f7cae"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 2.0,
+      "n_orders": 1,
+      "seller_id": "bf0d50a6410d487dc97d2baac0a8c0be"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.3333333333333333,
+      "mean_review": 3.6666666666666665,
+      "n_orders": 3,
+      "seller_id": "1d0997ff06b524ce9289ffd75114ecd3"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.02527075812274368,
+      "mean_review": 4.3003663003663,
+      "n_orders": 277,
+      "seller_id": "37be5a7c751166fbc5f8ccba4119e043"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "2b402d5dc42554061f8ea98d1916f148"
+    },
+    {
+      "complaints": 5,
+      "late_rate": 0.22857142857142856,
+      "mean_review": 3.8,
+      "n_orders": 35,
+      "seller_id": "71039d19d4303bf9054d69e9a9236699"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.75,
+      "n_orders": 12,
+      "seller_id": "da6a60cc8cc724fe51be021ff8be779c"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.555555555555555,
+      "n_orders": 9,
+      "seller_id": "33d677f27a69b84051204ee4ae76eaca"
+    },
+    {
+      "complaints": 4,
+      "late_rate": 0.07142857142857142,
+      "mean_review": 3.5714285714285716,
+      "n_orders": 14,
+      "seller_id": "e48cc16ab70bfa09e1401740dce0b3d7"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.555555555555555,
+      "n_orders": 9,
+      "seller_id": "0ddefe3c7a032b91f4e25b9c3a08fca1"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 4.2,
+      "n_orders": 5,
+      "seller_id": "ab9db4cf53b08b828b64dccaafc2d9f0"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.02631578947368421,
+      "mean_review": 4.552631578947368,
+      "n_orders": 38,
+      "seller_id": "7f7b8245c336066a1f9933c359f11d77"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 3.0,
+      "n_orders": 2,
+      "seller_id": "8132b9bd16876e1b0f8808d43825dd48"
+    },
+    {
+      "complaints": 4,
+      "late_rate": 0.06694560669456066,
+      "mean_review": 3.7531380753138075,
+      "n_orders": 239,
+      "seller_id": "dc4a0fc896dc34b0d5bfec8438291c80"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.3,
+      "mean_review": 3.8,
+      "n_orders": 20,
+      "seller_id": "7f152321c60a266edc53af1925ef96c1"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.09523809523809523,
+      "mean_review": 4.571428571428571,
+      "n_orders": 21,
+      "seller_id": "f4db9b37944bcb8873e6b456ee190bbf"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.0,
+      "mean_review": 4.777777777777778,
+      "n_orders": 9,
+      "seller_id": "8603f0038fe0e52fedd3382d266723de"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 2,
+      "seller_id": "11742f81550ac064cc9a40f67151d9ad"
+    },
+    {
+      "complaints": 3,
+      "late_rate": 0.0,
+      "mean_review": 1.8333333333333333,
+      "n_orders": 7,
+      "seller_id": "5151aea44289d6c6b090ee31c2132508"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 3.3333333333333335,
+      "n_orders": 7,
+      "seller_id": "a414555ce331b8c8aea4a9cb8395194d"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 4.0,
+      "n_orders": 2,
+      "seller_id": "3d62f86afa7c73be2628a3be1423f5a0"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.0,
+      "mean_review": 4.357142857142857,
+      "n_orders": 14,
+      "seller_id": "df91910b6a03bb2e3358fa6a35e32f6f"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 4.294117647058823,
+      "n_orders": 17,
+      "seller_id": "a425f92c199eb576938df686728acd20"
+    },
+    {
+      "complaints": 4,
+      "late_rate": 0.2,
+      "mean_review": 3.6136363636363638,
+      "n_orders": 45,
+      "seller_id": "99a54764c341d5dc80b4a8fac4eba3fb"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 3,
+      "seller_id": "11fb6f6d341adbe19e81733701704635"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 2,
+      "seller_id": "1710c3aaa9c6b44ec3883ee0fe300e21"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 3.6,
+      "n_orders": 5,
+      "seller_id": "2b3b9ce054da76a7428df143a567b156"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 1.0,
+      "n_orders": 1,
+      "seller_id": "010da0602d7774602cd1b3f5fb7b709e"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 2,
+      "seller_id": "333c4210e76a1aa2ab817b99437e3ff1"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.11538461538461539,
+      "mean_review": 3.84,
+      "n_orders": 26,
+      "seller_id": "2709af9587499e95e803a6498a5a56e9"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.058823529411764705,
+      "mean_review": 4.3125,
+      "n_orders": 17,
+      "seller_id": "343e716476e3748b069f980efbaa294e"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 1.0,
+      "mean_review": 4.0,
+      "n_orders": 1,
+      "seller_id": "c611f4ce9ce875bcc063fa97fd4d7d12"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.8,
+      "n_orders": 5,
+      "seller_id": "97e995629983723d11830a829bc2b246"
+    },
+    {
+      "complaints": 3,
+      "late_rate": 0.05263157894736842,
+      "mean_review": 4.315789473684211,
+      "n_orders": 19,
+      "seller_id": "dfc475d54e1b6dbeeb7d7d9bdaa63827"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 3.5,
+      "n_orders": 4,
+      "seller_id": "ff82e8873fba613f2261a9acc896fd84"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "528ce32f560edd11add4169f6a5b65be"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 1.0,
+      "n_orders": 1,
+      "seller_id": "e174dc2de86d60fee178170a154c05e7"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.043478260869565216,
+      "mean_review": 4.391304347826087,
+      "n_orders": 46,
+      "seller_id": "381c83fdca332ea6afd896da20bf6e4a"
+    },
+    {
+      "complaints": 3,
+      "late_rate": 0.0,
+      "mean_review": 4.142857142857143,
+      "n_orders": 29,
+      "seller_id": "73a63f72308aa20a46f4b1632018f196"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 1.0,
+      "mean_review": 1.0,
+      "n_orders": 1,
+      "seller_id": "8d92f3ea807b89465643c219455e7369"
+    },
+    {
+      "complaints": 5,
+      "late_rate": 0.045454545454545456,
+      "mean_review": 3.8068181818181817,
+      "n_orders": 88,
+      "seller_id": "e8b3a3a38279a82f0e5d006d5e5b7d2c"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.20512820512820512,
+      "mean_review": 3.789473684210526,
+      "n_orders": 39,
+      "seller_id": "0bf0150d5b9d60d9cd2906003332f085"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 3.6666666666666665,
+      "n_orders": 9,
+      "seller_id": "38102b031c2a15e54623d711bfc753d3"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 4.0,
+      "n_orders": 5,
+      "seller_id": "bff9deb0ec77d437f3305a79cf25529e"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.14285714285714285,
+      "mean_review": 3.857142857142857,
+      "n_orders": 7,
+      "seller_id": "9a03a4e9eb0b947652fae4f6121a3f5e"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0625,
+      "mean_review": 4.1875,
+      "n_orders": 16,
+      "seller_id": "2be17df1c49978426251562096c3cc09"
+    },
+    {
+      "complaints": 3,
+      "late_rate": 0.04081632653061224,
+      "mean_review": 4.081632653061225,
+      "n_orders": 49,
+      "seller_id": "138dbe45fc62f1e244378131a6801526"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 6,
+      "seller_id": "0570350b23eda5444f8d1d9544932058"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 3.0,
+      "n_orders": 2,
+      "seller_id": "0b3f27369a4d8df98f7eb91077e438ac"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.0,
+      "n_orders": 1,
+      "seller_id": "4b90495391ac0bd181a80a459df1e718"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.3333333333333333,
+      "mean_review": 4.333333333333333,
+      "n_orders": 3,
+      "seller_id": "03bd479e1d9484cdb14104d3023f7321"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.5,
+      "mean_review": 1.0,
+      "n_orders": 2,
+      "seller_id": "324583d68897f5ddbaf38f6248322176"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.0,
+      "mean_review": 3.5,
+      "n_orders": 4,
+      "seller_id": "7402d13c03a7e91366337cd1de471144"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.10294117647058823,
+      "mean_review": 4.220588235294118,
+      "n_orders": 68,
+      "seller_id": "f0b47fbbc6dee9aafe415a6e33051b3f"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.2857142857142857,
+      "mean_review": 2.5714285714285716,
+      "n_orders": 7,
+      "seller_id": "5b35136197710e16ac5e7b7c2bd4ea85"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 3.5,
+      "n_orders": 2,
+      "seller_id": "9e7c5f4d7770eab65738cca38f9efccf"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.05,
+      "mean_review": 4.3,
+      "n_orders": 20,
+      "seller_id": "1fe5540d7c1c37a595fefbacd5570d9e"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.2125,
+      "mean_review": 3.392405063291139,
+      "n_orders": 80,
+      "seller_id": "712e6ed8aa4aa1fa65dab41fed5737e4"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 4.0,
+      "n_orders": 2,
+      "seller_id": "f0ec78809fe0bc3edb11c9fe5b97b059"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.022727272727272728,
+      "mean_review": 4.181818181818182,
+      "n_orders": 44,
+      "seller_id": "58f1a6197ed863543e0136bdedb3fce2"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 3.0,
+      "n_orders": 2,
+      "seller_id": "a5ff20ff766e7f50bd5066f33da14413"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.2222222222222222,
+      "mean_review": 4.444444444444445,
+      "n_orders": 9,
+      "seller_id": "e1b12447a7563944843191754aeb5562"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.1111111111111111,
+      "mean_review": 4.111111111111111,
+      "n_orders": 9,
+      "seller_id": "d1582f4043306e6b91afa6a8a884f898"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.0,
+      "mean_review": 2.5,
+      "n_orders": 2,
+      "seller_id": "1fbe10c70e30765ed1de86d9f7e98409"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.785714285714286,
+      "n_orders": 14,
+      "seller_id": "e7f3bf1ecd8526eb7f3b18059e6716e5"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.05755395683453238,
+      "mean_review": 4.144927536231884,
+      "n_orders": 139,
+      "seller_id": "5a8e7d5003a1f221f9e1d6e411de7c23"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.011494252873563218,
+      "mean_review": 4.344827586206897,
+      "n_orders": 87,
+      "seller_id": "0df3984f9dfb3d49ac6366acbd3bbb85"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.4,
+      "n_orders": 15,
+      "seller_id": "b1aaae6b66ad3c40f54b389d7ea4bee0"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 2,
+      "seller_id": "bbe87dce25ba8b38bb61cc7210a3f10b"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.4,
+      "n_orders": 5,
+      "seller_id": "7d294cf9a6a69dc6a0c3e540fff0e039"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.666666666666667,
+      "n_orders": 3,
+      "seller_id": "aa1eb17b9fdf6dfd546e25c45c7b9235"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 1.0,
+      "n_orders": 1,
+      "seller_id": "1f7dfad2cb384ea4d2d7e1ffbd78c407"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.75,
+      "n_orders": 4,
+      "seller_id": "b01c2b7b8599b325103ebcddc67413e1"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.75,
+      "n_orders": 4,
+      "seller_id": "02b72cdeb9cfcc429f1af6f4e3f3b737"
+    },
+    {
+      "complaints": 3,
+      "late_rate": 0.05825242718446602,
+      "mean_review": 3.8480392156862746,
+      "n_orders": 206,
+      "seller_id": "f457c46070d02cadd8a68551231220dd"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 4.5,
+      "n_orders": 2,
+      "seller_id": "119c7f1a00ef43fad0e57604e76a747c"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 4,
+      "seller_id": "929f342384a6607afe143d789ade1316"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 3,
+      "seller_id": "0ec28cec4046a4a199b6de9b4c891d97"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.0,
+      "mean_review": 3.75,
+      "n_orders": 4,
+      "seller_id": "aded58c8142dedc5494a81f948431fab"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.05263157894736842,
+      "mean_review": 4.055555555555555,
+      "n_orders": 19,
+      "seller_id": "52d76513f0c4d97f3b99570e2c94ee31"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 2.0,
+      "n_orders": 2,
+      "seller_id": "6bef34c5be6f2bbd70aa5165f6df94b1"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.333333333333333,
+      "n_orders": 3,
+      "seller_id": "a513150f33f99a06569e9cd5c4bb889b"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 4.428571428571429,
+      "n_orders": 7,
+      "seller_id": "9a1aea68d3efa00862ec88c0768037d0"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.0,
+      "n_orders": 3,
+      "seller_id": "be3b4b0f050a6aa1b2d901c4b77e979f"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 3.0,
+      "n_orders": 3,
+      "seller_id": "ad8b531ae67582f096925cff5630d0d1"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.08333333333333333,
+      "mean_review": 3.25,
+      "n_orders": 12,
+      "seller_id": "f5f1f2c5f923f36ad79ea1d07185ddc9"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.5,
+      "n_orders": 2,
+      "seller_id": "e546117ed9cafbc40239c0c78635c584"
+    },
+    {
+      "complaints": 5,
+      "late_rate": 0.07142857142857142,
+      "mean_review": 4.123711340206186,
+      "n_orders": 98,
+      "seller_id": "7ea5bfa6c340f58f8e71fc1f0412b0d6"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.0,
+      "mean_review": 3.8333333333333335,
+      "n_orders": 6,
+      "seller_id": "91f5779a8731baca4809fdeade81803f"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "1c742ac33582852aaf3bcfbf5893abcf"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.8,
+      "n_orders": 5,
+      "seller_id": "606ce7768feac12c5e8bd58db8b08f0f"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.833333333333333,
+      "n_orders": 6,
+      "seller_id": "8fbd63429be6d3e5e6d1a709b6464802"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.923076923076923,
+      "n_orders": 13,
+      "seller_id": "9d681c7e12db302cb261e721040dde65"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 1.0,
+      "n_orders": 1,
+      "seller_id": "b6c6854d4d92a5f6f46be8869da3fa1a"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.0,
+      "mean_review": 4.4,
+      "n_orders": 5,
+      "seller_id": "4d232b78ab7ef10393dc3807d827bc0d"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.666666666666667,
+      "n_orders": 9,
+      "seller_id": "fac1a9017ade7bdc94058fc1c969f355"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.05263157894736842,
+      "mean_review": 4.191489361702128,
+      "n_orders": 95,
+      "seller_id": "8a432f4e5b471f8da497d7dc517666e2"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.04918032786885246,
+      "mean_review": 4.19672131147541,
+      "n_orders": 61,
+      "seller_id": "f7720c4fa8e3aba4546301ab80ea1f1b"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.044444444444444446,
+      "mean_review": 4.488888888888889,
+      "n_orders": 45,
+      "seller_id": "c66dccfb3f109511246da627dd5a2498"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.0,
+      "mean_review": 3.9375,
+      "n_orders": 16,
+      "seller_id": "cf2384dd2f1dddea3f838efed0945e65"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.625,
+      "n_orders": 8,
+      "seller_id": "b81e3a6c866a764974fe849821abeebd"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.0,
+      "n_orders": 1,
+      "seller_id": "f9a02f1922d1de564392e656d82b3fda"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.11764705882352941,
+      "mean_review": 4.2,
+      "n_orders": 51,
+      "seller_id": "0d85bbda9889ce1f7e63778d24f346eb"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.056179775280898875,
+      "mean_review": 4.52808988764045,
+      "n_orders": 89,
+      "seller_id": "2ff97219cb8622eaf3cd89b7d9c09824"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.058823529411764705,
+      "mean_review": 4.529411764705882,
+      "n_orders": 17,
+      "seller_id": "da7039f29f90ce5b4846ffc0fcc93beb"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.0,
+      "n_orders": 4,
+      "seller_id": "5f06030071324cc52bf0304014ac7234"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.06028368794326241,
+      "mean_review": 4.0964285714285715,
+      "n_orders": 564,
+      "seller_id": "d91fb3b7d041e83b64a00a3edfb37e4f"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 2.0,
+      "n_orders": 2,
+      "seller_id": "2cb4700db635baa1c0d4f90ed27b6669"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.0,
+      "mean_review": 3.0,
+      "n_orders": 2,
+      "seller_id": "bee36b4f9a2b9fdcaff6ec05df202ed0"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.03636363636363636,
+      "mean_review": 4.036363636363636,
+      "n_orders": 55,
+      "seller_id": "6c177e38df6d3f34182b1f1d427231bf"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 3.888888888888889,
+      "n_orders": 9,
+      "seller_id": "c64a2aec32cc408a8a4c6d7c46017f91"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "da3fede3469bf49b7293ce3fc45b294d"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 2,
+      "seller_id": "d5c530f4884a75ae0dba9c148718d278"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.07692307692307693,
+      "mean_review": 4.466019417475728,
+      "n_orders": 104,
+      "seller_id": "42b729f859728f5079499127a9c2ef37"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.03225806451612903,
+      "mean_review": 3.903225806451613,
+      "n_orders": 31,
+      "seller_id": "5d3bb11474a06bdc23fb9e89f1164ee0"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 3.5,
+      "n_orders": 2,
+      "seller_id": "1d139e3a3b14025640d8df1b230aace0"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.8,
+      "n_orders": 5,
+      "seller_id": "6c6e3d67f969468f3bfd33f827a31222"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 2.0,
+      "n_orders": 5,
+      "seller_id": "1b65c144b17e607c0f37f10bb7dfec8d"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 4.0,
+      "n_orders": 2,
+      "seller_id": "b26741d31a563d769b4af0465ab20c56"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 2,
+      "seller_id": "9d213f303afae4983637247556438ede"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.2,
+      "mean_review": 4.0,
+      "n_orders": 5,
+      "seller_id": "d79e8478eed9999493990b44955fb22e"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 3.9523809523809526,
+      "n_orders": 21,
+      "seller_id": "845e8036c3f7bf62099352f5ed910240"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.10812294182217344,
+      "mean_review": 3.827873403664631,
+      "n_orders": 1822,
+      "seller_id": "4a3ca9315b744ce9f8e9374361493884"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.23529411764705882,
+      "mean_review": 2.411764705882353,
+      "n_orders": 17,
+      "seller_id": "5bc55dbe2f12b6af6d83ed46023e0dc8"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 1.0,
+      "mean_review": 2.0,
+      "n_orders": 1,
+      "seller_id": "344223b2a90784f64136a8a5da012e7f"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.08333333333333333,
+      "mean_review": 4.166666666666667,
+      "n_orders": 12,
+      "seller_id": "5d9dc90a686a8fddacffab6bab5653a3"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.666666666666667,
+      "n_orders": 3,
+      "seller_id": "cf654707ed6a99f112c7ec3d6f314b8b"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 4.333333333333333,
+      "n_orders": 3,
+      "seller_id": "e3d3b3efac954a60d61be70b7e05b49b"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 2,
+      "seller_id": "6f835fd4be26989b1b064399da346143"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 1.0,
+      "n_orders": 1,
+      "seller_id": "17adeba047385fb0c67d8e90b4296d21"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 4.2,
+      "n_orders": 5,
+      "seller_id": "7df1fc11cc5cbc518b39faa60cf5d67c"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "f8e2c1b59cd4225a3e4fd0d013a76b93"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "cb162c8eef257253782d245c08d9097c"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 1.0,
+      "n_orders": 1,
+      "seller_id": "1992f8fb6b19fcccd97ca819811e7267"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.25,
+      "n_orders": 4,
+      "seller_id": "77714512e8d4dda9c234da8e3faf16e4"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 1.0,
+      "n_orders": 1,
+      "seller_id": "c87abc38c8ed3240861729e1aeadf221"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.5,
+      "n_orders": 2,
+      "seller_id": "81ed90f07c0bacb7594940ba2ef676aa"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "51e0557bc7b86de13e946c60ee91ce39"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.266666666666667,
+      "n_orders": 15,
+      "seller_id": "ba5daa4041e1f15cdf34b76e3e18a450"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "c9d2ba8dde44a275ae06475ed1d2fafc"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.0,
+      "mean_review": 4.0,
+      "n_orders": 5,
+      "seller_id": "818d28f936e791926d33bcb6ee94ef79"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.020833333333333332,
+      "mean_review": 4.1063829787234045,
+      "n_orders": 48,
+      "seller_id": "4c03b9dd4c11ee2cb35c96c49efc9420"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.5,
+      "n_orders": 2,
+      "seller_id": "3bb32fedaa74e4ad20f4ce067733bd31"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.021739130434782608,
+      "mean_review": 3.922222222222222,
+      "n_orders": 92,
+      "seller_id": "06e5eefc71ec47ae763c5c6f8db7064f"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.25,
+      "n_orders": 8,
+      "seller_id": "f25e239052084705e17a982bc600ab2a"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.6,
+      "n_orders": 10,
+      "seller_id": "59cea8e446d3834393058e7e0666b6fb"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.0,
+      "mean_review": 4.3,
+      "n_orders": 10,
+      "seller_id": "9c690ceacd5c66731bf443ea810195cb"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 4.222222222222222,
+      "n_orders": 9,
+      "seller_id": "6f83d9e4da896daae20b9b6b2d3ff8d2"
+    },
+    {
+      "complaints": 6,
+      "late_rate": 0.09859154929577464,
+      "mean_review": 3.8285714285714287,
+      "n_orders": 71,
+      "seller_id": "5343d0649eca2a983820bfe93fc4d17e"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 2,
+      "seller_id": "fd312b6bf05efac6c3772d5b52205d8a"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.029411764705882353,
+      "mean_review": 4.382352941176471,
+      "n_orders": 34,
+      "seller_id": "5160d23075764e18e07c1f4a87fad743"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 2,
+      "seller_id": "e88f7a2995ba184710d339c5c4bf2e30"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0660377358490566,
+      "mean_review": 4.156398104265403,
+      "n_orders": 212,
+      "seller_id": "4830e40640734fc1c52cd21127c341d4"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "2f1e7b90e01d9f086cbcb301c0c3d406"
+    },
+    {
+      "complaints": 5,
+      "late_rate": 0.05504587155963303,
+      "mean_review": 3.8476190476190477,
+      "n_orders": 109,
+      "seller_id": "dd2bdf855a9172734fbc3744021ae9b9"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.857142857142857,
+      "n_orders": 7,
+      "seller_id": "5c030029b5916fed0986310385ec9009"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "8ca5b19e0263150d2c57afdde2b3d011"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.0,
+      "n_orders": 1,
+      "seller_id": "4867209cb29b56b92893d7bde3ce8012"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.25,
+      "mean_review": 5.0,
+      "n_orders": 4,
+      "seller_id": "83f2b4881141ce3fcd4e985125d3279e"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "cf6f6bc4df3999b9c6440f124fb2f687"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.047619047619047616,
+      "mean_review": 4.412698412698413,
+      "n_orders": 63,
+      "seller_id": "cce6ab8d1682639fe45ab70234f1665f"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.444444444444445,
+      "n_orders": 20,
+      "seller_id": "bf100ecb7997df312b285358fb32f92c"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.0,
+      "mean_review": 4.260869565217392,
+      "n_orders": 23,
+      "seller_id": "916748bc99315c2d202898ae58b1617e"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.5,
+      "mean_review": 1.0,
+      "n_orders": 2,
+      "seller_id": "553a440137d6e0cf776aee0bb83ac9f5"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "a9ae440659f48b7849df83e82734150b"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.18181818181818182,
+      "mean_review": 3.2727272727272725,
+      "n_orders": 11,
+      "seller_id": "082e0bf4cb865a6533b1e8e498cc0255"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.5,
+      "n_orders": 2,
+      "seller_id": "5e9f5bd34e0830569f05c9d4f56e04a8"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "5a9b3bcab695173c820e53934574ae80"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.2222222222222222,
+      "mean_review": 4.555555555555555,
+      "n_orders": 9,
+      "seller_id": "f35b3c613c4f7b2275f4185d0a3c59ec"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.05128205128205128,
+      "mean_review": 4.315789473684211,
+      "n_orders": 39,
+      "seller_id": "113e3a788b935f48aad63e1c41dac1bd"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 4.0,
+      "n_orders": 1,
+      "seller_id": "e9b6c33b71b67737693b4cfa68341c8d"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.03333333333333333,
+      "mean_review": 4.383333333333333,
+      "n_orders": 60,
+      "seller_id": "c6bda72e4dbf5c5866b13cb1810c6d03"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 2,
+      "seller_id": "5d505d2298ad549e4e4e835562fa0c1e"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 3.6666666666666665,
+      "n_orders": 3,
+      "seller_id": "42fb44130ac3134cde8e35cf8ec7df25"
+    },
+    {
+      "complaints": 4,
+      "late_rate": 0.08163265306122448,
+      "mean_review": 4.244897959183674,
+      "n_orders": 49,
+      "seller_id": "994f04b3718c2bab35c2adfa8afecd2a"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.045454545454545456,
+      "mean_review": 4.190476190476191,
+      "n_orders": 22,
+      "seller_id": "8fdca8e349553f99bc738833a62c8802"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.315789473684211,
+      "n_orders": 19,
+      "seller_id": "65b081a070633e057c462abdd6fb9dd8"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.2,
+      "n_orders": 5,
+      "seller_id": "df47da4ae86fa4db890d05aaf24e21d8"
+    },
+    {
+      "complaints": 5,
+      "late_rate": 0.0989010989010989,
+      "mean_review": 4.1098901098901095,
+      "n_orders": 91,
+      "seller_id": "8648b1e89e9b349e32d3741b30ec737e"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.25,
+      "mean_review": 4.75,
+      "n_orders": 4,
+      "seller_id": "6bd503a8230299c9316fb0f726933927"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.0,
+      "n_orders": 1,
+      "seller_id": "6b2612338467c08c9b25f0cc55b1578d"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.666666666666667,
+      "n_orders": 3,
+      "seller_id": "0b0ddbc7b9d9584f442c7ac92b0ff6c9"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 2.5,
+      "n_orders": 2,
+      "seller_id": "9b1050e85becf3ae99c1cf4934c9bc5d"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "f26d70155c2b6326fcfa1780c8c684e4"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.4,
+      "n_orders": 5,
+      "seller_id": "534a01cc6df1e034e05c32028a291fa2"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.02564102564102564,
+      "mean_review": 4.6923076923076925,
+      "n_orders": 39,
+      "seller_id": "5a93f3ab0ef4c84ed5e1b5dbf23978bc"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 2,
+      "seller_id": "570d4583587a5fe2d47c7be89b91ad27"
+    },
+    {
+      "complaints": 3,
+      "late_rate": 0.2,
+      "mean_review": 3.2,
+      "n_orders": 5,
+      "seller_id": "f44bdc12aa39f5271f0b95f66cd4c289"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.08823529411764706,
+      "mean_review": 4.303703703703704,
+      "n_orders": 136,
+      "seller_id": "00ee68308b45bc5e2660cd833c3f81cc"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 4.0,
+      "n_orders": 1,
+      "seller_id": "bac692d6c0ed08467878018e6cc9c26c"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.1,
+      "mean_review": 4.8,
+      "n_orders": 10,
+      "seller_id": "b127efdabeffb5d559349c7b172eb75d"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.05555555555555555,
+      "mean_review": 4.5,
+      "n_orders": 18,
+      "seller_id": "d03698c2efd04a549382afa6623e27fb"
+    },
+    {
+      "complaints": 5,
+      "late_rate": 0.15,
+      "mean_review": 4.066666666666666,
+      "n_orders": 60,
+      "seller_id": "05f51e13da97139648b8125c31e5f51b"
+    },
+    {
+      "complaints": 4,
+      "late_rate": 0.03571428571428571,
+      "mean_review": 4.214285714285714,
+      "n_orders": 28,
+      "seller_id": "0885aaf116795758dfeb5f1032487bcd"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 4.666666666666667,
+      "n_orders": 6,
+      "seller_id": "365e4bce19bda0082c3d15d83fdb8bcd"
+    },
+    {
+      "complaints": 3,
+      "late_rate": 0.4444444444444444,
+      "mean_review": 3.555555555555556,
+      "n_orders": 9,
+      "seller_id": "95b293867b5862941c9cd74f756a3c68"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.022058823529411766,
+      "mean_review": 3.9083969465648853,
+      "n_orders": 136,
+      "seller_id": "ce27a3cc3c8cc1ea79d11e561e9bebb6"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.666666666666667,
+      "n_orders": 3,
+      "seller_id": "a35ef466c6fd6d052f5d241240d3c5e2"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.0,
+      "n_orders": 2,
+      "seller_id": "b452cb0ae35044c4a53179c39f49fb06"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 3.0,
+      "n_orders": 1,
+      "seller_id": "da4d149c0ddbac90557103ac0a0ec356"
+    },
+    {
+      "complaints": 4,
+      "late_rate": 0.047244094488188976,
+      "mean_review": 4.261904761904762,
+      "n_orders": 127,
+      "seller_id": "7008613ea464bad5cb9b83456e1e6a8f"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "fd435faa3c0422b60440ea3480d0e77c"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 2,
+      "seller_id": "e0a3c37054ade6478d923a6efc10f308"
+    },
+    {
+      "complaints": 4,
+      "late_rate": 0.043478260869565216,
+      "mean_review": 3.6956521739130435,
+      "n_orders": 23,
+      "seller_id": "2b1a40c1daabc6ca280c4b815c101841"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 1.0,
+      "n_orders": 1,
+      "seller_id": "f664f98bfda2eaf266a23ff144e7a872"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.12,
+      "mean_review": 4.56,
+      "n_orders": 25,
+      "seller_id": "1dc2de47ee26a0a5b12dc14fd6dc0dea"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.5,
+      "mean_review": 5.0,
+      "n_orders": 2,
+      "seller_id": "8a207b6080964f3c1fc9d35bd6096ba4"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "3289d8c3eef4873f91ce0b1343c0dd58"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.21428571428571427,
+      "mean_review": 4.5,
+      "n_orders": 14,
+      "seller_id": "ca4b77513ac2040591b0d8fae6958380"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 1.0,
+      "n_orders": 1,
+      "seller_id": "6576fd3e23c88f0e5d4d23f39bba0542"
+    },
+    {
+      "complaints": 4,
+      "late_rate": 0.02608695652173913,
+      "mean_review": 4.095652173913043,
+      "n_orders": 115,
+      "seller_id": "1127b7f2594683f2510f1c2c834a486b"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "f8f35af4634605e6693c17cc3ffff5a8"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.1,
+      "mean_review": 4.8,
+      "n_orders": 10,
+      "seller_id": "5a6a02f419701fc8c605af71d4fc57a4"
+    },
+    {
+      "complaints": 3,
+      "late_rate": 0.10645848119233499,
+      "mean_review": 4.13034188034188,
+      "n_orders": 1409,
+      "seller_id": "1f50f920176fa81dab994f9023523100"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.0,
+      "mean_review": 3.9,
+      "n_orders": 10,
+      "seller_id": "05a940b4ecae36cadfd8e93bd9c43257"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.05555555555555555,
+      "mean_review": 4.407407407407407,
+      "n_orders": 108,
+      "seller_id": "25e6ffe976bd75618accfe16cefcbd0d"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 3.7058823529411766,
+      "n_orders": 17,
+      "seller_id": "9a84ba99f5367fdbd4598363496f1ea2"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.08333333333333333,
+      "mean_review": 4.333333333333333,
+      "n_orders": 12,
+      "seller_id": "7357b52d27cbaa90f81a96cbc1279396"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "dcb7367a92f5ffb89f1e2152ed260285"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.5,
+      "n_orders": 2,
+      "seller_id": "b05b432bf68945d4d9783f9e3ca29ee8"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 1.0,
+      "n_orders": 1,
+      "seller_id": "f114dca2828bf718548db175ebe2cfcd"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.666666666666667,
+      "n_orders": 9,
+      "seller_id": "3d0cd21d41671c46f82cd11176bf7277"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 2.5,
+      "n_orders": 2,
+      "seller_id": "98e164d549402270247f3c96a1a158ef"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "389e45560e33d2d0747f949dcddbc08e"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.05,
+      "mean_review": 4.4,
+      "n_orders": 40,
+      "seller_id": "20d83f3ef0e6925fd74bfd59170babf7"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "3ac588cd562971392504a9e17130c40b"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.8,
+      "n_orders": 5,
+      "seller_id": "499ec63c58e51296c9cf57edcfe1c8a8"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 4.75,
+      "n_orders": 4,
+      "seller_id": "0743a0239d764b9a0f959a57d07e36ab"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.03278688524590164,
+      "mean_review": 4.426229508196721,
+      "n_orders": 61,
+      "seller_id": "d57e18d5f73c7ccb7f7339b61166898d"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.05519480519480519,
+      "mean_review": 4.41042345276873,
+      "n_orders": 308,
+      "seller_id": "87142160b41353c4e5fca2360caf6f92"
+    },
+    {
+      "complaints": 5,
+      "late_rate": 0.09,
+      "mean_review": 4.1020408163265305,
+      "n_orders": 100,
+      "seller_id": "aac29b1b99776be73c3049939652091d"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "00ab3eff1b5192e5f1a63bcecfee11c8"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 1.0,
+      "n_orders": 1,
+      "seller_id": "1fddcb7b326905d3ad5efe82187db347"
+    },
+    {
+      "complaints": 5,
+      "late_rate": 0.15384615384615385,
+      "mean_review": 3.769230769230769,
+      "n_orders": 39,
+      "seller_id": "cee48807215b30a12ca2ca10ffb5f250"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.0,
+      "n_orders": 3,
+      "seller_id": "dcf3755cefcdc158ad0b7bdde51e871b"
+    },
+    {
+      "complaints": 6,
+      "late_rate": 0.128,
+      "mean_review": 3.9838709677419355,
+      "n_orders": 125,
+      "seller_id": "59b22a78efb79a4797979612b885db36"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "2c9005d8043aff18b8557ffb7b13cda4"
+    },
+    {
+      "complaints": 4,
+      "late_rate": 0.0,
+      "mean_review": 3.892857142857143,
+      "n_orders": 28,
+      "seller_id": "14a08204d03bb6b6bde8029f801ae0eb"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.5,
+      "n_orders": 2,
+      "seller_id": "8a8835a43bda99fd37310ad76c457510"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.8,
+      "n_orders": 5,
+      "seller_id": "3cfa1358a6caa965278721344c8d76f2"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.0,
+      "n_orders": 6,
+      "seller_id": "55c26bcb609f480eb7868594245febb5"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.03333333333333333,
+      "mean_review": 4.666666666666667,
+      "n_orders": 30,
+      "seller_id": "6061155addc1e54b4cfb51c1c2a32ad8"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.058823529411764705,
+      "mean_review": 4.5058823529411764,
+      "n_orders": 85,
+      "seller_id": "dbd66278cbfe1aa1000f90a217ca4695"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "59de1d4c8c057c2a53acd4ca66531af2"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 3.0,
+      "n_orders": 2,
+      "seller_id": "4ce8b55b4bfa4659184e7becc1fba3f2"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "a99504ac23ed125aaf5302af6cc30af9"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.0,
+      "mean_review": 3.875,
+      "n_orders": 24,
+      "seller_id": "e6a69c4a27dfdd98ffe5aa757ad744bc"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 2,
+      "seller_id": "1d0646a72178a6fb37ee8082140e06ec"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.0,
+      "n_orders": 5,
+      "seller_id": "7f35f9daf223da737b78738fbae4d977"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "dd9661d3cda1e6feb237f0c4d8b26f2e"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.1,
+      "mean_review": 3.8088235294117645,
+      "n_orders": 70,
+      "seller_id": "f7ccf836d21b2fb1de37564105216cc1"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.0,
+      "mean_review": 4.428571428571429,
+      "n_orders": 7,
+      "seller_id": "3f9be91358837bff69df67edfa3e42e8"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.0,
+      "mean_review": 4.1,
+      "n_orders": 10,
+      "seller_id": "5ef131ac72773e5b3f6c0d63cf424657"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.1076923076923077,
+      "mean_review": 3.9302325581395348,
+      "n_orders": 130,
+      "seller_id": "e9d99831abad74458942f21e16f33f92"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.16666666666666666,
+      "mean_review": 4.166666666666667,
+      "n_orders": 6,
+      "seller_id": "e45edf75f568ed2f93f78d060e246e25"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 3.9,
+      "n_orders": 11,
+      "seller_id": "1b1ae47a313a825a7ccceb8e2e30fa9d"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "45a3d05fb00435e52a28859dd03703b3"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.428571428571429,
+      "n_orders": 8,
+      "seller_id": "6e1862e15f33d9994bc25922a85e1efc"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.75,
+      "n_orders": 4,
+      "seller_id": "c9e5ad1f6647f5dbd1172adf6ae3cada"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.181818181818182,
+      "n_orders": 11,
+      "seller_id": "d1b9d4be4b6f9ebd85f8acd6745ba612"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.5,
+      "n_orders": 2,
+      "seller_id": "24a6daf925d9d591870a66660416de31"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 2,
+      "seller_id": "615c3462099ffa940d37b17dfda19594"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.125,
+      "mean_review": 4.125,
+      "n_orders": 8,
+      "seller_id": "27a56ff04b34c2ba34ce6ba4d3b9d616"
+    },
+    {
+      "complaints": 3,
+      "late_rate": 0.050505050505050504,
+      "mean_review": 4.333333333333333,
+      "n_orders": 99,
+      "seller_id": "282f23a9769b2690c5dda22e316f9941"
+    },
+    {
+      "complaints": 3,
+      "late_rate": 0.041666666666666664,
+      "mean_review": 4.125,
+      "n_orders": 24,
+      "seller_id": "cea729054f157f5870bdd321a958d994"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.2857142857142857,
+      "mean_review": 3.5714285714285716,
+      "n_orders": 14,
+      "seller_id": "7fc87cc3e89b3d1d5cabdca32f8485aa"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 1.0,
+      "n_orders": 1,
+      "seller_id": "f9eda05b67bef472deaddbba84aca289"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.0,
+      "mean_review": 2.3333333333333335,
+      "n_orders": 6,
+      "seller_id": "270d3ef21830ad0ecf3a6c53d08a533a"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "e1bed63d68ac36fe1f3061befe196af5"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 4.5,
+      "n_orders": 2,
+      "seller_id": "2a167ca73899c85001a837d8fb4962f6"
+    },
+    {
+      "complaints": 4,
+      "late_rate": 0.10526315789473684,
+      "mean_review": 4.2105263157894735,
+      "n_orders": 114,
+      "seller_id": "f5a590cf36251cf1162ea35bef76fe84"
+    },
+    {
+      "complaints": 4,
+      "late_rate": 0.0,
+      "mean_review": 3.595744680851064,
+      "n_orders": 48,
+      "seller_id": "aae3bfea055532c57fb453ed3ec80b30"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 1.0,
+      "n_orders": 1,
+      "seller_id": "6e85dc5ecd97a61094b89b046a509d8e"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.07006369426751592,
+      "mean_review": 3.782051282051282,
+      "n_orders": 157,
+      "seller_id": "25c5c91f63607446a97b143d2d535d31"
+    },
+    {
+      "complaints": 3,
+      "late_rate": 0.1,
+      "mean_review": 3.2,
+      "n_orders": 10,
+      "seller_id": "04fdea0c111866e6cf812f1570d6b5bd"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.0,
+      "mean_review": 4.0,
+      "n_orders": 2,
+      "seller_id": "4c4d546adf3c3868fe19c9ec6e9ffda9"
+    },
+    {
+      "complaints": 0,
+      "late_rate": 0.0,
+      "mean_review": 5.0,
+      "n_orders": 1,
+      "seller_id": "db6a4d4b5f1f5f98820ce6ce2619e2de"
+    },
+    {
+      "complaints": 1,
+      "late_rate": 0.09090909090909091,
+      "mean_review": 4.545454545454546,
+      "n_orders": 11,
+      "seller_id": "8bdd8e3fd58bafa48af76b2c5fd71974"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.2,
+      "mean_review": 4.0,
+      "n_orders": 5,
+      "seller_id": "039e6ad9dae79614493083e241147386"
+    },
+    {
+      "complaints": 2,
+      "late_rate": 0.06666666666666667,
+      "mean_review": 4.2,
+      "n_orders": 60,
+      "seller_id": "d650b663c3b5f6fb392b6326366efa9a"
+    }
+  ]
+}
