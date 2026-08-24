@@ -1,24 +1,45 @@
-fastapi
-uvicorn[standard]
-streamlit
-requests
-python-dotenv
-pydantic
+# Pinned to the versions installed in the environment that produced the M0
+# baseline (tests/baseline/baseline_results.json). Captured with `pip freeze`
+# on 2026-08-24, Python 3.12.2.
+#
+# Before M0 this file listed 20 lines with zero version constraints, so no two
+# installs were guaranteed to be the same system (AUDIT.md F-11).
 
-pandas
-numpy
-pyarrow
+# --- API and UI ---
+fastapi==0.139.0
+uvicorn[standard]==0.51.0
+streamlit==1.59.1
+requests==2.34.2
+python-dotenv==1.2.2
+pydantic==2.13.4
 
-sqlalchemy
-psycopg2-binary
+# --- Data ---
+pandas==3.0.3
+numpy==2.5.1
+pyarrow==25.0.0
 
-neo4j
+# --- PostgreSQL ---
+SQLAlchemy==2.0.51
+psycopg2-binary==2.9.12
 
-qdrant-client
-sentence-transformers
+# --- Neo4j ---
+neo4j==6.2.0
 
-google-genai
-langgraph
+# --- Vector store and embeddings ---
+qdrant-client==1.18.0
+sentence-transformers==5.6.0
 
-tqdm
-pyyaml
+# torch and transformers are transitive dependencies of sentence-transformers,
+# but they decide the numerical output of the embedding model, so leaving them
+# floating would leave the vector store unreproducible even with the model
+# revision pinned. They are pinned here deliberately.
+torch==2.13.0
+transformers==5.13.0
+
+# --- LLM and orchestration ---
+google-genai==2.11.0
+langgraph==1.2.9
+
+# --- Misc ---
+tqdm==4.68.4
+PyYAML==6.0.3
