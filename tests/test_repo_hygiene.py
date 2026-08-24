@@ -226,3 +226,16 @@ def test_gitignore_has_no_blanket_negations():
     ]
     blanket = [line for line in lines if line.endswith("/**") or line.endswith("/*")]
     assert blanket == [], blanket
+
+
+# --- Task 5: the frozen baseline ---------------------------------------------
+
+
+def test_baseline_and_its_tooling_are_committed():
+    tracked = _tracked()
+    for path in [
+        "tests/baseline/baseline_results.json",
+        "scripts/capture_baseline.py",
+        "scripts/check_template_determinism.py",
+    ]:
+        assert path in tracked, path

@@ -129,3 +129,32 @@ def test_ticket_orders_have_zero_variance_on_the_flagship_variables(connection):
         )
     ).one()
     assert rows[0] > 0
+
+
+def test_exactly_one_retrieval_template_is_non_deterministic(project_root):
+    """Found in M0 task 5; not in the original audit.
+
+    review_intelligence orders by review_score alone. 11,424 rows tie at score 1 and
+    LIMIT 10 takes an arbitrary ten, so the same question can be answered from
+    different evidence on different runs. The other ten templates are stable.
+    """
+    import subprocess
+    import sys
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(project_root / "scripts" / "check_template_determinism.py"),
+            "--runs",
+            "5",
+        ],
+        capture_output=True,
+        text=True,
+        cwd=project_root,
+    )
+    if result.returncode != 0:
+        pytest.skip(f"stack not reachable: {result.stderr[-300:]}")
+    assert "1 unstable template(s) out of 11" in result.stdout, result.stdout
+    assert "review_intelligence        distinct result sets: 2" in result.stdout or (
+        "review_intelligence" in result.stdout and "UNSTABLE" in result.stdout
+    ), result.stdout

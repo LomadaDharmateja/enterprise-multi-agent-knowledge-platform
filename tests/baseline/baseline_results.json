@@ -1,0 +1,691 @@
+{
+  "schema_version": 1,
+  "milestone": "M0",
+  "purpose": "Frozen record of system behaviour before any rebuild work. Never delete this file. Later milestones are measured as a diff against it.",
+  "environment": {
+    "captured_at": "2026-08-24T12:30:41.685996+00:00",
+    "git_commit": "249effda04a09ea13b78cfc907372469a696f164",
+    "git_dirty": true,
+    "python": "3.12.2",
+    "platform": "Windows-11-10.0.26200-SP0"
+  },
+  "cross_question": {
+    "questions_completed": 8,
+    "distinct_sql_evidence_hashes": 5,
+    "distinct_sql_evidence_hashes_order_independent": 5,
+    "distinct_graph_evidence_hashes": 4,
+    "distinct_graph_evidence_hashes_order_independent": 4,
+    "sql_intents_used": 4,
+    "sql_evidence_sets_per_intent": {
+      "order_summary": 1,
+      "payment_summary": 1,
+      "review_intelligence": 2,
+      "seller_performance": 1
+    },
+    "identical_evidence_groups": {
+      "sql=fdd0e02b6d6b9074 graph=8e511835882c75b2": [
+        "seller_complaint_warranty_policy",
+        "paraphrase_suppliers_negative_reviews"
+      ],
+      "sql=fdd0e02b6d6b9074 graph=f06b99b6d6a57fc1": [
+        "seller_negative_ticket_paths",
+        "paraphrase_vendors_poor_experience"
+      ]
+    },
+    "f03_note": "identical_evidence_groups lists questions whose SQL and graph evidence is byte-identical despite the questions differing. That is F-03: no template binds anything but :limit, so the evidence answers the intent, not the question. M2's exit criterion is that this dict becomes empty.",
+    "instability_note": "sql_evidence_sets_per_intent greater than 1 does NOT mean a template responded to the question. It means the template is not reproducible: review_intelligence orders by review_score alone, 11,424 rows tie at score 1, and LIMIT 10 takes an arbitrary ten. Run scripts/check_template_determinism.py to measure it."
+  },
+  "questions": [
+    {
+      "id": "seller_complaint_warranty_policy",
+      "group": "five_validation_cases",
+      "query": "Find sellers with negative customer complaints, warranty issues, and relevant support policies",
+      "expected_sql_intent": "seller_performance",
+      "expected_graph_intent": "warranty_product_seller_paths",
+      "expected_vector_groups": [
+        "support_tickets",
+        "warranty_claims",
+        "policy_documents"
+      ],
+      "note": "verbatim few-shot example in build_planner_prompt (gemini_query_planner.py:50-172)",
+      "artifact_dir": "reports/baseline_m0/seller_complaint_warranty_policy",
+      "outcome": "completed",
+      "transient_retries": 0,
+      "elapsed_seconds": 18.24,
+      "route": {
+        "sql_intent": "seller_performance",
+        "graph_intent": "warranty_product_seller_paths",
+        "vector_artifact_groups": [
+          "support_tickets",
+          "warranty_claims",
+          "policy_documents"
+        ],
+        "planner_model": "gemini-3.1-flash-lite"
+      },
+      "route_matches_expected": {
+        "sql": true,
+        "graph": true,
+        "vector": true
+      },
+      "evidence": {
+        "sql": {
+          "intent": "seller_performance",
+          "record_count": 10,
+          "records_sha256": "fdd0e02b6d6b90746e0c3b75d2a11e6b52ca2135750ef41d4adfbc5c9dd2365e",
+          "records_sorted_sha256": "f1b2221abb8496c5db37760bdf0c13fbc4b1dfec010005d8a8006650cf412e7e"
+        },
+        "graph": {
+          "intent": "warranty_product_seller_paths",
+          "record_count": 10,
+          "records_sha256": "8e511835882c75b228f95fe1d3e60ef22b2a8ac681d1869416baf560c095b043",
+          "records_sorted_sha256": "df0943a57fefdae16d1228628f8c0358ffdf36f2958114ec792175d67c354090"
+        },
+        "vector": {
+          "artifact_groups": [
+            "support_tickets",
+            "warranty_claims",
+            "policy_documents"
+          ],
+          "record_count": 15,
+          "results_sha256": "1685f19e33fd596c5488d71ecbdf3836ebd47720ab966f5e8d179b45b658dded",
+          "per_group_sha256": {
+            "policy_documents": "4eb147fb441e442aaabacdafee0f492ee75dbf088d67953ac9d31272beaab7e1",
+            "support_tickets": "b5b6fecccaa3a46eec6fe71a71b1f502a5a5c054f93e9dedeaf72dcb80749893",
+            "warranty_claims": "f458e59ebf86d257c18677c1ec3021f0d1e21fe030f8acb33df47870fb3ec852"
+          }
+        }
+      },
+      "retrieval_context_sha256": "97f517e01a60891442b797807e33e2ebfc0c38a5ace46c5aba455784389a32d4",
+      "answer": {
+        "length_chars": 3151,
+        "sha256": "6be28cb8729a376373b9b35426cc5408a70b4fbd961e341113ce4c088ccbf72b",
+        "text": "# Grounded Business Answer\n\n## Business Question\nFind sellers with negative customer complaints, warranty issues, and relevant support policies.\n\n## Executive Answer\nThe retrieved evidence identifies specific sellers associated with high-severity warranty claims and customer complaints. While high-level performance data (revenue, review scores, and late delivery counts) is available for several sellers, there is no direct link connecting these performance metrics to specific support policies or the qualitative content of customer complaints.\n\nSellers identified with high-severity warranty claims include:\n*   **cb41bfbcbda0aea354a834ab222f9a59** (Claim WRN-000001, escalated)\n*   **df683dfda87bf71ac3fc63063fba369d** (Claim WRN-000002, submitted)\n*   **c847e075301870dd144a116762eaff9a** (Claim WRN-000003, approved)\n*   **2a1348e9addc1af5aaa619b1a3679d6b** (Claim WRN-000004, rejected)\n*   **8b28d096634035667e8263d57ba3368c** (Claim WRN-000005, rejected)\n\n\"Product quality\" complaints exist in the system (e.g., *ferramentas_jardim*), but these are not explicitly linked to specific `seller_id`s in the provided records.\n\n## Evidence Used\n\n### SQL Evidence\n*   Performance metrics were retrieved for 10 sellers (e.g., `4a3ca9315b744ce9f8e9374361493884`), detailing `total_orders`, `avg_review_score`, and `late_delivery_orders`.\n\n### Graph Evidence\n*   Provided 10 records linking `seller_id` to `ticket_id`, `claim_id`, `severity`, and `claim_status`. Five sellers are confirmed to have high-severity warranty claims.\n\n### Document Evidence\n*   Qdrant search yielded three high-severity \"Product quality complaint\" tickets for the category *ferramentas_jardim*.\n*   Three category support handling guides were retrieved (e.g., *industria_comercio_e_negocios*, *market_place*, and *beleza_saude*).\n\n## Key Entities\n*   **Sellers with Warranty Issues:** `cb41bfbcbda0aea354a834ab222f9a59`, `df683dfda87bf71ac3fc63063fba369d`, `c847e075301870dd144a116762eaff9a`, `2a1348e9addc1af5aaa619b1a3679d6b`, `8b28d096634035667e8263d57ba3368c`.\n*   **Support Categories:** `industria_comercio_e_negocios`, `market_place`, `beleza_saude`.\n\n## Recommended Next Actions\n1.  **Map Support Policies:** Assign the retrieved category support guides to the specific product categories associated with the sellers flagged in the graph data.\n2.  **Cross-Reference Data:** Perform a join between the product IDs found in warranty claims and the sellers identified in the SQL performance metrics to determine if poor performance is correlated with high warranty volume.\n3.  **Investigate Quality Trends:** Review the specific \"Product quality complaint\" documentation for *ferramentas_jardim* to determine if specific sellers share this product category.\n\n## Limitations\n*   **Disconnected Data:** The retrieval context does not provide a direct link between the specific \"Product quality complaint\" tickets and the `seller_id`s mentioned in the SQL or Graph evidence.\n*   **Policy Specificity:** The available policy documents are generic category support guides and do not explicitly reference the specific sellers or warranty claims provided in the graph records."
+      },
+      "evaluation": {
+        "overall_status": "PASS",
+        "evaluator_status": "PASS",
+        "grounding_score": 5,
+        "completeness_score": 5,
+        "business_readiness_score": 5,
+        "sql_evidence_used": true,
+        "graph_evidence_used": true,
+        "document_evidence_used": true,
+        "limitations_mentioned": true,
+        "unsupported_claims": [],
+        "missing_evidence": [],
+        "deterministic_failures": [],
+        "raw_sha256": "fbc34f49051a1e238323ed1c2114eab809a7e52512f0e84b20f877da210cce7f"
+      },
+      "reported_overall_status": "PASS"
+    },
+    {
+      "id": "late_delivery_logistics_region_guidance",
+      "group": "five_validation_cases",
+      "query": "Investigate late delivery logistics incidents by customer region and find troubleshooting guidance",
+      "expected_sql_intent": "order_summary",
+      "expected_graph_intent": "logistics_region_paths",
+      "expected_vector_groups": [
+        "logistics_incidents",
+        "troubleshooting_guides"
+      ],
+      "note": "verbatim few-shot example",
+      "artifact_dir": "reports/baseline_m0/late_delivery_logistics_region_guidance",
+      "outcome": "completed",
+      "transient_retries": 0,
+      "elapsed_seconds": 13.68,
+      "route": {
+        "sql_intent": "order_summary",
+        "graph_intent": "logistics_region_paths",
+        "vector_artifact_groups": [
+          "logistics_incidents",
+          "troubleshooting_guides"
+        ],
+        "planner_model": "gemini-3.1-flash-lite"
+      },
+      "route_matches_expected": {
+        "sql": true,
+        "graph": true,
+        "vector": true
+      },
+      "evidence": {
+        "sql": {
+          "intent": "order_summary",
+          "record_count": 10,
+          "records_sha256": "ea2e8c26d60331e06c440b3a04aa3db6116f1579ce908d2a5769ea87788f1660",
+          "records_sorted_sha256": "f871a7fff567f228cfa77b6391602e44d3d3020de725947f708d9baf0b0375fa"
+        },
+        "graph": {
+          "intent": "logistics_region_paths",
+          "record_count": 10,
+          "records_sha256": "8ba73f6f8e0a87542179f642cffec4e842fcc65f8cdeabb581591786b49f3d2b",
+          "records_sorted_sha256": "04b5b34bbf040292d4b20ccad9c435322ae1f2bc9c8931efe252eaaa9097354f"
+        },
+        "vector": {
+          "artifact_groups": [
+            "logistics_incidents",
+            "troubleshooting_guides"
+          ],
+          "record_count": 10,
+          "results_sha256": "880964454e2fe82b044ac123f1ceb66498573e3cb57bb2485fd89cd1f86c5d84",
+          "per_group_sha256": {
+            "logistics_incidents": "34844b119e5c57012ca6a5914d1738ad1e66c89caf07db727ccc72e3b1594248",
+            "troubleshooting_guides": "b69a732cf44757472ed943dbcd7a4312c51edbd642bd37626aa16aab6aae53cc"
+          }
+        }
+      },
+      "retrieval_context_sha256": "1cf2970b1cf014bdf8a4f116f6ee2f0e00e45e467e4ab6f574de7227158394c9",
+      "answer": {
+        "length_chars": 3418,
+        "sha256": "fd82198ef6e2f70dcc2f25a44be032b64155ba7f82dccb0d6e1c560c4545fba1",
+        "text": "# Grounded Business Answer\n\n## Business Question\nInvestigate late delivery logistics incidents by customer region and find troubleshooting guidance\n\n## Executive Answer\nBased on the retrieved records, significant delivery delays (ranging from approximately 166 to 189 days) have been identified across several regions. These incidents are consistently classified as **critical**. \n\nThe investigation reveals the following patterns:\n*   **Regional Trends:** Critical delivery bottlenecks and dispatch delays are impacting customers in states including **RJ** (Rio de Janeiro), **ES** (Montanha), **SP** (Salto, Paulinia), and **SE** (Lagarto).\n*   **Incident Types:** The primary causes identified for these late deliveries are \"regional_delivery_bottleneck,\" \"warehouse_handoff_issue,\" and \"seller_dispatch_delay.\"\n*   **Troubleshooting:** Specific operational guidance is available for product categories such as home/kitchen/garden furniture (*moveis_cozinha_area_de_servico_jantar_e_jardim*), PCs, and business/industrial equipment. These guides should be consulted to investigate the root causes associated with the specific seller IDs and product types linked to these incidents.\n\n## Evidence Used\n\n### SQL Evidence\n- Data confirms `is_late_delivery=True` for orders in RJ, ES, SP, and SE.\n- Delivery delay days for analyzed orders are extreme, peaking at 188.98 days in Rio de Janeiro (order `1b3190b2dfa9d789e1f14c05b647a14a`).\n- Customer review scores for these orders are low, ranging between 1.00 and 2.00.\n\n### Graph Evidence\n- Linked incidents to specific regional bottlenecks and operational failures:\n    - **INC-000001 (RJ):** Regional delivery bottleneck.\n    - **INC-000002 (ES):** Regional delivery bottleneck.\n    - **INC-000003 (SP):** Warehouse handoff issue.\n    - **INC-000004 & INC-000005 (SP/SE):** Seller dispatch delays.\n\n### Document Evidence\n- Retrieved troubleshooting guides categorize investigation steps by industry/product type:\n    - `moveis_cozinha_area_de_servico_jantar_e_jardim`\n    - `pcs`\n    - `industria_comercio_e_negocios`\n- Additional logistics incident reports (e.g., status \"under_review\" or \"escalated\") are available for specific delayed orders.\n\n## Key Entities\n- **Incident IDs:** INC-000001 through INC-000005.\n- **Regions:** RJ, ES, SP, SE.\n- **Sellers:** 7a67c85e85bb2ce8582c35f2203ad736, 2a1348e9addc1af5aaa619b1a3679d6b, cb41bfbcbda0aea354a834ab222f9a59, df683dfda87bf71ac3fc63063fba369d, c847e075301870dd144a116762eaff9a.\n\n## Recommended Next Actions\n1.  **Categorize Incident by Product:** Map the affected orders to their specific product categories to determine which of the retrieved troubleshooting guides (Furniture, PCs, or Industrial) is most applicable for remediation.\n2.  **Seller Performance Audit:** Investigate the identified sellers (`7a67c85e85bb2ce8582c35f2203ad736` and others) to determine if dispatch delays are systemic across their other operations.\n3.  **Regional Logistics Review:** Given the \"regional_delivery_bottleneck\" findings in RJ and ES, coordinate with regional logistics partners to resolve infrastructure-related delays.\n\n## Limitations\n- The provided troubleshooting guides are mapped by product category/industry rather than by specific incident type or root cause.\n- There is no direct link provided in the evidence connecting the specific troubleshooting documents to the internal `incident_id` codes (e.g., INC-000001)."
+      },
+      "evaluation": {
+        "overall_status": "PASS",
+        "evaluator_status": "PASS",
+        "grounding_score": 5,
+        "completeness_score": 5,
+        "business_readiness_score": 5,
+        "sql_evidence_used": true,
+        "graph_evidence_used": true,
+        "document_evidence_used": true,
+        "limitations_mentioned": true,
+        "unsupported_claims": [],
+        "missing_evidence": [],
+        "deterministic_failures": [],
+        "raw_sha256": "81ab5960dc4564734e70dd67a864ef72fa6032652254240ca40f09a9644efcfd"
+      },
+      "reported_overall_status": "PASS"
+    },
+    {
+      "id": "payment_refund_policy",
+      "group": "five_validation_cases",
+      "query": "Find payment questions, refund policies, and customer support cases",
+      "expected_sql_intent": "payment_summary",
+      "expected_graph_intent": "customer_ticket_order_product_paths",
+      "expected_vector_groups": [
+        "support_tickets",
+        "policy_documents"
+      ],
+      "note": "verbatim few-shot example",
+      "artifact_dir": "reports/baseline_m0/payment_refund_policy",
+      "outcome": "completed",
+      "transient_retries": 0,
+      "elapsed_seconds": 16.72,
+      "route": {
+        "sql_intent": "payment_summary",
+        "graph_intent": "customer_ticket_order_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets",
+          "policy_documents"
+        ],
+        "planner_model": "gemini-3.1-flash-lite"
+      },
+      "route_matches_expected": {
+        "sql": true,
+        "graph": true,
+        "vector": true
+      },
+      "evidence": {
+        "sql": {
+          "intent": "payment_summary",
+          "record_count": 10,
+          "records_sha256": "73e6a358ee269814e8753ae97c9506210eee0819be0ebe11dc0df9234c20a2e7",
+          "records_sorted_sha256": "b995fe68e7f933c94a534edfa38f1f137cf3149672c1d7acf27c216ea95dad2a"
+        },
+        "graph": {
+          "intent": "customer_ticket_order_product_paths",
+          "record_count": 10,
+          "records_sha256": "fb6c35521a45eafc4940afdafcd97cf28dfee3576150092ad0211795ca66ccb1",
+          "records_sorted_sha256": "6e404de952ab2eb30643d90853ea6e753a5c552623c21cd6aeba8d150407237f"
+        },
+        "vector": {
+          "artifact_groups": [
+            "support_tickets",
+            "policy_documents"
+          ],
+          "record_count": 10,
+          "results_sha256": "1281e9149f2070d6cd4085324559ae5c832656262a0a433a06a529619e24f9c5",
+          "per_group_sha256": {
+            "policy_documents": "eda32fabf3cfb4f7161dc7def5fb37a94953e777e268570aa04709b3afaef2d1",
+            "support_tickets": "be55841688a993728d9e81c6a7ca36b2a23cc3276a8b9f584809d7c3bf17d026"
+          }
+        }
+      },
+      "retrieval_context_sha256": "5ad8e79e240dff174de2dcd334bdd6a1f8e4900207db45d30795870accd5eb4e",
+      "answer": {
+        "length_chars": 3028,
+        "sha256": "667a39134f2b45aa7df665e7372b780db5fcfec0ab90342473a2f78d4502d3ce",
+        "text": "# Grounded Business Answer\n\n## Business Question\nFind payment questions, refund policies, and customer support cases\n\n## Executive Answer\nBased on the retrieved enterprise records, support operations are currently focused on high-severity issues regarding product quality and fulfillment. \n\n*   **Customer Support Cases:** Multiple high-severity cases (e.g., TCK-000001 through TCK-000005) have been identified involving damaged or missing items. These cases are currently in a \"waiting_for_customer\" status. Affected product categories include *relogios_presentes* and *beleza_saude*.\n*   **Refund and Payment Policies:** The enterprise maintains specific documentation for \"Late Delivery Refund Policy\" and \"Payment Investigation Policy.\" Additionally, a \"Category Support Handling Guide\" exists for the *relogios_presentes* category.\n*   **Payment Patterns:** Financial records show diverse payment methods, including credit cards (with varying installments up to 8) and boleto. High-value orders (e.g., order 03caa2c082116e1d31e67e9ae3700499 at 13,664.08) are processed through these channels.\n\n## Evidence Used\n\n### SQL Evidence\n*   Retrieved 10 order records via `payment_summary`. Key high-value orders include `03caa2c082116e1d31e67e9ae3700499` (13,664.08) and `736e1922ae60d0d6a89247b851902527` (7,274.88). Payment types include credit card and boleto.\n\n### Graph Evidence\n*   Retrieved 10 ticket-order-product paths via `customer_ticket_order_product_paths`. Notable tickets include `TCK-000001` (damaged item, SP) and `TCK-000003` (negative review escalation, SE).\n\n### Document Evidence\n*   Qdrant semantic retrieval identified three high-severity support tickets in \"waiting_for_customer\" status and three policy documents: \"Late Delivery Refund Policy,\" \"Payment Investigation Policy,\" and \"Category Support Handling Guide: relogios_presentes.\"\n\n## Key Entities\n*   **Tickets:** TCK-000001 through TCK-000010\n*   **Orders:** 03caa2c082116e1d31e67e9ae3700499, 736e1922ae60d0d6a89247b851902527, 0812eb902a67711a1cb742b3cdaa65ae, 47b40429ed8cce3aee9199792275433f, 2fe324febf907e3ea3f2aa9650869fa5\n*   **Products:** ebf1c13032246ea801765e8cb5417365, b75683e29689c1a989ae97883e8cad56, 0c6fc9b9317a68d1cda098c063914b72\n\n## Recommended Next Actions\n*   Review the \"Payment Investigation Policy\" to address specific payment-related inquiries from customers associated with high-value orders.\n*   Utilize the \"Category Support Handling Guide\" to expedite the resolution of the *relogios_presentes* damaged item claims (TCK-000001, TCK-000003).\n*   Follow up on the five support tickets currently marked as \"waiting_for_customer\" to determine if additional information has been provided.\n\n## Limitations\n*   Specific details regarding the content of the refund or payment policies were not provided in the retrieved text, only their titles.\n*   The connection between specific payment disputes and the identified refund policies is inferred from available metadata and has not been explicitly linked in the provided records."
+      },
+      "evaluation": {
+        "overall_status": "PASS",
+        "evaluator_status": "PASS",
+        "grounding_score": 5,
+        "completeness_score": 5,
+        "business_readiness_score": 5,
+        "sql_evidence_used": true,
+        "graph_evidence_used": true,
+        "document_evidence_used": true,
+        "limitations_mentioned": true,
+        "unsupported_claims": [],
+        "missing_evidence": [],
+        "deterministic_failures": [],
+        "raw_sha256": "ec7f044b96bb683334d1c24b4e7e9d59a4ae575656b2b40170f15ecbc2ddcc88"
+      },
+      "reported_overall_status": "PASS"
+    },
+    {
+      "id": "product_quality_troubleshooting",
+      "group": "five_validation_cases",
+      "query": "Investigate product quality complaints and find troubleshooting procedures",
+      "expected_sql_intent": "review_intelligence",
+      "expected_graph_intent": "customer_ticket_order_product_paths",
+      "expected_vector_groups": [
+        "support_tickets",
+        "troubleshooting_guides"
+      ],
+      "note": "verbatim few-shot example",
+      "artifact_dir": "reports/baseline_m0/product_quality_troubleshooting",
+      "outcome": "completed",
+      "transient_retries": 0,
+      "elapsed_seconds": 14.94,
+      "route": {
+        "sql_intent": "review_intelligence",
+        "graph_intent": "customer_ticket_order_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets",
+          "troubleshooting_guides"
+        ],
+        "planner_model": "gemini-3.1-flash-lite"
+      },
+      "route_matches_expected": {
+        "sql": true,
+        "graph": true,
+        "vector": true
+      },
+      "evidence": {
+        "sql": {
+          "intent": "review_intelligence",
+          "record_count": 10,
+          "records_sha256": "9afa3a251568f215b1d0dc1f7eb14f61214176ae79a18b2eb6a73c7380e33145",
+          "records_sorted_sha256": "ccd2fdedfd563e1d18742964adb9d021bc76cf15bee46c317cf95d0c3f799d3d"
+        },
+        "graph": {
+          "intent": "customer_ticket_order_product_paths",
+          "record_count": 10,
+          "records_sha256": "fb6c35521a45eafc4940afdafcd97cf28dfee3576150092ad0211795ca66ccb1",
+          "records_sorted_sha256": "6e404de952ab2eb30643d90853ea6e753a5c552623c21cd6aeba8d150407237f"
+        },
+        "vector": {
+          "artifact_groups": [
+            "support_tickets",
+            "troubleshooting_guides"
+          ],
+          "record_count": 10,
+          "results_sha256": "5eb569352b51e57868afff6b1f5e0edffd55dfde49e96b009a8e3a95bd681e87",
+          "per_group_sha256": {
+            "support_tickets": "fa64995af3ab1ed62d4f2c664cd9fc08905e2c66b43a5d9d2824bf1211936519",
+            "troubleshooting_guides": "7c98e0568119d451116935f151e4141671f998a82956bcf58ef200d1758526b5"
+          }
+        }
+      },
+      "retrieval_context_sha256": "b239378390f6c704b1dc3bafd153cca719ea8baf8325fcbc9ca6c91346115874",
+      "answer": {
+        "length_chars": 2622,
+        "sha256": "dc68334a55bbf0353bb3ec2ee19b6edbead7ed60538e4c6249e5de14c9cfdd28",
+        "text": "# Grounded Business Answer\n\n## Business Question\nInvestigate product quality complaints and find troubleshooting procedures\n\n## Executive Answer\nBased on the retrieved records, there is a clear pattern of high-severity product quality issues, particularly within the `beleza_saude` category, which currently has multiple open and escalated support tickets. While we have identified several specific orders associated with negative reviews (score of 1) and high-severity support tickets (e.g., `TCK-000001` for damaged items), the available troubleshooting documentation is categorized by industry (e.g., `fashion_bolsas_e_acessorios`, `industria_comercio_e_negocios`, `construcao_ferramentas_jardim`) rather than specific product quality issues. Consequently, there is no direct mapping between the identified product quality complaints and specific technical troubleshooting steps.\n\n## Evidence Used\n\n### SQL Evidence\n- Five negative review instances were identified (e.g., `order_id=c65d58d799052b1354bb0a7063b29621`, `order_id=f68d2c7cf192e85e39bd08dc995dca5c`), all resulting in a review score of 1.\n\n### Graph Evidence\n- Support tickets with high severity were identified, including `TCK-000001` (damaged item, `product_id=ebf1c13032246ea801765e8cb5417365`) and `TCK-000002` (missing item, `product_id=b75683e29689c1a989ae97883e8cad56`).\n\n### Document Evidence\n- Qdrant retrieved high-severity \"Product quality complaints\" for the `beleza_saude` category.\n- Troubleshooting guides exist for `fashion_bolsas_e_acessorios`, `industria_comercio_e_negocios`, and `construcao_ferramentas_jardim`.\n\n## Key Entities\n- **Products:** `ebf1c13032246ea801765e8cb5417365`, `b75683e29689c1a989ae97883e8cad56`, `0c6fc9b9317a68d1cda098c063914b72`\n- **Tickets:** `TCK-000001` through `TCK-000005`\n- **Category:** `beleza_saude`\n\n## Recommended Next Actions\n- Perform a cross-reference analysis to link the specific `product_id`s found in high-severity tickets to the relevant troubleshooting guides.\n- Investigate if the current troubleshooting guides can be expanded to cover the `beleza_saude` category, as this is where high-severity complaints are currently escalating.\n- Prioritize the review of escalated tickets (e.g., `TCK-000003`) to identify if common failure points exist that are not covered by existing documentation.\n\n## Limitations\n- The provided troubleshooting documentation does not currently cover the `beleza_saude` category associated with the most urgent quality complaints.\n- There is no direct evidence linking the existing troubleshooting guides to the specific `product_id`s involved in the support tickets."
+      },
+      "evaluation": {
+        "overall_status": "PASS",
+        "evaluator_status": "PASS",
+        "grounding_score": 5,
+        "completeness_score": 5,
+        "business_readiness_score": 5,
+        "sql_evidence_used": true,
+        "graph_evidence_used": true,
+        "document_evidence_used": true,
+        "limitations_mentioned": true,
+        "unsupported_claims": [],
+        "missing_evidence": [],
+        "deterministic_failures": [],
+        "raw_sha256": "ac27321d4bba33cf28c682586cdbaaeb0cf308cc5c1ca98cffc855ed2e39c5c7"
+      },
+      "reported_overall_status": "PASS"
+    },
+    {
+      "id": "seller_negative_ticket_paths",
+      "group": "five_validation_cases",
+      "query": "Show seller ticket paths for negative complaints and product issues",
+      "expected_sql_intent": "seller_performance",
+      "expected_graph_intent": "seller_ticket_product_paths",
+      "expected_vector_groups": [
+        "support_tickets"
+      ],
+      "note": "verbatim few-shot example",
+      "artifact_dir": "reports/baseline_m0/seller_negative_ticket_paths",
+      "outcome": "completed",
+      "transient_retries": 0,
+      "elapsed_seconds": 13.18,
+      "route": {
+        "sql_intent": "seller_performance",
+        "graph_intent": "seller_ticket_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "planner_model": "gemini-3.1-flash-lite"
+      },
+      "route_matches_expected": {
+        "sql": true,
+        "graph": true,
+        "vector": true
+      },
+      "evidence": {
+        "sql": {
+          "intent": "seller_performance",
+          "record_count": 10,
+          "records_sha256": "fdd0e02b6d6b90746e0c3b75d2a11e6b52ca2135750ef41d4adfbc5c9dd2365e",
+          "records_sorted_sha256": "f1b2221abb8496c5db37760bdf0c13fbc4b1dfec010005d8a8006650cf412e7e"
+        },
+        "graph": {
+          "intent": "seller_ticket_product_paths",
+          "record_count": 10,
+          "records_sha256": "f06b99b6d6a57fc19d0f7dc9d400866d372659fc7a9ae434a11213f283efc78f",
+          "records_sorted_sha256": "7d77ff9d971bcd1ab93f13614de86bed56aa892a4f799063701be5e4143fa64d"
+        },
+        "vector": {
+          "artifact_groups": [
+            "support_tickets"
+          ],
+          "record_count": 5,
+          "results_sha256": "0a2afbd33be6541055a0663bcc6a8ac3a321dcd0cad31bcc4bcdddf715431b9a",
+          "per_group_sha256": {
+            "support_tickets": "6b29338ce6e0b1c978d0d6daf0d0d8d6749855d888dd8868eb88b14a8e0c7720"
+          }
+        }
+      },
+      "retrieval_context_sha256": "714b521f0077a0bdb98f44d11bb2452058158eb03d579b0f97c7e4f5872da658",
+      "answer": {
+        "length_chars": 2996,
+        "sha256": "f8dd0c33979aa57f6c08db9a10a40c0e967dbd6c374fa93743168af471e48a86",
+        "text": "# Grounded Business Answer\n\n## Business Question\nShow seller ticket paths for negative complaints and product issues\n\n## Executive Answer\nBased on the retrieved records, several sellers are associated with high-severity support tickets involving product and service issues. These include:\n\n*   **Damaged Items:** Identified for sellers `cb41bfbcbda0aea354a834ab222f9a59` (SP) and `2a1348e9addc1af5aaa619b1a3679d6b` (MG).\n*   **Missing Items:** Identified for sellers `df683dfda87bf71ac3fc63063fba369d` (RS) and `8b28d096634035667e8263d57ba3368c` (SP).\n*   **Negative Review Escalation:** Identified for seller `c847e075301870dd144a116762eaff9a` (MG).\n\nAdditionally, document evidence highlights ongoing high-severity product quality complaints specifically for the category `relogios_presentes`, with records indicating both resolved and open status tickets.\n\n## Evidence Used\n\n### SQL Evidence\n*   Performance metrics were retrieved for top sellers, such as `4a3ca9315b744ce9f8e9374361493884` (SP), showing 195 late delivery orders and an average review score of 3.83, and `6560211a19b47992c3666cc44a7e94c0` (SP), showing 117 late delivery orders and an average review score of 3.94.\n\n### Graph Evidence\n*   Neo4j data maps specific ticket IDs to issue types and products:\n    *   `TCK-000001`: `damaged_item` (Seller `cb41bfbcbda0aea354a834ab222f9a59`)\n    *   `TCK-000002`: `missing_item` (Seller `df683dfda87bf71ac3fc63063fba369d`)\n    *   `TCK-000003`: `negative_review_escalation` (Seller `c847e075301870dd144a116762eaff9a`)\n    *   `TCK-000004`: `damaged_item` (Seller `2a1348e9addc1af5aaa619b1a3679d6b`)\n    *   `TCK-000005`: `missing_item` (Seller `8b28d096634035667e8263d57ba3368c`)\n\n### Document Evidence\n*   Qdrant records show high-severity `product_quality_complaint` entries for `relogios_presentes`, including one ticket that currently remains in `open` status.\n\n## Key Entities\n*   **Sellers:** `cb41bfbcbda0aea354a834ab222f9a59`, `df683dfda87bf71ac3fc63063fba369d`, `c847e075301870dd144a116762eaff9a`, `2a1348e9addc1af5aaa619b1a3679d6b`, `8b28d096634035667e8263d57ba3368c`\n*   **Products:** `ebf1c13032246ea801765e8cb5417365`, `b75683e29689c1a989ae97883e8cad56`, `0c6fc9b9317a68d1cda098c063914b72`, `3bec03860f3782ef8993056e01b8229a`, `e4176515d2055eb7771645c597f8b40c`\n*   **Category:** `relogios_presentes`\n\n## Recommended Next Actions\n*   Review high-risk sellers using revenue, review score, and late-delivery metrics.\n*   Trace seller-related support tickets to affected products and categories.\n*   Prioritize the resolution of the `open` high-severity `product_quality_complaint` for `relogios_presentes`.\n\n## Limitations\n*   Evidence does not explicitly define which specific seller is responsible for the `relogios_presentes` quality complaints.\n*   The connection between SQL-based performance metrics and graph-based ticket paths is inferred by seller ID; further granular analysis is needed to link specific late delivery patterns directly to the ticket issue types."
+      },
+      "evaluation": {
+        "overall_status": "PASS",
+        "evaluator_status": "PASS",
+        "grounding_score": 5,
+        "completeness_score": 5,
+        "business_readiness_score": 5,
+        "sql_evidence_used": true,
+        "graph_evidence_used": true,
+        "document_evidence_used": true,
+        "limitations_mentioned": true,
+        "unsupported_claims": [],
+        "missing_evidence": [],
+        "deterministic_failures": [],
+        "raw_sha256": "e1c22a657c75f0206cadee6f72a504c265a125fdeef674b60dee2db84a87d7b3"
+      },
+      "reported_overall_status": "PASS"
+    },
+    {
+      "id": "paraphrase_most_complaints",
+      "group": "document_paraphrases",
+      "query": "Which sellers have the most complaints?",
+      "expected_sql_intent": "seller_performance",
+      "expected_graph_intent": "warranty_product_seller_paths",
+      "expected_vector_groups": [
+        "support_tickets"
+      ],
+      "note": "PROJECT_SUMMARY.md section 3; audit result was SQL MISS / GRAPH MISS",
+      "artifact_dir": "reports/baseline_m0/paraphrase_most_complaints",
+      "outcome": "completed",
+      "transient_retries": 0,
+      "elapsed_seconds": 19.61,
+      "route": {
+        "sql_intent": "review_intelligence",
+        "graph_intent": "seller_ticket_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "planner_model": "gemini-3.1-flash-lite"
+      },
+      "route_matches_expected": {
+        "sql": false,
+        "graph": false,
+        "vector": true
+      },
+      "evidence": {
+        "sql": {
+          "intent": "review_intelligence",
+          "record_count": 10,
+          "records_sha256": "bd8f3df4a05c103cad356f657b9bd5d3de5a74fc29bb34e2f66d460979e0e47f",
+          "records_sorted_sha256": "6d3e319367dbebae37bdc2c2ebb7f90ecf95c07d473656c910bc84a4d5626073"
+        },
+        "graph": {
+          "intent": "seller_ticket_product_paths",
+          "record_count": 10,
+          "records_sha256": "f06b99b6d6a57fc19d0f7dc9d400866d372659fc7a9ae434a11213f283efc78f",
+          "records_sorted_sha256": "7d77ff9d971bcd1ab93f13614de86bed56aa892a4f799063701be5e4143fa64d"
+        },
+        "vector": {
+          "artifact_groups": [
+            "support_tickets"
+          ],
+          "record_count": 5,
+          "results_sha256": "063df697e17cb703166fbb101c3bb831d067d19d4d7d04e4606c64f7736d6242",
+          "per_group_sha256": {
+            "support_tickets": "0c36445f98e3a337dde91c3cbf67a9b782d859dfcb3045ccf0e6f12f6dde6a22"
+          }
+        }
+      },
+      "retrieval_context_sha256": "cd9ca994c860468fa9b25aa26c56559e75857b3ce60933b096285f1e2ddba100",
+      "answer": {
+        "length_chars": 2666,
+        "sha256": "048b0f6fdcb48cc9a3919ebc6b92b825aab02932b928f7b3a0df2cc5f2f8d48d",
+        "text": "# Grounded Business Answer\n\n## Business Question\nWhich sellers have the most complaints?\n\n## Executive Answer\nBased on the retrieved records, the evidence is insufficient to generate a quantitative ranking of which sellers have the \"most\" complaints, as the data does not provide a count or frequency metric for complaints per seller. \n\nHowever, we have identified several sellers associated with high-severity support tickets and negative feedback:\n*   **Identified Sellers with High-Severity Issues:** Sellers `cb41bfbcbda0aea354a834ab222f9a59`, `df683dfda87bf71ac3fc63063fba369d`, `c847e075301870dd144a116762eaff9a`, `2a1348e9addc1af5aaa619b1a3679d6b`, and `8b28d096634035667e8263d57ba3368c` are currently linked to high-severity tickets involving damaged items, missing items, or negative review escalations.\n*   **Quality Complaints:** Documents indicate multiple high-severity \"product quality complaints\" specifically regarding the category or seller name `beleza_saude`.\n\n## Evidence Used\n\n### SQL Evidence\n*   Five distinct orders (e.g., `e04d4af0a4a1090bf68ccfee2dd809ef`, `e9376d90b28f9cdea83d4d850e4bb1a7`) are flagged with `is_negative_review=True` and a `review_score` of 1, but these records do not explicitly link to specific `seller_id`s.\n\n### Graph Evidence\n*   Ten connections map `seller_id` to high-severity `issue_type` (e.g., `damaged_item`, `missing_item`) and specific `ticket_id`s, such as `TCK-000001` for seller `cb41bfbcbda0aea354a834ab222f9a59`.\n\n### Document Evidence\n*   Three support ticket entries under the `support_tickets` artifact group detail high-severity \"Product quality complaint for beleza_saude.\"\n\n## Key Entities\n*   **Sellers:** `cb41bfbcbda0aea354a834ab222f9a59`, `df683dfda87bf71ac3fc63063fba369d`, `c847e075301870dd144a116762eaff9a`, `2a1348e9addc1af5aaa619b1a3679d6b`, `8b28d096634035667e8263d57ba3368c`.\n*   **Category Mentioned:** `beleza_saude`.\n*   **Issue Types:** `damaged_item`, `missing_item`, `negative_review_escalation`, `product_quality_complaint`.\n\n## Recommended Next Actions\n*   Perform a join between `order` records and `seller` information to attribute the identified negative reviews to specific sellers.\n*   Aggregate the number of `ticket_id`s per `seller_id` to generate a top-N list of sellers by complaint volume.\n*   Investigate the operational status of `beleza_saude` given the recurring product quality complaints.\n\n## Limitations\n*   The provided SQL data lacks a direct link between negative reviews and specific sellers.\n*   The current evidence provides qualitative examples of complaints but lacks the count-based data required to definitively rank sellers by the \"most\" complaints."
+      },
+      "evaluation": {
+        "overall_status": "PASS",
+        "evaluator_status": "PASS",
+        "grounding_score": 5,
+        "completeness_score": 5,
+        "business_readiness_score": 5,
+        "sql_evidence_used": true,
+        "graph_evidence_used": true,
+        "document_evidence_used": true,
+        "limitations_mentioned": true,
+        "unsupported_claims": [],
+        "missing_evidence": [],
+        "deterministic_failures": [],
+        "raw_sha256": "e64f1c74cb417bc7801d2c8b2e9891de2d1d98a388abc884197b795040127e94"
+      },
+      "reported_overall_status": "PASS"
+    },
+    {
+      "id": "paraphrase_vendors_poor_experience",
+      "group": "document_paraphrases",
+      "query": "Find vendors connected to poor customer experiences.",
+      "expected_sql_intent": "seller_performance",
+      "expected_graph_intent": "warranty_product_seller_paths",
+      "expected_vector_groups": [
+        "support_tickets"
+      ],
+      "note": "PROJECT_SUMMARY.md section 3; audit result was SQL HIT / GRAPH MISS",
+      "artifact_dir": "reports/baseline_m0/paraphrase_vendors_poor_experience",
+      "outcome": "completed",
+      "transient_retries": 0,
+      "elapsed_seconds": 13.47,
+      "route": {
+        "sql_intent": "seller_performance",
+        "graph_intent": "seller_ticket_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets",
+          "customer_emails"
+        ],
+        "planner_model": "gemini-3.1-flash-lite"
+      },
+      "route_matches_expected": {
+        "sql": true,
+        "graph": false,
+        "vector": false
+      },
+      "evidence": {
+        "sql": {
+          "intent": "seller_performance",
+          "record_count": 10,
+          "records_sha256": "fdd0e02b6d6b90746e0c3b75d2a11e6b52ca2135750ef41d4adfbc5c9dd2365e",
+          "records_sorted_sha256": "f1b2221abb8496c5db37760bdf0c13fbc4b1dfec010005d8a8006650cf412e7e"
+        },
+        "graph": {
+          "intent": "seller_ticket_product_paths",
+          "record_count": 10,
+          "records_sha256": "f06b99b6d6a57fc19d0f7dc9d400866d372659fc7a9ae434a11213f283efc78f",
+          "records_sorted_sha256": "7d77ff9d971bcd1ab93f13614de86bed56aa892a4f799063701be5e4143fa64d"
+        },
+        "vector": {
+          "artifact_groups": [
+            "support_tickets",
+            "customer_emails"
+          ],
+          "record_count": 10,
+          "results_sha256": "0c05ffd030fa35937107a25cbfd0baf68ef12500beea2171a8ae50a0acbe6409",
+          "per_group_sha256": {
+            "customer_emails": "c7ce46adb580de4dc86dfebbcbd57fcb3669b27c0a25b7cac7e0b46c5413a545",
+            "support_tickets": "2c11c90c6a0a42644a50d453890cb9cff310cee6b0f9d4946e75344913b6ae73"
+          }
+        }
+      },
+      "retrieval_context_sha256": "a56dc3397952dfdcf98180547ae815d3d08277120e0cd9d8502da04d5bac5394",
+      "answer": {
+        "length_chars": 3163,
+        "sha256": "16f2c98a09533f3d36e339146812131dfeeb594cc514f8c3c0df0f4747fadd65",
+        "text": "# Grounded Business Answer\n\n## Business Question\nFind vendors connected to poor customer experiences.\n\n## Executive Answer\nBased on the retrieved evidence, several vendors are associated with poor customer experiences characterized by high-severity support tickets, operational inefficiencies, and negative review trends.\n\n*   **Operational Performance Issues:** Analysis of SQL records identifies vendors with a high volume of late-delivery orders. Notably, seller `4a3ca9315b744ce9f8e9374361493884` (195 late orders) and seller `1f50f920176fa81dab994f9023523100` (148 late orders) exhibit significant delivery delays.\n*   **High-Severity Support Incidents:** Graph records link specific sellers to high-severity issues, including damaged items and missing products. Examples include:\n    *   Seller `cb41bfbcbda0aea354a834ab222f9a59` (Damaged item, `TCK-000001`)\n    *   Seller `df683dfda87bf71ac3fc63063fba369d` (Missing item, `TCK-000002`)\n    *   Seller `c847e075301870dd144a116762eaff9a` (Negative review escalation, `TCK-000003`)\n*   **Product Quality Concerns:** Unstructured document retrieval highlights recurring high-severity complaints regarding product quality across multiple categories (market_place, artes, and beleza_saude).\n\n## Evidence Used\n\n### SQL Evidence\nRecords from the `seller_performance` intent indicate multiple vendors with high late-delivery counts, including:\n*   `4a3ca9315b744ce9f8e9374361493884`: 195 late deliveries.\n*   `1f50f920176fa81dab994f9023523100`: 148 late deliveries.\n*   `4869f7a5dfa277a7dca6462dcf3b52b2`: 130 late deliveries.\n\n### Graph Evidence\nGraph records from `seller_ticket_product_paths` confirm high-severity tickets:\n*   `cb41bfbcbda0aea354a834ab222f9a59` (damaged_item).\n*   `df683dfda87bf71ac3fc63063fba369d` (missing_item).\n*   `c847e075301870dd144a116762eaff9a` (negative_review_escalation).\n*   `2a1348e9addc1af5aaa619b1a3679d6b` (damaged_item).\n*   `8b28d096634035667e8263d57ba3368c` (missing_item).\n\n### Document Evidence\nQdrant records show high-severity quality complaints regarding products in categories such as `market_place`, `artes`, and `beleza_saude`.\n\n## Key Entities\n*   **Sellers:** `4a3ca9315b744ce9f8e9374361493884`, `1f50f920176fa81dab994f9023523100`, `cb41bfbcbda0aea354a834ab222f9a59`, `c847e075301870dd144a116762eaff9a`\n*   **Tickets:** `TCK-000001`, `TCK-000002`, `TCK-000003`, `TCK-000004`, `TCK-000005`\n*   **Categories:** `market_place`, `artes`, `beleza_saude`\n\n## Recommended Next Actions\n*   Prioritize a performance audit for sellers with the highest late-delivery counts (e.g., `4a3ca931...`).\n*   Investigate the product quality complaints for categories identified in Qdrant to determine if specific manufacturing or supply chain issues exist.\n*   Review the status of high-severity support tickets to ensure timely resolution for affected customers.\n\n## Limitations\nThe evidence provided does not offer a direct correlation between specific late-delivery sellers and the high-severity support tickets, as these are retrieved from separate data sources (SQL vs. Neo4j). Further cross-referencing of transaction logs would be required to establish a direct causal link."
+      },
+      "evaluation": {
+        "overall_status": "PASS",
+        "evaluator_status": "PASS",
+        "grounding_score": 5,
+        "completeness_score": 5,
+        "business_readiness_score": 5,
+        "sql_evidence_used": true,
+        "graph_evidence_used": true,
+        "document_evidence_used": true,
+        "limitations_mentioned": true,
+        "unsupported_claims": [],
+        "missing_evidence": [],
+        "deterministic_failures": [],
+        "raw_sha256": "fa69fca63657cd7e110dbf28864f9ce5d9f99662dce5ad620a93cf5b38feaa26"
+      },
+      "reported_overall_status": "PASS"
+    },
+    {
+      "id": "paraphrase_suppliers_negative_reviews",
+      "group": "document_paraphrases",
+      "query": "Show suppliers associated with negative reviews and warranty issues.",
+      "expected_sql_intent": "seller_performance",
+      "expected_graph_intent": "warranty_product_seller_paths",
+      "expected_vector_groups": [
+        "support_tickets",
+        "warranty_claims"
+      ],
+      "note": "PROJECT_SUMMARY.md section 3; audit result was SQL HIT / GRAPH HIT",
+      "artifact_dir": "reports/baseline_m0/paraphrase_suppliers_negative_reviews",
+      "outcome": "completed",
+      "transient_retries": 0,
+      "elapsed_seconds": 16.35,
+      "route": {
+        "sql_intent": "seller_performance",
+        "graph_intent": "warranty_product_seller_paths",
+        "vector_artifact_groups": [
+          "support_tickets",
+          "warranty_claims"
+        ],
+        "planner_model": "gemini-3.1-flash-lite"
+      },
+      "route_matches_expected": {
+        "sql": true,
+        "graph": true,
+        "vector": true
+      },
+      "evidence": {
+        "sql": {
+          "intent": "seller_performance",
+          "record_count": 10,
+          "records_sha256": "fdd0e02b6d6b90746e0c3b75d2a11e6b52ca2135750ef41d4adfbc5c9dd2365e",
+          "records_sorted_sha256": "f1b2221abb8496c5db37760bdf0c13fbc4b1dfec010005d8a8006650cf412e7e"
+        },
+        "graph": {
+          "intent": "warranty_product_seller_paths",
+          "record_count": 10,
+          "records_sha256": "8e511835882c75b228f95fe1d3e60ef22b2a8ac681d1869416baf560c095b043",
+          "records_sorted_sha256": "df0943a57fefdae16d1228628f8c0358ffdf36f2958114ec792175d67c354090"
+        },
+        "vector": {
+          "artifact_groups": [
+            "support_tickets",
+            "warranty_claims"
+          ],
+          "record_count": 10,
+          "results_sha256": "a23494ff7c449883d080a64ce0f318f0bf3175397dfc66bba83e14e4e6487cf9",
+          "per_group_sha256": {
+            "support_tickets": "68a9b7734121482308e263153c1364c93786e01f23e74f0287dbf5bce3dec93f",
+            "warranty_claims": "e1fd5073edb8123e3a9f068e067db8b1ef8ba0649b15565d9b3b7f4eb1dc2de3"
+          }
+        }
+      },
+      "retrieval_context_sha256": "064a571f31e4f4491cf9346a51c08788278069d2b58352bebee1140c54c1fb8c",
+      "answer": {
+        "length_chars": 3354,
+        "sha256": "29f5c138002492bbe417da61ac0b364e105c2bf291614ee0308c3b633e91d40a",
+        "text": "# Grounded Business Answer\n\n## Business Question\nShow suppliers associated with negative reviews and warranty issues.\n\n## Executive Answer\nBased on the retrieved records, several suppliers are linked to high-severity warranty claims and performance metrics that may indicate operational challenges.\n\nThe following sellers are associated with high-severity warranty claims and active support tickets:\n*   **cb41bfbcbda0aea354a834ab222f9a59** (SP): Associated with high-severity ticket `TCK-000001` and escalated claim `WRN-000001`.\n*   **df683dfda87bf71ac3fc63063fba369d** (RS): Associated with high-severity ticket `TCK-000002` and submitted claim `WRN-000002`.\n*   **c847e075301870dd144a116762eaff9a** (MG): Associated with high-severity ticket `TCK-000003` and approved claim `WRN-000003`.\n*   **2a1348e9addc1af5aaa619b1a3679d6b** (MG): Associated with high-severity ticket `TCK-000004` and rejected claim `WRN-000004`.\n*   **8b28d096634035667e8263d57ba3368c** (SP): Associated with high-severity ticket `TCK-000005` and rejected claim `WRN-000005`.\n\nAdditionally, the SQL records highlight sellers with notable performance metrics, such as high volumes of late deliveries and lower-than-average review scores, which are often correlated with negative customer experiences:\n*   **4a3ca9315b744ce9f8e9374361493884** (SP): Avg review score of 3.83 with 195 late delivery orders.\n*   **6560211a19b47992c3666cc44a7e94c0** (SP): Avg review score of 3.94 with 117 late delivery orders.\n\n## Evidence Used\n\n### SQL Evidence\n*   Performance data for sellers `4a3ca9315b744ce9f8e9374361493884`, `1f50f920176fa81dab994f9023523100`, `4869f7a5dfa277a7dca6462dcf3b52b2`, `ea8482cd71df3c1969d7b9473ff13abc`, and `6560211a19b47992c3666cc44a7e94c0`.\n\n### Graph Evidence\n*   Mapping of sellers to high-severity tickets and warranty claims, specifically identifying sellers `cb41bfbcbda0aea354a834ab222f9a59`, `df683dfda87bf71ac3fc63063fba369d`, `c847e075301870dd144a116762eaff9a`, `2a1348e9addc1af5aaa619b1a3679d6b`, and `8b28d096634035667e8263d57ba3368c`.\n\n### Document Evidence\n*   Support tickets and warranty claims indicate high-severity product quality complaints across multiple categories.\n\n## Key Entities\n*   **Seller IDs**: `cb41bfbcbda0aea354a834ab222f9a59`, `df683dfda87bf71ac3fc63063fba369d`, `c847e075301870dd144a116762eaff9a`, `2a1348e9addc1af5aaa619b1a3679d6b`, `8b28d096634035667e8263d57ba3368c`, `4a3ca9315b744ce9f8e9374361493884`, `6560211a19b47992c3666cc44a7e94c0`.\n*   **Ticket/Claim IDs**: `TCK-000001` through `TCK-000005`, `WRN-000001` through `WRN-000005`.\n\n## Recommended Next Actions\n*   Prioritize a deeper performance audit for sellers identified with both low review scores and recurring warranty escalations.\n*   Investigate the root causes of the \"high-severity\" product quality complaints identified in the document records.\n*   Evaluate the effectiveness of the current warranty resolution process given that multiple claims remain in \"escalated\" or \"submitted\" status.\n\n## Limitations\n*   The provided evidence does not explicitly map the SQL-based \"review scores\" to the specific \"warranty claim\" entities in the graph; associations are inferred based on the presence of these identifiers in the relevant datasets.\n*   Not all sellers identified in the SQL performance metrics are explicitly named in the graph-based warranty claims."
+      },
+      "evaluation": {
+        "overall_status": "PASS",
+        "evaluator_status": "PASS",
+        "grounding_score": 5,
+        "completeness_score": 5,
+        "business_readiness_score": 5,
+        "sql_evidence_used": true,
+        "graph_evidence_used": true,
+        "document_evidence_used": true,
+        "limitations_mentioned": true,
+        "unsupported_claims": [],
+        "missing_evidence": [],
+        "deterministic_failures": [],
+        "raw_sha256": "c873dadac92cbc15fa7c28c005f676d22f4357b57284fa214a96dc51f7f6d0cc"
+      },
+      "reported_overall_status": "PASS"
+    },
+    {
+      "id": "control_purple_monkey_dishwasher",
+      "group": "controls",
+      "query": "purple monkey dishwasher",
+      "expected_sql_intent": null,
+      "expected_graph_intent": null,
+      "expected_vector_groups": null,
+      "note": "No valid answer exists. AUDIT.md F-03: returns byte-identical SQL and graph evidence to the flagship question, because no template binds anything but :limit. The correct future behaviour is a refusal.",
+      "artifact_dir": "reports/baseline_m0/control_purple_monkey_dishwasher",
+      "outcome": "crashed",
+      "exception_type": "ValueError",
+      "exception_message": "Invalid SQL intent from Gemini: None. Allowed: ['seller_performance', 'product_performance', 'review_intelligence', 'payment_summary', 'customer_history', 'order_summary']",
+      "traceback_tail": "During task with name 'query_planner' and id 'c16ab1c0-ea14-7eb8-3deb-f19638b61e22'",
+      "transient_retries": 0,
+      "elapsed_seconds": 1.49
+    },
+    {
+      "id": "control_highest_revenue_seller",
+      "group": "controls",
+      "query": "Which seller had the highest revenue?",
+      "expected_sql_intent": "seller_performance",
+      "expected_graph_intent": null,
+      "expected_vector_groups": null,
+      "note": "The project's own worked example. Expected to CRASH: a SQL-only plan is unrepresentable because validate_and_normalize_plan requires a non-null graph intent (gemini_query_planner.py:201).",
+      "artifact_dir": "reports/baseline_m0/control_highest_revenue_seller",
+      "outcome": "crashed",
+      "exception_type": "ValueError",
+      "exception_message": "Invalid graph intent from Gemini: None. Allowed: ['warranty_product_seller_paths', 'logistics_region_paths', 'category_policy_guide_paths', 'seller_ticket_product_paths', 'customer_ticket_order_product_paths']",
+      "traceback_tail": "During task with name 'query_planner' and id 'fd7420b8-e53a-bbf0-1707-7af0c29f9d54'",
+      "transient_retries": 0,
+      "elapsed_seconds": 2.75
+    }
+  ]
+}

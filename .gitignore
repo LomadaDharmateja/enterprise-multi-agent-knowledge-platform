@@ -97,3 +97,6 @@ models/
 **/__pycache__/
 **/*.py[cod]
 
+
+# Editable-install metadata
+*.egg-info/
