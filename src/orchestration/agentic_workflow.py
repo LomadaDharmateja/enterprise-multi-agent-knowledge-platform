@@ -46,6 +46,12 @@ from observability import new_run_id, record_event, trace_span
 class EnterpriseWorkflowState(TypedDict, total=False):
     query: str
     planned_route: dict[str, Any]
+    post_retrieval_refusal: str | None
+    assertion_failures: list[dict[str, Any]]
+    replan_attempts: int
+    replan_trigger: str | None
+    replan_changes: list[str]
+    first_attempt: dict[str, Any]
     raw_retrieval_path: str
     context_path: str
     answer_json_path: str
@@ -65,39 +71,6 @@ def normalize_query(query: str) -> str:
     return query.lower().strip()
 
 
-def plan_query_route(query: str) -> dict[str, Any]:
-    q = normalize_query(query)
-
-    route_signals = {
-        "mentions_seller": any(term in q for term in ["seller", "vendor"]),
-        "mentions_customer": any(term in q for term in ["customer", "complaint", "support"]),
-        "mentions_delivery": any(term in q for term in ["delivery", "delay", "late", "logistics", "shipment"]),
-        "mentions_warranty": any(term in q for term in ["warranty", "claim", "replacement"]),
-        "mentions_policy": any(term in q for term in ["policy", "policies", "refund", "rule", "rules"]),
-        "mentions_troubleshooting": any(term in q for term in ["troubleshooting", "guide", "guidance", "procedure"]),
-        "mentions_payment": any(term in q for term in ["payment", "installment", "refund", "charge"]),
-        "mentions_product_quality": any(term in q for term in ["product", "quality", "damaged", "issue"]),
-    }
-
-    selected_capabilities = [
-        "sql_retrieval",
-        "graph_retrieval",
-        "vector_retrieval",
-        "context_building",
-        "grounded_answer_generation",
-    ]
-
-    return {
-        "routing_mode": "hybrid_retrieval_workflow",
-        "route_signals": route_signals,
-        "selected_capabilities": selected_capabilities,
-        "notes": (
-            "This planner currently records query signals and delegates final SQL, graph, "
-            "and vector routing to the validated hybrid retriever."
-        ),
-    }
-
-
 def query_planner_node(state: EnterpriseWorkflowState) -> EnterpriseWorkflowState:
     query = state["query"]
     run_id = state["run_id"]
@@ -105,7 +78,7 @@ def query_planner_node(state: EnterpriseWorkflowState) -> EnterpriseWorkflowStat
     with trace_span(
         run_id=run_id,
         component="gemini_planner_agent",
-        operation="plan_query_route",
+        operation="plan_query_with_gemini",
         metadata={"query": query},
     ) as span:
         planned_route = plan_query_with_gemini(query)
@@ -127,6 +100,84 @@ def query_planner_node(state: EnterpriseWorkflowState) -> EnterpriseWorkflowStat
     }
 
 
+
+POST_RETRIEVAL_GATE_NOTE = (
+    "Measured on the M3 eval set: this gate converts 4 of the 10 'answered when it "
+    "should have refused' items into refusals with zero false positives on the 53 "
+    "answerable items. The 6 it does not catch (D57, D58, E67, E68, E75, E82) are not "
+    "detectable after retrieval -- they are semantic or judgement failures, not "
+    "evidence failures, and belong to the planner."
+)
+
+
+def post_retrieval_refusal(
+    query: str,
+    context: dict[str, Any],
+    planned_route: dict[str, Any],
+) -> str | None:
+    """Decide, from the retrieved evidence alone, that the question cannot be answered.
+
+    An empty or entity-less context must not reach the answer agent. When it did, the
+    answer agent reported the absence in prose -- "there is no record of an order with
+    that ID" -- which is honest but arrives as an answer rather than a refusal, so it
+    is neither machine-checkable nor cheap.
+
+    Every check here is deterministic and was validated against the M3 run for false
+    positives before being enabled. A check that wrongly refuses an answerable question
+    is worse than the behaviour it replaces.
+    """
+    summary = context.get("source_summary") or {}
+
+    sql = summary.get("sql") or {}
+    graph = summary.get("graph") or {}
+    vector = summary.get("vector") or {}
+
+    # --- 1. nothing came back from any leg
+    total = (
+        (sql.get("records") or 0)
+        + (graph.get("records") or 0)
+        + (vector.get("records") or 0)
+    )
+
+    if total == 0:
+        return (
+            "No evidence was found in any source for this question. The SQL, graph and "
+            "document retrieval legs all returned zero records, so there is nothing to "
+            "ground an answer on."
+        )
+
+    # --- 2. the question named an ID-shaped token that is not a valid identifier
+    #
+    # Only the exact reason "not a valid entity ID" is used. Broader drop reasons --
+    # a value missing from a vocabulary -- fire on answerable questions too, because
+    # the planner routinely proposes vocabulary values that do not resolve; enabling
+    # them produced 12 false positives against 4 additional catches.
+    invalid_ids = [
+        d for d in (planned_route.get("dropped_filters") or [])
+        if (d.get("reason") or "") == "not a valid entity ID"
+    ]
+
+    if invalid_ids:
+        named = sorted({str(d.get("value")) for d in invalid_ids})
+        return (
+            f"The question names {', '.join(named)}, which is not a valid identifier in "
+            "this system. The evidence retrieved is not about that entity, so no answer "
+            "is given."
+        )
+
+    # --- 3. an artifact was named by id and the direct lookup found no such document
+    lookups = vector.get("id_lookups") or []
+
+    if lookups and not vector.get("id_lookup_hits"):
+        named = ", ".join(f"{item['value']}" for item in lookups)
+        return (
+            f"No document with identifier {named} exists in the corpus. The direct "
+            "lookup returned nothing, so the retrieved evidence is about other records."
+        )
+
+    return None
+
+
 def refusal_node(state: EnterpriseWorkflowState) -> EnterpriseWorkflowState:
     """Terminal node for a plan that selected no retrieval route.
 
@@ -140,8 +191,10 @@ def refusal_node(state: EnterpriseWorkflowState) -> EnterpriseWorkflowState:
     planned_route = state["planned_route"]
     run_id = state["run_id"]
 
-    reason = planned_route.get("refusal_reason") or (
-        "The planner selected no retrieval route for this query."
+    reason = (
+        state.get("post_retrieval_refusal")
+        or planned_route.get("refusal_reason")
+        or "The planner selected no retrieval route for this query."
     )
 
     with trace_span(
@@ -159,11 +212,15 @@ def refusal_node(state: EnterpriseWorkflowState) -> EnterpriseWorkflowState:
         "refusal_reason": reason,
         "query": state["query"],
         "planned_route": planned_route,
-        "source_summary": {
-            "sql": {"intent": None, "records": 0, "skipped": True},
-            "graph": {"intent": None, "records": 0, "skipped": True},
-            "vector": {"artifact_groups": [], "records": 0, "skipped": True},
-        },
+        "source_summary": (state.get("retrieval_context") or {}).get(
+            "source_summary",
+            {
+                "sql": {"intent": None, "records": 0, "skipped": True},
+                "graph": {"intent": None, "records": 0, "skipped": True},
+                "vector": {"artifact_groups": [], "records": 0, "skipped": True},
+            },
+        ),
+        "refused_after_retrieval": bool(state.get("post_retrieval_refusal")),
         "evidence_quality": {
             "confidence": "none",
             "reasons": ["no retrieval route was selected; no evidence was gathered"],
@@ -173,6 +230,11 @@ def refusal_node(state: EnterpriseWorkflowState) -> EnterpriseWorkflowState:
     }
 
     return {"final_response": final_response}
+
+
+def route_after_retrieval(state: EnterpriseWorkflowState) -> str:
+    """An empty or entity-less context goes to the refusal node, not the answer agent."""
+    return "refusal" if state.get("post_retrieval_refusal") else "answer"
 
 
 def route_after_planning(state: EnterpriseWorkflowState) -> str:
@@ -234,8 +296,15 @@ def retrieval_context_node(state: EnterpriseWorkflowState) -> EnterpriseWorkflow
             ),
         }
 
+    refusal_reason = post_retrieval_refusal(
+        query=query,
+        context=context,
+        planned_route=state["planned_route"],
+    )
+
     return {
         "retrieval_context": context,
+        "post_retrieval_refusal": refusal_reason,
     }
 
 def answer_generation_node(state: EnterpriseWorkflowState) -> EnterpriseWorkflowState:
@@ -325,11 +394,264 @@ def answer_evaluation_node(state: EnterpriseWorkflowState) -> EnterpriseWorkflow
         "evaluation_result": evaluation_result,
     }
 
+
+# --------------------------------------------------------------------------------
+# Evaluator-triggered replanning (M4 Task 2)
+# --------------------------------------------------------------------------------
+#
+# MEASUREMENT NOTE, recorded next to the code because it governs how the feature
+# should be read: on the M3 held-out set the evaluator scored 60 of 61 answers a 5
+# and one a 2. The trigger therefore fires on exactly ONE item. That is not a
+# property of this implementation -- it is the kappa 0.390 calibration finding
+# showing up operationally. A near-constant judge cannot drive a feedback loop
+# because it almost never reports failure. Any measured "recovery rate" here has
+# n=1 and is not a measurement.
+
+REPLAN_GROUNDING_THRESHOLD = 3
+MAX_REPLAN_ATTEMPTS = 1
+
+# Assertion types a broader retrieval could plausibly recover. A refusal-terms or
+# injection failure cannot be fixed by widening the aperture, so retrying on those
+# would spend tokens with no mechanism to help.
+RETRYABLE_ASSERTIONS = ("required_numbers", "limit_awareness")
+
+# SQL intents that carry the population-level columns a count/mean question needs.
+# Empty for most intents: M3 recorded that NO template computes COUNT/AVG/MEDIAN over
+# a population (README 23b), so for aggregate questions there is usually no adjacent
+# template to switch to. Recorded here rather than pretending otherwise.
+AGGREGATE_FALLBACK_INTENT = {
+    "review_intelligence": "order_summary",
+    "product_performance": "seller_performance",
+}
+
+# Adjacent artifact groups: the group most likely to carry the same case from a
+# different angle. Used to broaden retrieval by exactly one group on retry.
+ADJACENT_VECTOR_GROUPS = {
+    "support_tickets": "customer_emails",
+    "customer_emails": "support_tickets",
+    "warranty_claims": "support_tickets",
+    "logistics_incidents": "support_tickets",
+    "policy_documents": "troubleshooting_guides",
+    "troubleshooting_guides": "policy_documents",
+}
+
+
+def should_replan(
+    evaluation_result: dict[str, Any],
+    assertion_failures: list[dict[str, Any]] | None = None,
+) -> tuple[bool, str | None]:
+    """Combined trigger: judge signals OR deterministic assertion failures.
+
+    The judge half fires on 1 of 61 items on the M3 set, because the evaluator is a
+    near-constant function (kappa 0.390; 60 of 61 answers scored 5). The assertion
+    half fires on 43 of 82 -- a 43x larger population -- and does so for stateable
+    reasons rather than a model's opinion. M3 established the deterministic
+    assertions as the primary reliability metric; this makes them drive the loop too.
+
+    Only `required_numbers` and `limit_awareness` are wired in. The other assertion
+    types are excluded deliberately: a refusal-terms failure or an injection failure
+    is not something a broader retrieval can fix, so retrying on them would spend
+    tokens with no mechanism to recover.
+    """
+    summary = evaluation_result.get("summary") or {}
+
+    grounding = summary.get("grounding_score")
+    unsupported = summary.get("unsupported_claims") or []
+
+    if grounding is not None and grounding < REPLAN_GROUNDING_THRESHOLD:
+        return True, f"grounding {grounding} below {REPLAN_GROUNDING_THRESHOLD}"
+
+    if unsupported:
+        return True, f"{len(unsupported)} unsupported claim(s) reported"
+
+    for failure in assertion_failures or []:
+        if failure.get("assertion") in RETRYABLE_ASSERTIONS:
+            return True, f"assertion {failure['assertion']} failed"
+
+    return False, None
+
+
+def broaden_plan(
+    planned_route: dict[str, Any],
+    assertion_failures: list[dict[str, Any]] | None = None,
+) -> tuple[dict[str, Any], list[str]]:
+    """Widen the plan by one step. SQL and graph intents are deliberately unchanged.
+
+    Changing the intent would be a different question, not a second attempt at this
+    one. What is relaxed is the aperture: one more document group, and the single
+    most restrictive numeric filter.
+    """
+    plan = json.loads(json.dumps(planned_route, default=str))
+    changes: list[str] = []
+
+    groups = list(plan.get("vector_artifact_groups") or [])
+
+    for group in list(groups):
+        adjacent = ADJACENT_VECTOR_GROUPS.get(group)
+
+        if adjacent and adjacent not in groups:
+            groups.append(adjacent)
+            changes.append(f"added vector group {adjacent}")
+            break
+
+    if not groups:
+        groups = ["support_tickets"]
+        changes.append("added vector group support_tickets (plan had none)")
+
+    plan["vector_artifact_groups"] = groups
+
+    if plan.get("vector_plan"):
+        plan["vector_plan"]["artifact_groups"] = groups
+
+    sql_plan = plan.get("sql_plan") or {}
+    filters = dict(sql_plan.get("filters") or {})
+
+    if "max_avg_review_score" in filters:
+        try:
+            raised = float(filters["max_avg_review_score"]) + 0.5
+            filters["max_avg_review_score"] = min(raised, 5.0)
+            changes.append(
+                f"raised max_avg_review_score to {filters['max_avg_review_score']}"
+            )
+        except (TypeError, ValueError):
+            filters.pop("max_avg_review_score")
+            changes.append("dropped unparseable max_avg_review_score")
+    elif "min_late_delivery_rate" in filters:
+        filters.pop("min_late_delivery_rate")
+        changes.append("dropped min_late_delivery_rate floor")
+    elif "min_orders" in filters:
+        filters["min_orders"] = 1
+        changes.append("lowered min_orders to 1")
+
+    if sql_plan:
+        sql_plan["filters"] = filters
+        plan["sql_plan"] = sql_plan
+
+    if not changes:
+        changes.append("no broadening available; plan unchanged")
+
+    failed = {f.get("assertion") for f in (assertion_failures or [])}
+
+    # required_numbers: try the adjacent SQL template if one carries the needed
+    # aggregate columns. Usually there is none -- see AGGREGATE_FALLBACK_INTENT.
+    if "required_numbers" in failed:
+        current = plan.get("sql_intent")
+        fallback = AGGREGATE_FALLBACK_INTENT.get(current)
+
+        if fallback:
+            plan["sql_intent"] = fallback
+
+            if plan.get("sql_plan"):
+                plan["sql_plan"]["intent"] = fallback
+                plan["sql_plan"]["filters"] = {}
+
+            changes.append(f"switched SQL intent {current} -> {fallback} for aggregate coverage")
+        else:
+            changes.append(
+                f"required_numbers failed but no adjacent aggregate template exists "
+                f"for {current}; retrieval widened only"
+            )
+
+    # limit_awareness: the retrieval cannot be made to return a population, so the
+    # instruction goes to the answer agent instead -- do not compute statistics from
+    # the rows you were given.
+    if "limit_awareness" in failed:
+        plan["answer_directive"] = (
+            "The rows below are a top-k sample, not the population. Do NOT compute or "
+            "state any count, mean, median, proportion or total derived from them. If "
+            "the question asks for a population statistic, say it cannot be computed "
+            "from the retrieved sample."
+        )
+        changes.append("added answer directive: do not compute statistics from the sample")
+
+    plan["replanned"] = True
+    plan["replan_changes"] = changes
+
+    return plan, changes
+
+
+def replan_node(state: EnterpriseWorkflowState) -> EnterpriseWorkflowState:
+    """Store the first attempt, broaden the plan, and go round once."""
+    run_id = state["run_id"]
+    evaluation_result = state.get("evaluation_result") or {}
+
+    assertion_failures = state.get("assertion_failures") or []
+
+    _, reason = should_replan(evaluation_result, assertion_failures)
+
+    first_attempt = {
+        "answer_result": state.get("answer_result"),
+        "evaluation_result": evaluation_result,
+        "retrieval_context": state.get("retrieval_context"),
+        "planned_route": state.get("planned_route"),
+        "grounding_score": (evaluation_result.get("summary") or {}).get("grounding_score"),
+    }
+
+    broadened, changes = broaden_plan(state["planned_route"], assertion_failures)
+
+    with trace_span(
+        run_id=run_id,
+        component="replanner",
+        operation="broaden_plan_and_retry",
+        metadata={"query": state["query"], "trigger": reason},
+    ) as span:
+        span["output"] = {"changes": changes, "attempt": state.get("replan_attempts", 0) + 1}
+
+    return {
+        "planned_route": broadened,
+        "replan_attempts": state.get("replan_attempts", 0) + 1,
+        "replan_trigger": reason,
+        "replan_changes": changes,
+        "first_attempt": first_attempt,
+    }
+
+
+def route_after_evaluation(state: EnterpriseWorkflowState) -> str:
+    if state.get("replan_attempts", 0) >= MAX_REPLAN_ATTEMPTS:
+        return "final"
+
+    triggered, _ = should_replan(
+        state.get("evaluation_result") or {},
+        state.get("assertion_failures") or [],
+    )
+
+    return "replan" if triggered else "final"
+
+
 def final_response_node(state: EnterpriseWorkflowState) -> EnterpriseWorkflowState:
     context = state["retrieval_context"]
     answer_result = state["answer_result"]
     evaluation_result = state.get("evaluation_result", {})
     evaluation_summary = evaluation_result.get("summary", {})
+
+    # If a retry happened, return whichever attempt scored better. A retry that made
+    # the answer worse must not be shipped just because it came second.
+    replan_note = None
+    first = state.get("first_attempt")
+
+    if first:
+        first_score = first.get("grounding_score")
+        second_score = evaluation_summary.get("grounding_score")
+
+        def rank(value):
+            return -1 if value is None else value
+
+        if rank(first_score) > rank(second_score):
+            context = first["retrieval_context"]
+            answer_result = first["answer_result"]
+            evaluation_result = first["evaluation_result"]
+            evaluation_summary = evaluation_result.get("summary", {})
+            replan_note = (
+                f"Replanning was attempted (trigger: {state.get('replan_trigger')}) and "
+                f"did not improve the answer (grounding {first_score} -> {second_score}). "
+                "The original answer is returned."
+            )
+        else:
+            replan_note = (
+                f"Replanning was attempted (trigger: {state.get('replan_trigger')}); "
+                f"grounding {first_score} -> {second_score}. "
+                f"Changes: {'; '.join(state.get('replan_changes') or [])}."
+            )
     
 
     final_response = {
@@ -345,6 +667,18 @@ def final_response_node(state: EnterpriseWorkflowState) -> EnterpriseWorkflowSta
         "answerable": True,
         "refusal_reason": None,
         "evidence_quality": context.get("evidence_quality"),
+        "unavailable_legs": context.get("unavailable_legs") or [],
+        "degraded": bool(context.get("unavailable_legs")),
+        "replan": {
+            "attempted": bool(state.get("replan_attempts")),
+            "trigger": state.get("replan_trigger"),
+            "changes": state.get("replan_changes") or [],
+            "first_grounding": (state.get("first_attempt") or {}).get("grounding_score"),
+            "second_grounding": (
+                (state.get("evaluation_result") or {}).get("summary") or {}
+            ).get("grounding_score"),
+            "note": replan_note,
+        },
         "run_id": state["run_id"],
         "output_files": {
             "raw_retrieval": state["raw_retrieval_path"],
@@ -372,6 +706,7 @@ def build_enterprise_workflow():
     workflow.add_node("retrieval_context_builder", retrieval_context_node)
     workflow.add_node("answer_generator", answer_generation_node)
     workflow.add_node("answer_evaluator", answer_evaluation_node)
+    workflow.add_node("replanner", replan_node)
     workflow.add_node("final_response", final_response_node)
 
     workflow.add_edge(START, "query_planner")
@@ -381,9 +716,18 @@ def build_enterprise_workflow():
         {"retrieve": "retrieval_context_builder", "refusal": "refusal"},
     )
     workflow.add_edge("refusal", END)
-    workflow.add_edge("retrieval_context_builder", "answer_generator")
+    workflow.add_conditional_edges(
+        "retrieval_context_builder",
+        route_after_retrieval,
+        {"answer": "answer_generator", "refusal": "refusal"},
+    )
     workflow.add_edge("answer_generator", "answer_evaluator")
-    workflow.add_edge("answer_evaluator", "final_response")
+    workflow.add_conditional_edges(
+        "answer_evaluator",
+        route_after_evaluation,
+        {"replan": "replanner", "final": "final_response"},
+    )
+    workflow.add_edge("replanner", "retrieval_context_builder")
     workflow.add_edge("final_response", END)
 
     return workflow.compile()

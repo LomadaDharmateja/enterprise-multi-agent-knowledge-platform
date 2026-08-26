@@ -1,0 +1,1745 @@
+{
+  "run_id": "run_20260826T184908Z_m4t2",
+  "generated_at": "2026-08-26T18:50:16.586366+00:00",
+  "eval_set": "tests\\eval\\eval_set_v1.json",
+  "eval_set_schema_version": 1,
+  "items_run": 5,
+  "items_skipped": 0,
+  "wall_clock_ms": 68488.1,
+  "totals": {
+    "input_tokens": 67079,
+    "output_tokens": 5498,
+    "llm_calls": 15,
+    "missing_usage_calls": 0,
+    "rate_limit_retries": 0,
+    "total_tokens": 72577
+  },
+  "skipped": [],
+  "results": [
+    {
+      "id": "A01",
+      "category": "entity_specific",
+      "question": "What is the average review score for seller 4869f7a5dfa277a7dca6462dcf3b52b2?",
+      "flags": [],
+      "expected": {
+        "answerable": true,
+        "route": {
+          "required": {
+            "sql_intent": "seller_performance",
+            "graph_intent": null,
+            "vector_artifact_groups": []
+          },
+          "permitted": {
+            "sql_intent": [],
+            "graph_intent": [
+              "warranty_product_seller_paths",
+              "logistics_region_paths",
+              "category_policy_guide_paths",
+              "seller_ticket_product_paths",
+              "customer_ticket_order_product_paths"
+            ],
+            "vector_artifact_groups": [
+              "support_tickets"
+            ]
+          }
+        },
+        "refusal": null
+      },
+      "rate_limit_retries": 0,
+      "outcome": "completed",
+      "latency_ms": 11719.1,
+      "actual": {
+        "answerable": true,
+        "refusal_reason": null,
+        "sql_intent": "seller_performance",
+        "graph_intent": null,
+        "vector_artifact_groups": [],
+        "sql_filters": {
+          "seller_ids": [
+            "4869f7a5dfa277a7dca6462dcf3b52b2"
+          ]
+        },
+        "sql_sort_by": "late_delivery_rate",
+        "graph_filters": null,
+        "dropped_filters": []
+      },
+      "evidence": {
+        "sql_records": 1,
+        "graph_records": 0,
+        "vector_records": 0,
+        "sql_record_sample": [
+          {
+            "seller_id": "4869f7a5dfa277a7dca6462dcf3b52b2",
+            "seller_state": "SP",
+            "seller_city": "guariba",
+            "total_orders": 1132,
+            "total_items_sold": "1156",
+            "total_item_revenue": 229472.6299999982,
+            "avg_review_score": "4.13",
+            "review_count": 1124,
+            "late_delivery_orders": 130,
+            "late_delivery_rate": "0.1148"
+          }
+        ],
+        "graph_record_sample": [],
+        "vector_record_sample": []
+      },
+      "evidence_quality": {
+        "confidence": "medium",
+        "reasons": [
+          "neo4j was not selected by the plan",
+          "qdrant was not selected by the plan"
+        ],
+        "filters_proposed": 1,
+        "filters_accepted": 1,
+        "filters_dropped": 0,
+        "all_filters_dropped": false
+      },
+      "answer_text": "# Grounded Business Answer\n\n## Business Question\nWhat is the average review score for seller 4869f7a5dfa277a7dca6462dcf3b52b2?\n\n## Executive Answer\nBased on the retrieved records, the average review score for seller 4869f7a5dfa277a7dca6462dcf3b52b2 is 4.13.\n\n## Evidence Used\n\n### SQL Evidence\n- The `seller_performance` table for `seller_id=4869f7a5dfa277a7dca6462dcf3b52b2` confirms an `avg_review_score` of 4.13, calculated from 1,124 reviews.\n\n### Graph Evidence\n- No graph evidence records were available.\n\n### Document Evidence\n- No document evidence records were available.\n\n## Key Entities\n- **Seller ID:** 4869f7a5dfa277a7dca6462dcf3b52b2\n\n## Recommended Next Actions\n- Review high-risk sellers using revenue, review score, and late-delivery metrics.\n\n## Limitations\n- The answer is derived solely from structured SQL performance records. No semantic context or network relationship data was available to provide additional insights regarding the seller's business operations or reputation.",
+      "answer_length_chars": 999,
+      "evaluator": {
+        "overall_status": "FAIL",
+        "grounding_score": 5,
+        "completeness_score": 5,
+        "business_readiness_score": 5,
+        "unsupported_claims": []
+      },
+      "llm_usage": {
+        "by_agent": {
+          "planner_agent": {
+            "calls": 1,
+            "input_tokens": 2950,
+            "output_tokens": 146,
+            "latency_ms": 1092.5,
+            "missing_usage": 0
+          },
+          "answer_agent": {
+            "calls": 1,
+            "input_tokens": 548,
+            "output_tokens": 311,
+            "latency_ms": 1353.3,
+            "missing_usage": 0
+          },
+          "evaluator_agent": {
+            "calls": 1,
+            "input_tokens": 1686,
+            "output_tokens": 213,
+            "latency_ms": 1105.1,
+            "missing_usage": 0
+          }
+        },
+        "totals": {
+          "calls": 3,
+          "input_tokens": 5184,
+          "output_tokens": 670,
+          "missing_usage": 0,
+          "total_tokens": 5854
+        },
+        "calls": [
+          {
+            "agent": "planner_agent",
+            "model": "gemini-3.1-flash-lite",
+            "latency_ms": 1092.5,
+            "prompt_chars": 11052,
+            "input_tokens": 2950,
+            "output_tokens": 146,
+            "total_tokens": 3096
+          },
+          {
+            "agent": "answer_agent",
+            "model": "gemini-3.1-flash-lite",
+            "latency_ms": 1353.3,
+            "prompt_chars": 2023,
+            "input_tokens": 548,
+            "output_tokens": 311,
+            "total_tokens": 859
+          },
+          {
+            "agent": "evaluator_agent",
+            "model": "gemini-3.1-flash-lite",
+            "latency_ms": 1105.1,
+            "prompt_chars": 5074,
+            "input_tokens": 1686,
+            "output_tokens": 213,
+            "total_tokens": 1899
+          }
+        ]
+      }
+    },
+    {
+      "id": "B23",
+      "category": "aggregate",
+      "question": "How many support tickets are still unresolved?",
+      "flags": [
+        "limit_awareness",
+        "not_derivable_from_topk"
+      ],
+      "expected": {
+        "answerable": true,
+        "route": {
+          "required": {
+            "sql_intent": null,
+            "graph_intent": null,
+            "vector_artifact_groups": [
+              "support_tickets"
+            ]
+          },
+          "permitted": {
+            "sql_intent": [
+              "seller_performance",
+              "product_performance",
+              "review_intelligence",
+              "payment_summary",
+              "customer_history",
+              "order_summary"
+            ],
+            "graph_intent": [
+              "warranty_product_seller_paths",
+              "logistics_region_paths",
+              "category_policy_guide_paths",
+              "seller_ticket_product_paths",
+              "customer_ticket_order_product_paths"
+            ],
+            "vector_artifact_groups": [
+              "support_tickets",
+              "logistics_incidents",
+              "customer_emails",
+              "warranty_claims",
+              "policy_documents",
+              "troubleshooting_guides"
+            ]
+          }
+        },
+        "refusal": null
+      },
+      "rate_limit_retries": 0,
+      "outcome": "completed",
+      "latency_ms": 23619.9,
+      "actual": {
+        "answerable": true,
+        "refusal_reason": null,
+        "sql_intent": "review_intelligence",
+        "graph_intent": null,
+        "vector_artifact_groups": [
+          "support_tickets",
+          "customer_emails"
+        ],
+        "sql_filters": {},
+        "sql_sort_by": "review_score_worst",
+        "graph_filters": null,
+        "dropped_filters": [
+          {
+            "leg": "sql",
+            "key": "sentiment_labels",
+            "value": "unresolved",
+            "reason": "not in vocabulary sentiment_labels"
+          }
+        ]
+      },
+      "evidence": {
+        "sql_records": 10,
+        "graph_records": 0,
+        "vector_records": 5,
+        "sql_record_sample": [
+          {
+            "review_id": "00041b1f51e77a663df6db3f539d694f",
+            "order_id": "998b1beee068744ac833dd8b31944623",
+            "customer_id": "4388eb52412b71e3b55ca093b0fca09b",
+            "customer_state": "SC",
+            "customer_city": "rio do sul",
+            "review_score": 1,
+            "sentiment_label": "negative",
+            "is_negative_review": true,
+            "has_review_comment": true,
+            "review_comment_title": "no_title",
+            "review_creation_date": "2018-05-24 00:00:00"
+          },
+          {
+            "review_id": "0009d5c0d8e49da34e2561a67bc730f8",
+            "order_id": "755fdf89024021c6324864182b6657b5",
+            "customer_id": "071130e3d980f8327e5348b9ed889fc4",
+            "customer_state": "RS",
+            "customer_city": "santa cruz do sul",
+            "review_score": 1,
+            "sentiment_label": "negative",
+            "is_negative_review": true,
+            "has_review_comment": true,
+            "review_comment_title": "no_title",
+            "review_creation_date": "2018-03-25 00:00:00"
+          },
+          {
+            "review_id": "00130cbe1f9d422698c812ed8ded1919",
+            "order_id": "04a28263e085d399c97ae49e0b477efa",
+            "customer_id": "fef2e5e63da9f3e1dd89e8e319468657",
+            "customer_state": "DF",
+            "customer_city": "brasilia",
+            "review_score": 1,
+            "sentiment_label": "negative",
+            "is_negative_review": true,
+            "has_review_comment": true,
+            "review_comment_title": "no_title",
+            "review_creation_date": "2018-03-07 00:00:00"
+          },
+          {
+            "review_id": "00130cbe1f9d422698c812ed8ded1919",
+            "order_id": "dfcdfc43867d1c1381bfaf62d6b9c195",
+            "customer_id": "a7026133ddbd2e86c83ecd4dfa4dbe01",
+            "customer_state": "DF",
+            "customer_city": "brasilia",
+            "review_score": 1,
+            "sentiment_label": "negative",
+            "is_negative_review": true,
+            "has_review_comment": true,
+            "review_comment_title": "no_title",
+            "review_creation_date": "2018-03-07 00:00:00"
+          },
+          {
+            "review_id": "002268961f544593083579b57bca4f59",
+            "order_id": "c90e15a8d750212aa19ac74b22a39493",
+            "customer_id": "8976ae1c6e4275a2630fcec10027d081",
+            "customer_state": "RJ",
+            "customer_city": "rio de janeiro",
+            "review_score": 1,
+            "sentiment_label": "negative",
+            "is_negative_review": true,
+            "has_review_comment": true,
+            "review_comment_title": "no_title",
+            "review_creation_date": "2018-05-01 00:00:00"
+          },
+          {
+            "review_id": "00355aabc83e148cd43833a1c0f6f3fe",
+            "order_id": "7e844a0812d948cb6f3a7ffa97bde8dd",
+            "customer_id": "d0219f095cf2adce221c9a7dafcc66f6",
+            "customer_state": "RJ",
+            "customer_city": "rio de janeiro",
+            "review_score": 1,
+            "sentiment_label": "negative",
+            "is_negative_review": true,
+            "has_review_comment": true,
+            "review_comment_title": "no_title",
+            "review_creation_date": "2017-11-22 00:00:00"
+          },
+          {
+            "review_id": "00397dc753e8c52a2dd4d73a20b88ae7",
+            "order_id": "543ab3128139efe78bf5e8006ae25087",
+            "customer_id": "ab2ea0f54206e58856bd5b50647a5cbf",
+            "customer_state": "SP",
+            "customer_city": "sao paulo",
+            "review_score": 1,
+            "sentiment_label": "negative",
+            "is_negative_review": true,
+            "has_review_comment": true,
+            "review_comment_title": "no_title",
+            "review_creation_date": "2018-03-21 00:00:00"
+          },
+          {
+            "review_id": "00409368c3ac60ba625775e40321ebc0",
+            "order_id": "3adab61474a972a1606b0c78d64b8aee",
+            "customer_id": "6db8779686d293a60dabd0756a524431",
+            "customer_state": "PB",
+            "customer_city": "joao pessoa",
+            "review_score": 1,
+            "sentiment_label": "negative",
+            "is_negative_review": true,
+            "has_review_comment": true,
+            "review_comment_title": "no_title",
+            "review_creation_date": "2018-07-29 00:00:00"
+          },
+          {
+            "review_id": "00410141bcde1f1a039230835ea12301",
+            "order_id": "bff76a871750bd5f03d22c007cd7d26d",
+            "customer_id": "5c4dc29c67a87f143cea0b5df952d169",
+            "customer_state": "SP",
+            "customer_city": "sao paulo",
+            "review_score": 1,
+            "sentiment_label": "negative",
+            "is_negative_review": true,
+            "has_review_comment": true,
+            "review_comment_title": "no_title",
+            "review_creation_date": "2018-08-10 00:00:00"
+          },
+          {
+            "review_id": "0054fba4a2c8ddef00af2a4805eec53d",
+            "order_id": "b07ccdfa28017f65163b05eaa308ff97",
+            "customer_id": "4238449f57e600dc2183fa60672b3c1f",
+            "customer_state": "SP",
+            "customer_city": "jaguariuna",
+            "review_score": 1,
+            "sentiment_label": "negative",
+            "is_negative_review": true,
+            "has_review_comment": true,
+            "review_comment_title": "Falta de produto ",
+            "review_creation_date": "2018-06-14 00:00:00"
+          }
+        ],
+        "graph_record_sample": [],
+        "vector_record_sample": [
+          {
+            "score": 0.4548899,
+            "artifact_group": "support_tickets",
+            "artifact_type": "support_tickets",
+            "artifact_id": "support_tickets:TCK-000575",
+            "title": "Missing Item for computers_accessories",
+            "issue_type": "missing_item",
+            "severity": "high",
+            "status": "open",
+            "policy_topic": null,
+            "policy_id": null,
+            "guide_id": null,
+            "ticket_id": "TCK-000575",
+            "claim_id": null,
+            "incident_id": null,
+            "email_id": null,
+            "customer_id": "212faae3e5c3646879daad76a9f106b3",
+            "order_id": "309de5faf9baa8961fd068f3f4e44dcd",
+            "product_id": "a12c9204f6f9e90ad1d8ba5571fbfed2",
+            "seller_id": "f262cbc1c910c83959f849465454ddd3",
+            "category_id": "informatica_acessorios",
+            "region_id": "RS::viamao",
+            "text_preview": "Artifact type: support_tickets\nTitle: Missing Item for computers_accessories\nDescription: high severity missing item on order 309de5faf9baa8961fd068f3f4e44dcd, resolution unresolved\nticket_id: TCK-000575\ncustomer_id: 212faae3e5c3646879daad76a9f106b3\norder_id: 309de5faf9baa8961fd068f3f4e44dcd\nproduct_id: a12c9204f6f9e90ad1d8ba5571fbfed2\nseller_id: f262cbc1c910c83959f849465454ddd3\ncategory_id: informatica_acessorios\nregion_id: RS::viamao\nseverity: high\nstatus: open\nissue_type: missing_item\ntitle: Missing Item for computers_accessories\nsummary: high severity missing item on order 309de5faf9baa8961fd068f3f4e44dcd, resolution unresolved\nresolution: unresolved\nroot_cause: order split across two shipments, second never sent\ncustomer_message: Part of my order is missing. I would prefer a replacement. Please resolve quickly.\nagent_notes: Awaiting seller response; customer informed. Flagged to the seller account team.",
+            "retrieval_method": "semantic"
+          },
+          {
+            "score": 0.4543742,
+            "artifact_group": "support_tickets",
+            "artifact_type": "support_tickets",
+            "artifact_id": "support_tickets:TCK-001826",
+            "title": "Missing Item for computers_accessories",
+            "issue_type": "missing_item",
+            "severity": "high",
+            "status": "open",
+            "policy_topic": null,
+            "policy_id": null,
+            "guide_id": null,
+            "ticket_id": "TCK-001826",
+            "claim_id": null,
+            "incident_id": null,
+            "email_id": null,
+            "customer_id": "d9e9b54e6283adbb56b08b7ff2859ce6",
+            "order_id": "9823d62e92fd7b2e7fb1dfe0e83c5ab3",
+            "product_id": "b398ce5510b751df72933e4737aa9b51",
+            "seller_id": "89dda63a3c907c468ec88c310ed91213",
+            "category_id": "informatica_acessorios",
+            "region_id": "SP::presidente venceslau",
+            "text_preview": "Artifact type: support_tickets\nTitle: Missing Item for computers_accessories\nDescription: high severity missing item on order 9823d62e92fd7b2e7fb1dfe0e83c5ab3, resolution unresolved\nticket_id: TCK-001826\ncustomer_id: d9e9b54e6283adbb56b08b7ff2859ce6\norder_id: 9823d62e92fd7b2e7fb1dfe0e83c5ab3\nproduct_id: b398ce5510b751df72933e4737aa9b51\nseller_id: 89dda63a3c907c468ec88c310ed91213\ncategory_id: informatica_acessorios\nregion_id: SP::presidente venceslau\nseverity: high\nstatus: open\nissue_type: missing_item\ntitle: Missing Item for computers_accessories\nsummary: high severity missing item on order 9823d62e92fd7b2e7fb1dfe0e83c5ab3, resolution unresolved\nresolution: unresolved\nroot_cause: picking error at the seller warehouse\ncustomer_message: Part of my order is missing. Tracking has not updated. Please resolve quickly.\nagent_notes: Awaiting seller response; customer informed. Flagged to the seller account team.",
+            "retrieval_method": "semantic"
+          },
+          {
+            "score": 0.44589984,
+            "artifact_group": "support_tickets",
+            "artifact_type": "support_tickets",
+            "artifact_id": "support_tickets:TCK-002565",
+            "title": "Missing Item for computers_accessories",
+            "issue_type": "missing_item",
+            "severity": "high",
+            "status": "open",
+            "policy_topic": null,
+            "policy_id": null,
+            "guide_id": null,
+            "ticket_id": "TCK-002565",
+            "claim_id": null,
+            "incident_id": null,
+            "email_id": null,
+            "customer_id": "a17f3ccb45616d18e63e6cf5f5fe0f4f",
+            "order_id": "dc6a8e8831352bf06b8b0e51ff58e69c",
+            "product_id": "d338536d3bfc9f482ee40f08bc22cce2",
+            "seller_id": "66fd84ee7528c0c0de85d0f44a73d5ab",
+            "category_id": "informatica_acessorios",
+            "region_id": "GO::goiania",
+            "text_preview": "Artifact type: support_tickets\nTitle: Missing Item for computers_accessories\nDescription: high severity missing item on order dc6a8e8831352bf06b8b0e51ff58e69c, resolution unresolved\nticket_id: TCK-002565\ncustomer_id: a17f3ccb45616d18e63e6cf5f5fe0f4f\norder_id: dc6a8e8831352bf06b8b0e51ff58e69c\nproduct_id: d338536d3bfc9f482ee40f08bc22cce2\nseller_id: 66fd84ee7528c0c0de85d0f44a73d5ab\ncategory_id: informatica_acessorios\nregion_id: GO::goiania\nseverity: high\nstatus: open\nissue_type: missing_item\ntitle: Missing Item for computers_accessories\nsummary: high severity missing item on order dc6a8e8831352bf06b8b0e51ff58e69c, resolution unresolved\nresolution: unresolved\nroot_cause: accessory in the description not in the box\ncustomer_message: Part of my order is missing. Tracking has not updated. Please resolve quickly.\nagent_notes: Awaiting seller response; customer informed. Flagged to the seller account team.",
+            "retrieval_method": "semantic"
+          },
+          {
+            "score": 0.44099906,
+            "artifact_group": "support_tickets",
+            "artifact_type": "support_tickets",
+            "artifact_id": "support_tickets:TCK-000980",
+            "title": "Missing Item for computers_accessories",
+            "issue_type": "missing_item",
+            "severity": "critical",
+            "status": "open",
+            "policy_topic": null,
+            "policy_id": null,
+            "guide_id": null,
+            "ticket_id": "TCK-000980",
+            "claim_id": null,
+            "incident_id": null,
+            "email_id": null,
+            "customer_id": "b48f0c850994495b24f1440c76873576",
+            "order_id": "50aee6309ac7a0d4fd5c78ac0d4e5404",
+            "product_id": "d1c427060a0f73f6b889a5c7c61f2ac4",
+            "seller_id": "a1043bafd471dff536d0c462352beb48",
+            "category_id": "informatica_acessorios",
+            "region_id": "GO::catalao",
+            "text_preview": "Artifact type: support_tickets\nTitle: Missing Item for computers_accessories\nDescription: critical severity missing item on order 50aee6309ac7a0d4fd5c78ac0d4e5404, resolution unresolved\nticket_id: TCK-000980\ncustomer_id: b48f0c850994495b24f1440c76873576\norder_id: 50aee6309ac7a0d4fd5c78ac0d4e5404\nproduct_id: d1c427060a0f73f6b889a5c7c61f2ac4\nseller_id: a1043bafd471dff536d0c462352beb48\ncategory_id: informatica_acessorios\nregion_id: GO::catalao\nseverity: critical\nstatus: open\nissue_type: missing_item\ntitle: Missing Item for computers_accessories\nsummary: critical severity missing item on order 50aee6309ac7a0d4fd5c78ac0d4e5404, resolution unresolved\nresolution: unresolved\nroot_cause: picking error at the seller warehouse\ncustomer_message: Part of my order is missing. I was told this would be handled. This is urgent.\nagent_notes: Awaiting seller response; customer informed. Escalated to tier 2.",
+            "retrieval_method": "semantic"
+          },
+          {
+            "score": 0.4409432,
+            "artifact_group": "support_tickets",
+            "artifact_type": "support_tickets",
+            "artifact_id": "support_tickets:TCK-002844",
+            "title": "Missing Item for computers_accessories",
+            "issue_type": "missing_item",
+            "severity": "medium",
+            "status": "open",
+            "policy_topic": null,
+            "policy_id": null,
+            "guide_id": null,
+            "ticket_id": "TCK-002844",
+            "claim_id": null,
+            "incident_id": null,
+            "email_id": null,
+            "customer_id": "7542eb12d0319a6d3341f982a9a45433",
+            "order_id": "f4b5549e1f7d4f62f52b0512657744c3",
+            "product_id": "41f0468311f84a21f55c7f09f6c8fa67",
+            "seller_id": "c84592044b180dec206770c38603814b",
+            "category_id": "informatica_acessorios",
+            "region_id": "PA::belem",
+            "text_preview": "Artifact type: support_tickets\nTitle: Missing Item for computers_accessories\nDescription: medium severity missing item on order f4b5549e1f7d4f62f52b0512657744c3, resolution unresolved\nticket_id: TCK-002844\ncustomer_id: 7542eb12d0319a6d3341f982a9a45433\norder_id: f4b5549e1f7d4f62f52b0512657744c3\nproduct_id: 41f0468311f84a21f55c7f09f6c8fa67\nseller_id: c84592044b180dec206770c38603814b\ncategory_id: informatica_acessorios\nregion_id: PA::belem\nseverity: medium\nstatus: open\nissue_type: missing_item\ntitle: Missing Item for computers_accessories\nsummary: medium severity missing item on order f4b5549e1f7d4f62f52b0512657744c3, resolution unresolved\nresolution: unresolved\nroot_cause: accessory in the description not in the box\ncustomer_message: Part of my order is missing. Photographs attached. Please let me know what happens next.\nagent_notes: Awaiting seller response; customer informed. Handled at first line.",
+            "retrieval_method": "semantic"
+          },
+          {
+            "score": 0.29644573,
+            "artifact_group": "customer_emails",
+            "artifact_type": "customer_emails",
+            "artifact_id": "customer_emails:EML-000624",
+            "title": "Re: Missing Item for computers_accessories (TCK-001993)",
+            "issue_type": null,
+            "severity": "critical",
+            "status": null,
+            "policy_topic": null,
+            "policy_id": null,
+            "guide_id": null,
+            "ticket_id": "TCK-001993",
+            "claim_id": null,
+            "incident_id": null,
+            "email_id": "EML-000624",
+            "customer_id": "c28f8e0e6f19fbeb9d27cc038e8e957f",
+            "order_id": "a7b9ca3e1958817f0415ebbf1fef3941",
+            "product_id": "4298b7e67dc399c200662b569563a2b2",
+            "seller_id": "88460e8ebdecbfecb5f9601833981930",
+            "category_id": "informatica_acessorios",
+            "region_id": "RJ::nilopolis",
+            "text_preview": "Artifact type: customer_emails\nTitle: Re: Missing Item for computers_accessories (TCK-001993)\nDescription: Follow-up thread of 3 messages on TCK-001993, awaiting customer\nticket_id: TCK-001993\nemail_id: EML-000624\ncustomer_id: c28f8e0e6f19fbeb9d27cc038e8e957f\norder_id: a7b9ca3e1958817f0415ebbf1fef3941\nproduct_id: 4298b7e67dc399c200662b569563a2b2\nseller_id: 88460e8ebdecbfecb5f9601833981930\ncategory_id: informatica_acessorios\nregion_id: RJ::nilopolis\nseverity: critical\nsubject: Re: Missing Item for computers_accessories (TCK-001993)\nsummary: Follow-up thread of 3 messages on TCK-001993, awaiting customer\nbody: Hello Support Team, I am following up on ticket TCK-001993 for order a7b9ca3e1958817f0415ebbf1fef3941. I am extremely unhappy with how this has been handled. The case was closed as partial refund. Let me know if you need anything else from me.",
+            "retrieval_method": "semantic"
+          },
+          {
+            "score": 0.29322743,
+            "artifact_group": "customer_emails",
+            "artifact_type": "customer_emails",
+            "artifact_id": "customer_emails:EML-000383",
+            "title": "Re: Missing Item for computers_accessories (TCK-001247)",
+            "issue_type": null,
+            "severity": "critical",
+            "status": null,
+            "policy_topic": null,
+            "policy_id": null,
+            "guide_id": null,
+            "ticket_id": "TCK-001247",
+            "claim_id": null,
+            "incident_id": null,
+            "email_id": "EML-000383",
+            "customer_id": "e999274ae2e74253b426473bd8885b7b",
+            "order_id": "68536e12a3cd7f62b4a5946d541ff083",
+            "product_id": "80df62ce491a20d390c9f69402310f0a",
+            "seller_id": "85d9eb9ddc5d00ca9336a2219c97bb13",
+            "category_id": "informatica_acessorios",
+            "region_id": "SC::sao jose",
+            "text_preview": "Artifact type: customer_emails\nTitle: Re: Missing Item for computers_accessories (TCK-001247)\nDescription: Follow-up thread of 2 messages on TCK-001247, awaiting customer\nticket_id: TCK-001247\nemail_id: EML-000383\ncustomer_id: e999274ae2e74253b426473bd8885b7b\norder_id: 68536e12a3cd7f62b4a5946d541ff083\nproduct_id: 80df62ce491a20d390c9f69402310f0a\nseller_id: 85d9eb9ddc5d00ca9336a2219c97bb13\ncategory_id: informatica_acessorios\nregion_id: SC::sao jose\nseverity: critical\nsubject: Re: Missing Item for computers_accessories (TCK-001247)\nsummary: Follow-up thread of 2 messages on TCK-001247, awaiting customer\nbody: Hello Support Team, I am following up on ticket TCK-001247 for order 68536e12a3cd7f62b4a5946d541ff083. Thank you for sorting this out. The case was closed as refund issued. Let me know if you need anything else from me.",
+            "retrieval_method": "semantic"
+          },
+          {
+            "score": 0.290012,
+            "artifact_group": "customer_emails",
+            "artifact_type": "customer_emails",
+            "artifact_id": "customer_emails:EML-000716",
+            "title": "Re: Missing Item for consoles_games (TCK-002260)",
+            "issue_type": null,
+            "severity": "critical",
+            "status": null,
+            "policy_topic": null,
+            "policy_id": null,
+            "guide_id": null,
+            "ticket_id": "TCK-002260",
+            "claim_id": null,
+            "incident_id": null,
+            "email_id": "EML-000716",
+            "customer_id": "e8759aed1027f77226dddeb7c7481f11",
+            "order_id": "bf79e4fa55a389d494f47feb2654892c",
+            "product_id": "fe09eb5f7bfcb79d05df7c4e83ec204e",
+            "seller_id": "2a1348e9addc1af5aaa619b1a3679d6b",
+            "category_id": "consoles_games",
+            "region_id": "ES::serra",
+            "text_preview": "Artifact type: customer_emails\nTitle: Re: Missing Item for consoles_games (TCK-002260)\nDescription: Follow-up thread of 1 messages on TCK-002260, awaiting customer\nticket_id: TCK-002260\nemail_id: EML-000716\ncustomer_id: e8759aed1027f77226dddeb7c7481f11\norder_id: bf79e4fa55a389d494f47feb2654892c\nproduct_id: fe09eb5f7bfcb79d05df7c4e83ec204e\nseller_id: 2a1348e9addc1af5aaa619b1a3679d6b\ncategory_id: consoles_games\nregion_id: ES::serra\nseverity: critical\nsubject: Re: Missing Item for consoles_games (TCK-002260)\nsummary: Follow-up thread of 1 messages on TCK-002260, awaiting customer\nbody: Hello Support Team, I am following up on ticket TCK-002260 for order bf79e4fa55a389d494f47feb2654892c. I am extremely unhappy with how this has been handled. The case was closed as explained no action. I would like this escalated if nothing changes this week.",
+            "retrieval_method": "semantic"
+          },
+          {
+            "score": 0.2899993,
+            "artifact_group": "customer_emails",
+            "artifact_type": "customer_emails",
+            "artifact_id": "customer_emails:EML-000317",
+            "title": "Re: Missing Item for computers_accessories (TCK-001034)",
+            "issue_type": null,
+            "severity": "medium",
+            "status": null,
+            "policy_topic": null,
+            "policy_id": null,
+            "guide_id": null,
+            "ticket_id": "TCK-001034",
+            "claim_id": null,
+            "incident_id": null,
+            "email_id": "EML-000317",
+            "customer_id": "9e2acd85dd3467ead19e6e831dc5b69f",
+            "order_id": "55ab9db2aba357eaf4c98300f85b2189",
+            "product_id": "fa4e8255202fd921350a6fc716710dae",
+            "seller_id": "2b3e4a2a3ea8e01938cabda2a3e5cc79",
+            "category_id": "informatica_acessorios",
+            "region_id": "RS::canoas",
+            "text_preview": "Artifact type: customer_emails\nTitle: Re: Missing Item for computers_accessories (TCK-001034)\nDescription: Follow-up thread of 1 messages on TCK-001034, awaiting seller\nticket_id: TCK-001034\nemail_id: EML-000317\ncustomer_id: 9e2acd85dd3467ead19e6e831dc5b69f\norder_id: 55ab9db2aba357eaf4c98300f85b2189\nproduct_id: fa4e8255202fd921350a6fc716710dae\nseller_id: 2b3e4a2a3ea8e01938cabda2a3e5cc79\ncategory_id: informatica_acessorios\nregion_id: RS::canoas\nseverity: medium\nsubject: Re: Missing Item for computers_accessories (TCK-001034)\nsummary: Follow-up thread of 1 messages on TCK-001034, awaiting seller\nbody: Hello Support Team, I am following up on ticket TCK-001034 for order 55ab9db2aba357eaf4c98300f85b2189. This has taken far longer than I expected. It has now been 2 contacts with no resolution. Please confirm what happens next.",
+            "retrieval_method": "semantic"
+          },
+          {
+            "score": 0.28948623,
+            "artifact_group": "customer_emails",
+            "artifact_type": "customer_emails",
+            "artifact_id": "customer_emails:EML-000788",
+            "title": "Re: Missing Item for computers_accessories (TCK-002434)",
+            "issue_type": null,
+            "severity": "high",
+            "status": null,
+            "policy_topic": null,
+            "policy_id": null,
+            "guide_id": null,
+            "ticket_id": "TCK-002434",
+            "claim_id": null,
+            "incident_id": null,
+            "email_id": "EML-000788",
+            "customer_id": "e42274a986c58b500513a7d57a4fed2d",
+            "order_id": "cf5508a6ae55421646b0683bb605ac74",
+            "product_id": "73a6e085799e9c92a2c854ec9627b28f",
+            "seller_id": "4bc3d93e4a5f88a598d3d8ce4ae510b3",
+            "category_id": "informatica_acessorios",
+            "region_id": "PR::maringa",
+            "text_preview": "Artifact type: customer_emails\nTitle: Re: Missing Item for computers_accessories (TCK-002434)\nDescription: Follow-up thread of 1 messages on TCK-002434, awaiting seller\nticket_id: TCK-002434\nemail_id: EML-000788\ncustomer_id: e42274a986c58b500513a7d57a4fed2d\norder_id: cf5508a6ae55421646b0683bb605ac74\nproduct_id: 73a6e085799e9c92a2c854ec9627b28f\nseller_id: 4bc3d93e4a5f88a598d3d8ce4ae510b3\ncategory_id: informatica_acessorios\nregion_id: PR::maringa\nseverity: high\nsubject: Re: Missing Item for computers_accessories (TCK-002434)\nsummary: Follow-up thread of 1 messages on TCK-002434, awaiting seller\nbody: Hello Support Team, I am following up on ticket TCK-002434 for order cf5508a6ae55421646b0683bb605ac74. This has taken far longer than I expected. It has now been 1 contacts with no resolution. Please confirm what happens next.",
+            "retrieval_method": "semantic"
+          }
+        ]
+      },
+      "evidence_quality": {
+        "confidence": "low",
+        "reasons": [
+          "all 1 filter value(s) proposed for this question failed to resolve, so the queries ran unfiltered: sentiment_labels='unresolved' (not in vocabulary sentiment_labels)",
+          "neo4j was not selected by the plan"
+        ],
+        "filters_proposed": 1,
+        "filters_accepted": 0,
+        "filters_dropped": 1,
+        "all_filters_dropped": true
+      },
+      "answer_text": "# Grounded Business Answer\n\n## Business Question\nHow many support tickets are still unresolved?\n\n## Executive Answer\nBased on the retrieved enterprise documents, there are **3** support tickets explicitly identified with an \"unresolved\" resolution status. These are identified as TCK-000575, TCK-001826, and TCK-002565. \n\nWhile other tickets (such as TCK-001993, TCK-001247, and TCK-002260) are mentioned in customer email threads, the provided evidence does not explicitly state their resolution status, only that they are currently awaiting customer input.\n\n## Evidence Used\n\n### SQL Evidence\nNo specific evidence regarding support ticket resolution status was found in the SQL records; the SQL data focused on customer review scores and sentiment labels.\n\n### Graph Evidence\nNo graph evidence records were available to support this inquiry.\n\n### Document Evidence\n*   **support_tickets:** \n    *   TCK-000575 (Missing Item for computers_accessories): resolution unresolved.\n    *   TCK-001826 (Missing Item for computers_accessories): resolution unresolved.\n    *   TCK-002565 (Missing Item for computers_accessories): resolution unresolved.\n*   **customer_emails:** \n    *   Emails reference TCK-001993, TCK-001247, and TCK-002260, noting they are \"awaiting customer\" feedback, but the formal \"resolution\" status is not provided.\n\n## Key Entities\n*   **Ticket IDs:** TCK-000575, TCK-001826, TCK-002565 (Unresolved)\n*   **Ticket IDs:** TCK-001993, TCK-001247, TCK-002260 (Awaiting Customer)\n\n## Recommended Next Actions\n*   Conduct a full status audit of all open tickets, specifically investigating those currently marked as \"awaiting customer\" to determine if they should also be classified as unresolved.\n*   Cross-reference the negative review data (SQL source) with the identified support tickets to determine if there is a correlation between the identified product issues and negative customer sentiment.\n\n## Limitations\nThe provided evidence only includes a subset of support tickets. The total number of unresolved tickets across the entire organization cannot be determined as the data is restricted to the specific artifacts retrieved from the Qdrant knowledge base. Statuses for tickets not present in the document evidence are unknown.",
+      "answer_length_chars": 2251,
+      "evaluator": {
+        "overall_status": "FAIL",
+        "grounding_score": 2,
+        "completeness_score": 2,
+        "business_readiness_score": 2,
+        "unsupported_claims": [
+          "The answer claims there are only 3 unresolved tickets. However, the document evidence clearly shows 5 tickets in the support_tickets retrieval, all of which have status='open' and 'resolution unresolved' in their text previews."
+        ]
+      },
+      "llm_usage": {
+        "by_agent": {
+          "planner_agent": {
+            "calls": 1,
+            "input_tokens": 2919,
+            "output_tokens": 127,
+            "latency_ms": 1009.1,
+            "missing_usage": 0
+          },
+          "answer_agent": {
+            "calls": 2,
+            "input_tokens": 7651,
+            "output_tokens": 1193,
+            "latency_ms": 5488.0,
+            "missing_usage": 0
+          },
+          "evaluator_agent": {
+            "calls": 2,
+            "input_tokens": 18203,
+            "output_tokens": 930,
+            "latency_ms": 4151.3,
+            "missing_usage": 0
+          }
+        },
+        "totals": {
+          "calls": 5,
+          "input_tokens": 28773,
+          "output_tokens": 2250,
+          "missing_usage": 0,
+          "total_tokens": 31023
+        },
+        "calls": [
+          {
+            "agent": "planner_agent",
+            "model": "gemini-3.1-flash-lite",
+            "latency_ms": 1009.1,
+            "prompt_chars": 11021,
+            "input_tokens": 2919,
+            "output_tokens": 127,
+            "total_tokens": 3046
+          },
+          {
+            "agent": "answer_agent",
+            "model": "gemini-3.1-flash-lite",
+            "latency_ms": 2567.7,
+            "prompt_chars": 6302,
+            "input_tokens": 3212,
+            "output_tokens": 620,
+            "total_tokens": 3832
+          },
+          {
+            "agent": "evaluator_agent",
+            "model": "gemini-3.1-flash-lite",
+            "latency_ms": 1901.7,
+            "prompt_chars": 18692,
+            "input_tokens": 8335,
+            "output_tokens": 433,
+            "total_tokens": 8768
+          },
+          {
+            "agent": "answer_agent",
+            "model": "gemini-3.1-flash-lite",
+            "latency_ms": 2920.3,
+            "prompt_chars": 8542,
+            "input_tokens": 4439,
+            "output_tokens": 573,
+            "total_tokens": 5012
+          },
+          {
+            "agent": "evaluator_agent",
+            "model": "gemini-3.1-flash-lite",
+            "latency_ms": 2249.6,
+            "prompt_chars": 22570,
+            "input_tokens": 9868,
+            "output_tokens": 497,
+            "total_tokens": 10365
+          }
+        ]
+      }
+    },
+    {
+      "id": "B24",
+      "category": "aggregate",
+      "question": "What is the most common issue type in the support tickets?",
+      "flags": [
+        "not_derivable_from_topk"
+      ],
+      "expected": {
+        "answerable": true,
+        "route": {
+          "required": {
+            "sql_intent": null,
+            "graph_intent": null,
+            "vector_artifact_groups": [
+              "support_tickets"
+            ]
+          },
+          "permitted": {
+            "sql_intent": [
+              "seller_performance",
+              "product_performance",
+              "review_intelligence",
+              "payment_summary",
+              "customer_history",
+              "order_summary"
+            ],
+            "graph_intent": [
+              "warranty_product_seller_paths",
+              "logistics_region_paths",
+              "category_policy_guide_paths",
+              "seller_ticket_product_paths",
+              "customer_ticket_order_product_paths"
+            ],
+            "vector_artifact_groups": [
+              "support_tickets",
+              "logistics_incidents",
+              "customer_emails",
+              "warranty_claims",
+              "policy_documents",
+              "troubleshooting_guides"
+            ]
+          }
+        },
+        "refusal": null
+      },
+      "rate_limit_retries": 0,
+      "outcome": "completed",
+      "latency_ms": 12826.2,
+      "actual": {
+        "answerable": true,
+        "refusal_reason": null,
+        "sql_intent": "review_intelligence",
+        "graph_intent": null,
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "sql_filters": {},
+        "sql_sort_by": "review_score_worst",
+        "graph_filters": null,
+        "dropped_filters": []
+      },
+      "evidence": {
+        "sql_records": 10,
+        "graph_records": 0,
+        "vector_records": 5,
+        "sql_record_sample": [
+          {
+            "review_id": "00041b1f51e77a663df6db3f539d694f",
+            "order_id": "998b1beee068744ac833dd8b31944623",
+            "customer_id": "4388eb52412b71e3b55ca093b0fca09b",
+            "customer_state": "SC",
+            "customer_city": "rio do sul",
+            "review_score": 1,
+            "sentiment_label": "negative",
+            "is_negative_review": true,
+            "has_review_comment": true,
+            "review_comment_title": "no_title",
+            "review_creation_date": "2018-05-24 00:00:00"
+          },
+          {
+            "review_id": "0009d5c0d8e49da34e2561a67bc730f8",
+            "order_id": "755fdf89024021c6324864182b6657b5",
+            "customer_id": "071130e3d980f8327e5348b9ed889fc4",
+            "customer_state": "RS",
+            "customer_city": "santa cruz do sul",
+            "review_score": 1,
+            "sentiment_label": "negative",
+            "is_negative_review": true,
+            "has_review_comment": true,
+            "review_comment_title": "no_title",
+            "review_creation_date": "2018-03-25 00:00:00"
+          },
+          {
+            "review_id": "00130cbe1f9d422698c812ed8ded1919",
+            "order_id": "dfcdfc43867d1c1381bfaf62d6b9c195",
+            "customer_id": "a7026133ddbd2e86c83ecd4dfa4dbe01",
+            "customer_state": "DF",
+            "customer_city": "brasilia",
+            "review_score": 1,
+            "sentiment_label": "negative",
+            "is_negative_review": true,
+            "has_review_comment": true,
+            "review_comment_title": "no_title",
+            "review_creation_date": "2018-03-07 00:00:00"
+          },
+          {
+            "review_id": "00130cbe1f9d422698c812ed8ded1919",
+            "order_id": "04a28263e085d399c97ae49e0b477efa",
+            "customer_id": "fef2e5e63da9f3e1dd89e8e319468657",
+            "customer_state": "DF",
+            "customer_city": "brasilia",
+            "review_score": 1,
+            "sentiment_label": "negative",
+            "is_negative_review": true,
+            "has_review_comment": true,
+            "review_comment_title": "no_title",
+            "review_creation_date": "2018-03-07 00:00:00"
+          },
+          {
+            "review_id": "002268961f544593083579b57bca4f59",
+            "order_id": "c90e15a8d750212aa19ac74b22a39493",
+            "customer_id": "8976ae1c6e4275a2630fcec10027d081",
+            "customer_state": "RJ",
+            "customer_city": "rio de janeiro",
+            "review_score": 1,
+            "sentiment_label": "negative",
+            "is_negative_review": true,
+            "has_review_comment": true,
+            "review_comment_title": "no_title",
+            "review_creation_date": "2018-05-01 00:00:00"
+          },
+          {
+            "review_id": "00355aabc83e148cd43833a1c0f6f3fe",
+            "order_id": "7e844a0812d948cb6f3a7ffa97bde8dd",
+            "customer_id": "d0219f095cf2adce221c9a7dafcc66f6",
+            "customer_state": "RJ",
+            "customer_city": "rio de janeiro",
+            "review_score": 1,
+            "sentiment_label": "negative",
+            "is_negative_review": true,
+            "has_review_comment": true,
+            "review_comment_title": "no_title",
+            "review_creation_date": "2017-11-22 00:00:00"
+          },
+          {
+            "review_id": "00397dc753e8c52a2dd4d73a20b88ae7",
+            "order_id": "543ab3128139efe78bf5e8006ae25087",
+            "customer_id": "ab2ea0f54206e58856bd5b50647a5cbf",
+            "customer_state": "SP",
+            "customer_city": "sao paulo",
+            "review_score": 1,
+            "sentiment_label": "negative",
+            "is_negative_review": true,
+            "has_review_comment": true,
+            "review_comment_title": "no_title",
+            "review_creation_date": "2018-03-21 00:00:00"
+          },
+          {
+            "review_id": "00409368c3ac60ba625775e40321ebc0",
+            "order_id": "3adab61474a972a1606b0c78d64b8aee",
+            "customer_id": "6db8779686d293a60dabd0756a524431",
+            "customer_state": "PB",
+            "customer_city": "joao pessoa",
+            "review_score": 1,
+            "sentiment_label": "negative",
+            "is_negative_review": true,
+            "has_review_comment": true,
+            "review_comment_title": "no_title",
+            "review_creation_date": "2018-07-29 00:00:00"
+          },
+          {
+            "review_id": "00410141bcde1f1a039230835ea12301",
+            "order_id": "bff76a871750bd5f03d22c007cd7d26d",
+            "customer_id": "5c4dc29c67a87f143cea0b5df952d169",
+            "customer_state": "SP",
+            "customer_city": "sao paulo",
+            "review_score": 1,
+            "sentiment_label": "negative",
+            "is_negative_review": true,
+            "has_review_comment": true,
+            "review_comment_title": "no_title",
+            "review_creation_date": "2018-08-10 00:00:00"
+          },
+          {
+            "review_id": "0054fba4a2c8ddef00af2a4805eec53d",
+            "order_id": "b07ccdfa28017f65163b05eaa308ff97",
+            "customer_id": "4238449f57e600dc2183fa60672b3c1f",
+            "customer_state": "SP",
+            "customer_city": "jaguariuna",
+            "review_score": 1,
+            "sentiment_label": "negative",
+            "is_negative_review": true,
+            "has_review_comment": true,
+            "review_comment_title": "Falta de produto ",
+            "review_creation_date": "2018-06-14 00:00:00"
+          }
+        ],
+        "graph_record_sample": [],
+        "vector_record_sample": [
+          {
+            "score": 0.44415784,
+            "artifact_group": "support_tickets",
+            "artifact_type": "support_tickets",
+            "artifact_id": "support_tickets:TCK-001826",
+            "title": "Missing Item for computers_accessories",
+            "issue_type": "missing_item",
+            "severity": "high",
+            "status": "open",
+            "policy_topic": null,
+            "policy_id": null,
+            "guide_id": null,
+            "ticket_id": "TCK-001826",
+            "claim_id": null,
+            "incident_id": null,
+            "email_id": null,
+            "customer_id": "d9e9b54e6283adbb56b08b7ff2859ce6",
+            "order_id": "9823d62e92fd7b2e7fb1dfe0e83c5ab3",
+            "product_id": "b398ce5510b751df72933e4737aa9b51",
+            "seller_id": "89dda63a3c907c468ec88c310ed91213",
+            "category_id": "informatica_acessorios",
+            "region_id": "SP::presidente venceslau",
+            "text_preview": "Artifact type: support_tickets\nTitle: Missing Item for computers_accessories\nDescription: high severity missing item on order 9823d62e92fd7b2e7fb1dfe0e83c5ab3, resolution unresolved\nticket_id: TCK-001826\ncustomer_id: d9e9b54e6283adbb56b08b7ff2859ce6\norder_id: 9823d62e92fd7b2e7fb1dfe0e83c5ab3\nproduct_id: b398ce5510b751df72933e4737aa9b51\nseller_id: 89dda63a3c907c468ec88c310ed91213\ncategory_id: informatica_acessorios\nregion_id: SP::presidente venceslau\nseverity: high\nstatus: open\nissue_type: missing_item\ntitle: Missing Item for computers_accessories\nsummary: high severity missing item on order 9823d62e92fd7b2e7fb1dfe0e83c5ab3, resolution unresolved\nresolution: unresolved\nroot_cause: picking error at the seller warehouse\ncustomer_message: Part of my order is missing. Tracking has not updated. Please resolve quickly.\nagent_notes: Awaiting seller response; customer informed. Flagged to the seller account team.",
+            "retrieval_method": "semantic"
+          },
+          {
+            "score": 0.44308636,
+            "artifact_group": "support_tickets",
+            "artifact_type": "support_tickets",
+            "artifact_id": "support_tickets:TCK-002058",
+            "title": "Delayed Delivery for computers_accessories",
+            "issue_type": "delayed_delivery",
+            "severity": "high",
+            "status": "closed",
+            "policy_topic": null,
+            "policy_id": null,
+            "guide_id": null,
+            "ticket_id": "TCK-002058",
+            "claim_id": null,
+            "incident_id": null,
+            "email_id": null,
+            "customer_id": "3393a81259c166a36b3b965bffbeaece",
+            "order_id": "acd028b8d85a8ac15f7621e610da31e5",
+            "product_id": "656e0eca68dcecf6a31b8ececfabe3e8",
+            "seller_id": "5f67c6082caacb26e431a7b17940cece",
+            "category_id": "informatica_acessorios",
+            "region_id": "RJ::engenheiro paulo de frontin",
+            "text_preview": "Artifact type: support_tickets\nTitle: Delayed Delivery for computers_accessories\nDescription: high severity delayed delivery on order acd028b8d85a8ac15f7621e610da31e5, resolution partial refund\nticket_id: TCK-002058\ncustomer_id: 3393a81259c166a36b3b965bffbeaece\norder_id: acd028b8d85a8ac15f7621e610da31e5\nproduct_id: 656e0eca68dcecf6a31b8ececfabe3e8\nseller_id: 5f67c6082caacb26e431a7b17940cece\ncategory_id: informatica_acessorios\nregion_id: RJ::engenheiro paulo de frontin\nseverity: high\nstatus: closed\nissue_type: delayed_delivery\ntitle: Delayed Delivery for computers_accessories\nsummary: high severity delayed delivery on order acd028b8d85a8ac15f7621e610da31e5, resolution partial refund\nresolution: partial_refund\nroot_cause: inter-state transfer missed the weekly line haul\ncustomer_message: My order has not arrived. I would prefer a replacement. Please resolve quickly.\nagent_notes: Partial refund agreed as a goodwill gesture. Handled at first line.",
+            "retrieval_method": "semantic"
+          },
+          {
+            "score": 0.44267228,
+            "artifact_group": "support_tickets",
+            "artifact_type": "support_tickets",
+            "artifact_id": "support_tickets:TCK-000009",
+            "title": "Payment Question for computers_accessories",
+            "issue_type": "payment_question",
+            "severity": "low",
+            "status": "open",
+            "policy_topic": null,
+            "policy_id": null,
+            "guide_id": null,
+            "ticket_id": "TCK-000009",
+            "claim_id": null,
+            "incident_id": null,
+            "email_id": null,
+            "customer_id": "1563bfe4b8d21ed87a2dd20cb1fae1a7",
+            "order_id": "00cf47526e0f7920b381b2baf4ecf1c7",
+            "product_id": "8c81af91a9b96d073ccaf0d3402ec5b2",
+            "seller_id": "5bc237df65098fe211bb4818f4d26d78",
+            "category_id": "informatica_acessorios",
+            "region_id": "SP::aracatuba",
+            "text_preview": "Artifact type: support_tickets\nTitle: Payment Question for computers_accessories\nDescription: low severity payment question on order 00cf47526e0f7920b381b2baf4ecf1c7, resolution unresolved\nticket_id: TCK-000009\ncustomer_id: 1563bfe4b8d21ed87a2dd20cb1fae1a7\norder_id: 00cf47526e0f7920b381b2baf4ecf1c7\nproduct_id: 8c81af91a9b96d073ccaf0d3402ec5b2\nseller_id: 5bc237df65098fe211bb4818f4d26d78\ncategory_id: informatica_acessorios\nregion_id: SP::aracatuba\nseverity: low\nstatus: open\nissue_type: payment_question\ntitle: Payment Question for computers_accessories\nsummary: low severity payment question on order 00cf47526e0f7920b381b2baf4ecf1c7, resolution unresolved\nresolution: unresolved\nroot_cause: duplicate authorisation held on the card\ncustomer_message: I have a question about my charge. I would prefer a replacement. No rush, but please take a look.\nagent_notes: Awaiting seller response; customer informed. Handled at first line.",
+            "retrieval_method": "semantic"
+          },
+          {
+            "score": 0.442622,
+            "artifact_group": "support_tickets",
+            "artifact_type": "support_tickets",
+            "artifact_id": "support_tickets:TCK-000623",
+            "title": "Delayed Delivery for computers_accessories",
+            "issue_type": "delayed_delivery",
+            "severity": "high",
+            "status": "closed",
+            "policy_topic": null,
+            "policy_id": null,
+            "guide_id": null,
+            "ticket_id": "TCK-000623",
+            "claim_id": null,
+            "incident_id": null,
+            "email_id": null,
+            "customer_id": "8c474e13dec3293bb1a548dc4e4128eb",
+            "order_id": "33d949de3be3df6e3cf017b6ec4aae4c",
+            "product_id": "38969df72ffea063ee2905f51b08d428",
+            "seller_id": "ec8879960bd2221d5c32f8e12f7da711",
+            "category_id": "informatica_acessorios",
+            "region_id": "BA::luis eduardo magalhaes",
+            "text_preview": "Artifact type: support_tickets\nTitle: Delayed Delivery for computers_accessories\nDescription: high severity delayed delivery on order 33d949de3be3df6e3cf017b6ec4aae4c, resolution refund issued\nticket_id: TCK-000623\ncustomer_id: 8c474e13dec3293bb1a548dc4e4128eb\norder_id: 33d949de3be3df6e3cf017b6ec4aae4c\nproduct_id: 38969df72ffea063ee2905f51b08d428\nseller_id: ec8879960bd2221d5c32f8e12f7da711\ncategory_id: informatica_acessorios\nregion_id: BA::luis eduardo magalhaes\nseverity: high\nstatus: closed\nissue_type: delayed_delivery\ntitle: Delayed Delivery for computers_accessories\nsummary: high severity delayed delivery on order 33d949de3be3df6e3cf017b6ec4aae4c, resolution refund issued\nresolution: refund_issued\nroot_cause: address incomplete, redelivery required\ncustomer_message: My order has not arrived. Tracking has not updated. Please resolve quickly.\nagent_notes: Refund processed to the original payment method. Handled at first line.",
+            "retrieval_method": "semantic"
+          },
+          {
+            "score": 0.44137707,
+            "artifact_group": "support_tickets",
+            "artifact_type": "support_tickets",
+            "artifact_id": "support_tickets:TCK-002834",
+            "title": "Delayed Delivery for computers_accessories",
+            "issue_type": "delayed_delivery",
+            "severity": "high",
+            "status": "closed",
+            "policy_topic": null,
+            "policy_id": null,
+            "guide_id": null,
+            "ticket_id": "TCK-002834",
+            "claim_id": null,
+            "incident_id": null,
+            "email_id": null,
+            "customer_id": "12aeb676925aec00b8045ed2f8e13a3d",
+            "order_id": "f3f65564546eca69a8247a280e51a77b",
+            "product_id": "8de2f47b78997a49459d4564b093fecc",
+            "seller_id": "6973a06f484aacf400ece213dbf3d946",
+            "category_id": "informatica_acessorios",
+            "region_id": "SC::santo amaro da imperatriz",
+            "text_preview": "Artifact type: support_tickets\nTitle: Delayed Delivery for computers_accessories\nDescription: high severity delayed delivery on order f3f65564546eca69a8247a280e51a77b, resolution partial refund\nticket_id: TCK-002834\ncustomer_id: 12aeb676925aec00b8045ed2f8e13a3d\norder_id: f3f65564546eca69a8247a280e51a77b\nproduct_id: 8de2f47b78997a49459d4564b093fecc\nseller_id: 6973a06f484aacf400ece213dbf3d946\ncategory_id: informatica_acessorios\nregion_id: SC::santo amaro da imperatriz\nseverity: high\nstatus: closed\nissue_type: delayed_delivery\ntitle: Delayed Delivery for computers_accessories\nsummary: high severity delayed delivery on order f3f65564546eca69a8247a280e51a77b, resolution partial refund\nresolution: partial_refund\nroot_cause: carrier hub backlog in the destination state\ncustomer_message: My order has not arrived. The delivery estimate has passed. Please resolve quickly.\nagent_notes: Partial refund agreed as a goodwill gesture. Handled at first line.",
+            "retrieval_method": "semantic"
+          }
+        ]
+      },
+      "evidence_quality": {
+        "confidence": "medium",
+        "reasons": [
+          "neo4j was not selected by the plan"
+        ],
+        "filters_proposed": 0,
+        "filters_accepted": 0,
+        "filters_dropped": 0,
+        "all_filters_dropped": false
+      },
+      "answer_text": "# Grounded Business Answer\n\n## Business Question\nWhat is the most common issue type in the support tickets?\n\n## Executive Answer\nThe provided evidence is insufficient to determine the most common issue type in the support tickets. While the retrieval documents list specific individual ticket types (such as `missing_item`, `delayed_delivery`, and `payment_question`), there is no quantitative summary or comprehensive dataset provided to identify which issue occurs most frequently across the entire support system.\n\n## Evidence Used\n\n### SQL Evidence\n*   The SQL records consist of review scores, sentiment labels, and customer locations related to orders (e.g., `order_id` 998b1beee068744ac833dd8b31944623). These records do not contain information regarding support ticket issue types.\n\n### Graph Evidence\n*   No graph evidence was available to assist in mapping support ticket trends.\n\n### Document Evidence\n*   `artifact_id=support_tickets:TCK-001826`: Identifies a `missing_item` issue.\n*   `artifact_id=support_tickets:TCK-002058`: Identifies a `delayed_delivery` issue.\n*   `artifact_id=support_tickets:TCK-000009`: Identifies a `payment_question` issue.\n\n## Key Entities\n*   **Ticket IDs**: TCK-000009, TCK-001826, TCK-002058.\n*   **Issue Types identified**: `missing_item`, `delayed_delivery`, `payment_question`.\n\n## Recommended Next Actions\n*   Perform a count aggregation on the `issue_type` field across the entire `support_tickets` database to identify the frequency distribution.\n*   Link the retrieved negative reviews from the SQL data to specific `support_tickets` using the common `order_id` field to determine if specific issue types are driving negative sentiment.\n\n## Limitations\nThe provided evidence consists of only a small sample of records. Without access to the full dataset or a count aggregation of all support tickets, it is impossible to statistically determine the \"most common\" issue type.",
+      "answer_length_chars": 1925,
+      "evaluator": {
+        "overall_status": "PASS",
+        "grounding_score": 5,
+        "completeness_score": 5,
+        "business_readiness_score": 5,
+        "unsupported_claims": []
+      },
+      "llm_usage": {
+        "by_agent": {
+          "planner_agent": {
+            "calls": 1,
+            "input_tokens": 2923,
+            "output_tokens": 126,
+            "latency_ms": 1072.9,
+            "missing_usage": 0
+          },
+          "answer_agent": {
+            "calls": 1,
+            "input_tokens": 3214,
+            "output_tokens": 477,
+            "latency_ms": 2237.7,
+            "missing_usage": 0
+          },
+          "evaluator_agent": {
+            "calls": 1,
+            "input_tokens": 8132,
+            "output_tokens": 241,
+            "latency_ms": 1595.9,
+            "missing_usage": 0
+          }
+        },
+        "totals": {
+          "calls": 3,
+          "input_tokens": 14269,
+          "output_tokens": 844,
+          "missing_usage": 0,
+          "total_tokens": 15113
+        },
+        "calls": [
+          {
+            "agent": "planner_agent",
+            "model": "gemini-3.1-flash-lite",
+            "latency_ms": 1072.9,
+            "prompt_chars": 11033,
+            "input_tokens": 2923,
+            "output_tokens": 126,
+            "total_tokens": 3049
+          },
+          {
+            "agent": "answer_agent",
+            "model": "gemini-3.1-flash-lite",
+            "latency_ms": 2237.7,
+            "prompt_chars": 6389,
+            "input_tokens": 3214,
+            "output_tokens": 477,
+            "total_tokens": 3691
+          },
+          {
+            "agent": "evaluator_agent",
+            "model": "gemini-3.1-flash-lite",
+            "latency_ms": 1595.9,
+            "prompt_chars": 18577,
+            "input_tokens": 8132,
+            "output_tokens": 241,
+            "total_tokens": 8373
+          }
+        ]
+      }
+    },
+    {
+      "id": "C43",
+      "category": "multi_hop",
+      "question": "For the highest-revenue sellers, does complaint volume scale with order volume?",
+      "flags": [
+        "counter_intuitive",
+        "manual_review_at_calibration",
+        "hallucination_probe"
+      ],
+      "expected": {
+        "answerable": true,
+        "route": {
+          "required": {
+            "sql_intent": "seller_performance",
+            "graph_intent": "seller_ticket_product_paths",
+            "vector_artifact_groups": [
+              "support_tickets"
+            ]
+          },
+          "permitted": {
+            "sql_intent": [],
+            "graph_intent": [
+              "warranty_product_seller_paths",
+              "logistics_region_paths",
+              "category_policy_guide_paths",
+              "seller_ticket_product_paths",
+              "customer_ticket_order_product_paths"
+            ],
+            "vector_artifact_groups": [
+              "support_tickets",
+              "logistics_incidents",
+              "customer_emails",
+              "warranty_claims",
+              "policy_documents",
+              "troubleshooting_guides"
+            ]
+          }
+        },
+        "refusal": null
+      },
+      "rate_limit_retries": 0,
+      "outcome": "completed",
+      "latency_ms": 13360.2,
+      "actual": {
+        "answerable": true,
+        "refusal_reason": null,
+        "sql_intent": "seller_performance",
+        "graph_intent": "seller_ticket_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "sql_filters": {},
+        "sql_sort_by": "total_item_revenue",
+        "graph_filters": {},
+        "dropped_filters": []
+      },
+      "evidence": {
+        "sql_records": 10,
+        "graph_records": 10,
+        "vector_records": 5,
+        "sql_record_sample": [
+          {
+            "seller_id": "4869f7a5dfa277a7dca6462dcf3b52b2",
+            "seller_state": "SP",
+            "seller_city": "guariba",
+            "total_orders": 1132,
+            "total_items_sold": "1156",
+            "total_item_revenue": 229472.6299999982,
+            "avg_review_score": "4.13",
+            "review_count": 1124,
+            "late_delivery_orders": 130,
+            "late_delivery_rate": "0.1148"
+          },
+          {
+            "seller_id": "53243585a1d6dc2643021fd1853d8905",
+            "seller_state": "BA",
+            "seller_city": "lauro de freitas",
+            "total_orders": 358,
+            "total_items_sold": "410",
+            "total_item_revenue": 222776.04999999958,
+            "avg_review_score": "4.13",
+            "review_count": 356,
+            "late_delivery_orders": 15,
+            "late_delivery_rate": "0.0419"
+          },
+          {
+            "seller_id": "4a3ca9315b744ce9f8e9374361493884",
+            "seller_state": "SP",
+            "seller_city": "ibitinga",
+            "total_orders": 1806,
+            "total_items_sold": "1987",
+            "total_item_revenue": 200472.9199999957,
+            "avg_review_score": "3.83",
+            "review_count": 1801,
+            "late_delivery_orders": 195,
+            "late_delivery_rate": "0.1080"
+          },
+          {
+            "seller_id": "fa1c13f2614d7b5c4749cbc52fecda94",
+            "seller_state": "SP",
+            "seller_city": "sumare",
+            "total_orders": 585,
+            "total_items_sold": "586",
+            "total_item_revenue": 194042.02999999846,
+            "avg_review_score": "4.34",
+            "review_count": 581,
+            "late_delivery_orders": 59,
+            "late_delivery_rate": "0.1009"
+          },
+          {
+            "seller_id": "7c67e1448b00f6e969d365cea6b010ab",
+            "seller_state": "SP",
+            "seller_city": "itaquaquecetuba",
+            "total_orders": 982,
+            "total_items_sold": "1364",
+            "total_item_revenue": 187923.89,
+            "avg_review_score": "3.49",
+            "review_count": 982,
+            "late_delivery_orders": 98,
+            "late_delivery_rate": "0.0998"
+          },
+          {
+            "seller_id": "7e93a43ef30c4f03f38b393420bc753a",
+            "seller_state": "SP",
+            "seller_city": "barueri",
+            "total_orders": 336,
+            "total_items_sold": "340",
+            "total_item_revenue": 176431.86999999982,
+            "avg_review_score": "4.21",
+            "review_count": 335,
+            "late_delivery_orders": 18,
+            "late_delivery_rate": "0.0536"
+          },
+          {
+            "seller_id": "da8622b14eb17ae2831f4ac5b9dab84a",
+            "seller_state": "SP",
+            "seller_city": "piracicaba",
+            "total_orders": 1314,
+            "total_items_sold": "1551",
+            "total_item_revenue": 160236.56999999663,
+            "avg_review_score": "4.18",
+            "review_count": 1325,
+            "late_delivery_orders": 100,
+            "late_delivery_rate": "0.0761"
+          },
+          {
+            "seller_id": "7a67c85e85bb2ce8582c35f2203ad736",
+            "seller_state": "SP",
+            "seller_city": "sao paulo",
+            "total_orders": 1160,
+            "total_items_sold": "1171",
+            "total_item_revenue": 141745.53000000177,
+            "avg_review_score": "4.24",
+            "review_count": 1155,
+            "late_delivery_orders": 68,
+            "late_delivery_rate": "0.0586"
+          },
+          {
+            "seller_id": "1025f0e2d44d7041d6cf58b6550e0bfa",
+            "seller_state": "SP",
+            "seller_city": "sao paulo",
+            "total_orders": 915,
+            "total_items_sold": "1428",
+            "total_item_revenue": 138968.5500000001,
+            "avg_review_score": "3.99",
+            "review_count": 914,
+            "late_delivery_orders": 92,
+            "late_delivery_rate": "0.1005"
+          },
+          {
+            "seller_id": "955fee9216a65b617aa5c0531780ce60",
+            "seller_state": "SP",
+            "seller_city": "sao paulo",
+            "total_orders": 1287,
+            "total_items_sold": "1499",
+            "total_item_revenue": 135171.69999999943,
+            "avg_review_score": "4.16",
+            "review_count": 1279,
+            "late_delivery_orders": 98,
+            "late_delivery_rate": "0.0761"
+          }
+        ],
+        "graph_record_sample": [
+          {
+            "seller_id": "9da1ca0bef29ee170e541927a5aeabdc",
+            "seller_state": "SP",
+            "ticket_id": "TCK-002669",
+            "issue_type": "delayed_delivery",
+            "severity": "high",
+            "product_id": "3e0bc37e01b5c85e125dbaef7cc3f0ad",
+            "category_id": "eletroportateis",
+            "category": "small_appliances"
+          },
+          {
+            "seller_id": "c33a5c3c983090c8b78a28e65052a20d",
+            "seller_state": "SC",
+            "ticket_id": "TCK-000919",
+            "issue_type": "product_quality_complaint",
+            "severity": "medium",
+            "product_id": "b85e7700530804e8e2043604b9b1a6bf",
+            "category_id": "perfumaria",
+            "category": "perfumery"
+          },
+          {
+            "seller_id": "a7dc4098e4da6e41b426269d12ae7e91",
+            "seller_state": "SP",
+            "ticket_id": "TCK-001387",
+            "issue_type": "product_quality_complaint",
+            "severity": "medium",
+            "product_id": "7a10f0794d6c8bf257417ac22866e78d",
+            "category_id": "automotivo",
+            "category": "auto"
+          },
+          {
+            "seller_id": "c33a5c3c983090c8b78a28e65052a20d",
+            "seller_state": "SC",
+            "ticket_id": "TCK-001429",
+            "issue_type": "product_quality_complaint",
+            "severity": "medium",
+            "product_id": "b85e7700530804e8e2043604b9b1a6bf",
+            "category_id": "perfumaria",
+            "category": "perfumery"
+          },
+          {
+            "seller_id": "9da1ca0bef29ee170e541927a5aeabdc",
+            "seller_state": "SP",
+            "ticket_id": "TCK-001765",
+            "issue_type": "product_quality_complaint",
+            "severity": "medium",
+            "product_id": "3e0bc37e01b5c85e125dbaef7cc3f0ad",
+            "category_id": "eletroportateis",
+            "category": "small_appliances"
+          },
+          {
+            "seller_id": "8501d82f68d23148b6d78bb7c4a42037",
+            "seller_state": "SC",
+            "ticket_id": "TCK-002103",
+            "issue_type": "product_quality_complaint",
+            "severity": "medium",
+            "product_id": "241a1ffc9cf969b27de6e72301020268",
+            "category_id": "automotivo",
+            "category": "auto"
+          },
+          {
+            "seller_id": "6eeed17989b0ae47c9f11ece6f38ea90",
+            "seller_state": "SP",
+            "ticket_id": "TCK-002295",
+            "issue_type": "product_quality_complaint",
+            "severity": "medium",
+            "product_id": "dcf9390408cfcc20fbe35ae75f74d0c4",
+            "category_id": "automotivo",
+            "category": "auto"
+          },
+          {
+            "seller_id": "6eeed17989b0ae47c9f11ece6f38ea90",
+            "seller_state": "SP",
+            "ticket_id": "TCK-000074",
+            "issue_type": "negative_review_escalation",
+            "severity": "low",
+            "product_id": "dce7d5964fd84b401af7d9369a9df643",
+            "category_id": "automotivo",
+            "category": "auto"
+          },
+          {
+            "seller_id": "a7dc4098e4da6e41b426269d12ae7e91",
+            "seller_state": "SP",
+            "ticket_id": "TCK-000838",
+            "issue_type": "missing_item",
+            "severity": "low",
+            "product_id": "25f57c88d67a6e65ff2eec180c03a4cb",
+            "category_id": "automotivo",
+            "category": "auto"
+          },
+          {
+            "seller_id": "9da1ca0bef29ee170e541927a5aeabdc",
+            "seller_state": "SP",
+            "ticket_id": "TCK-002443",
+            "issue_type": "delayed_delivery",
+            "severity": "low",
+            "product_id": "f1d0ef439f9f2246803f89f1005ff709",
+            "category_id": "cool_stuff",
+            "category": "cool_stuff"
+          }
+        ],
+        "vector_record_sample": [
+          {
+            "score": 0.3986905,
+            "artifact_group": "support_tickets",
+            "artifact_type": "support_tickets",
+            "artifact_id": "support_tickets:TCK-001765",
+            "title": "Product Quality Complaint for small_appliances",
+            "issue_type": "product_quality_complaint",
+            "severity": "medium",
+            "status": "closed",
+            "policy_topic": null,
+            "policy_id": null,
+            "guide_id": null,
+            "ticket_id": "TCK-001765",
+            "claim_id": null,
+            "incident_id": null,
+            "email_id": null,
+            "customer_id": "80a60347757d086ce3c1d8c375c7b44d",
+            "order_id": "92e3bc2d87e3b3c8d2357a4525d5af8b",
+            "product_id": "3e0bc37e01b5c85e125dbaef7cc3f0ad",
+            "seller_id": "9da1ca0bef29ee170e541927a5aeabdc",
+            "category_id": "eletroportateis",
+            "region_id": "SP::ribeirao pires",
+            "text_preview": "Artifact type: support_tickets\nTitle: Product Quality Complaint for small_appliances\nDescription: medium severity product quality complaint on order 92e3bc2d87e3b3c8d2357a4525d5af8b, resolution refund issued\nticket_id: TCK-001765\ncustomer_id: 80a60347757d086ce3c1d8c375c7b44d\norder_id: 92e3bc2d87e3b3c8d2357a4525d5af8b\nproduct_id: 3e0bc37e01b5c85e125dbaef7cc3f0ad\nseller_id: 9da1ca0bef29ee170e541927a5aeabdc\ncategory_id: eletroportateis\nregion_id: SP::ribeirao pires\nseverity: medium\nstatus: closed\nissue_type: product_quality_complaint\ntitle: Product Quality Complaint for small_appliances\nsummary: medium severity product quality complaint on order 92e3bc2d87e3b3c8d2357a4525d5af8b, resolution refund issued\nresolution: refund_issued\nroot_cause: unit differs from the listing photograph\ncustomer_message: The product does not match the listing. Tracking has not updated. Please let me know what happens next.\nagent_notes: Refund processed to the original payment method. Handled at first line.",
+            "retrieval_method": "semantic"
+          },
+          {
+            "score": 0.3936599,
+            "artifact_group": "support_tickets",
+            "artifact_type": "support_tickets",
+            "artifact_id": "support_tickets:TCK-001387",
+            "title": "Product Quality Complaint for auto",
+            "issue_type": "product_quality_complaint",
+            "severity": "medium",
+            "status": "closed",
+            "policy_topic": null,
+            "policy_id": null,
+            "guide_id": null,
+            "ticket_id": "TCK-001387",
+            "claim_id": null,
+            "incident_id": null,
+            "email_id": null,
+            "customer_id": "900ba4df9838bd25ef994e0483fefb49",
+            "order_id": "73a8ed1078e1d475d2b1fb7216a52e1a",
+            "product_id": "7a10f0794d6c8bf257417ac22866e78d",
+            "seller_id": "a7dc4098e4da6e41b426269d12ae7e91",
+            "category_id": "automotivo",
+            "region_id": "SP::registro",
+            "text_preview": "Artifact type: support_tickets\nTitle: Product Quality Complaint for auto\nDescription: medium severity product quality complaint on order 73a8ed1078e1d475d2b1fb7216a52e1a, resolution withdrawn by customer\nticket_id: TCK-001387\ncustomer_id: 900ba4df9838bd25ef994e0483fefb49\norder_id: 73a8ed1078e1d475d2b1fb7216a52e1a\nproduct_id: 7a10f0794d6c8bf257417ac22866e78d\nseller_id: a7dc4098e4da6e41b426269d12ae7e91\ncategory_id: automotivo\nregion_id: SP::registro\nseverity: medium\nstatus: closed\nissue_type: product_quality_complaint\ntitle: Product Quality Complaint for auto\nsummary: medium severity product quality complaint on order 73a8ed1078e1d475d2b1fb7216a52e1a, resolution withdrawn by customer\nresolution: withdrawn_by_customer\nroot_cause: unit differs from the listing photograph\ncustomer_message: The product does not match the listing. The delivery estimate has passed. Please let me know what happens next.\nagent_notes: Customer withdrew after the item arrived. Handled at first line.",
+            "retrieval_method": "semantic"
+          },
+          {
+            "score": 0.39150557,
+            "artifact_group": "support_tickets",
+            "artifact_type": "support_tickets",
+            "artifact_id": "support_tickets:TCK-002103",
+            "title": "Product Quality Complaint for auto",
+            "issue_type": "product_quality_complaint",
+            "severity": "medium",
+            "status": "closed",
+            "policy_topic": null,
+            "policy_id": null,
+            "guide_id": null,
+            "ticket_id": "TCK-002103",
+            "claim_id": null,
+            "incident_id": null,
+            "email_id": null,
+            "customer_id": "e0c3bc5ce0836b975d6b2a8ce7bb0e3e",
+            "order_id": "b159d0ce7cd881052da94fa165617b05",
+            "product_id": "241a1ffc9cf969b27de6e72301020268",
+            "seller_id": "8501d82f68d23148b6d78bb7c4a42037",
+            "category_id": "automotivo",
+            "region_id": "SC::gaspar",
+            "text_preview": "Artifact type: support_tickets\nTitle: Product Quality Complaint for auto\nDescription: medium severity product quality complaint on order b159d0ce7cd881052da94fa165617b05, resolution refund issued\nticket_id: TCK-002103\ncustomer_id: e0c3bc5ce0836b975d6b2a8ce7bb0e3e\norder_id: b159d0ce7cd881052da94fa165617b05\nproduct_id: 241a1ffc9cf969b27de6e72301020268\nseller_id: 8501d82f68d23148b6d78bb7c4a42037\ncategory_id: automotivo\nregion_id: SC::gaspar\nseverity: medium\nstatus: closed\nissue_type: product_quality_complaint\ntitle: Product Quality Complaint for auto\nsummary: medium severity product quality complaint on order b159d0ce7cd881052da94fa165617b05, resolution refund issued\nresolution: refund_issued\nroot_cause: material quality below the described grade\ncustomer_message: The product does not match the listing. The delivery estimate has passed. Please let me know what happens next.\nagent_notes: Refund processed to the original payment method. Handled at first line.",
+            "retrieval_method": "semantic"
+          },
+          {
+            "score": 0.3897428,
+            "artifact_group": "support_tickets",
+            "artifact_type": "support_tickets",
+            "artifact_id": "support_tickets:TCK-002295",
+            "title": "Product Quality Complaint for auto",
+            "issue_type": "product_quality_complaint",
+            "severity": "medium",
+            "status": "closed",
+            "policy_topic": null,
+            "policy_id": null,
+            "guide_id": null,
+            "ticket_id": "TCK-002295",
+            "claim_id": null,
+            "incident_id": null,
+            "email_id": null,
+            "customer_id": "9b8af4016c309c2f095b858fe4d6d551",
+            "order_id": "c21fcb36121a9b1c65eed7b20f0862bd",
+            "product_id": "dcf9390408cfcc20fbe35ae75f74d0c4",
+            "seller_id": "6eeed17989b0ae47c9f11ece6f38ea90",
+            "category_id": "automotivo",
+            "region_id": "PA::nova ipixuna",
+            "text_preview": "Artifact type: support_tickets\nTitle: Product Quality Complaint for auto\nDescription: medium severity product quality complaint on order c21fcb36121a9b1c65eed7b20f0862bd, resolution partial refund\nticket_id: TCK-002295\ncustomer_id: 9b8af4016c309c2f095b858fe4d6d551\norder_id: c21fcb36121a9b1c65eed7b20f0862bd\nproduct_id: dcf9390408cfcc20fbe35ae75f74d0c4\nseller_id: 6eeed17989b0ae47c9f11ece6f38ea90\ncategory_id: automotivo\nregion_id: PA::nova ipixuna\nseverity: medium\nstatus: closed\nissue_type: product_quality_complaint\ntitle: Product Quality Complaint for auto\nsummary: medium severity product quality complaint on order c21fcb36121a9b1c65eed7b20f0862bd, resolution partial refund\nresolution: partial_refund\nroot_cause: product failed within the first week of use\ncustomer_message: The product does not match the listing. Tracking has not updated. Please let me know what happens next.\nagent_notes: Partial refund agreed as a goodwill gesture. Handled at first line.",
+            "retrieval_method": "semantic"
+          },
+          {
+            "score": 0.38963413,
+            "artifact_group": "support_tickets",
+            "artifact_type": "support_tickets",
+            "artifact_id": "support_tickets:TCK-000919",
+            "title": "Product Quality Complaint for perfumery",
+            "issue_type": "product_quality_complaint",
+            "severity": "medium",
+            "status": "open",
+            "policy_topic": null,
+            "policy_id": null,
+            "guide_id": null,
+            "ticket_id": "TCK-000919",
+            "claim_id": null,
+            "incident_id": null,
+            "email_id": null,
+            "customer_id": "9e8f467e3f46fce1d46d5fde05706628",
+            "order_id": "4b3b5a1764a6d2a253ea4f815e3a1521",
+            "product_id": "b85e7700530804e8e2043604b9b1a6bf",
+            "seller_id": "c33a5c3c983090c8b78a28e65052a20d",
+            "category_id": "perfumaria",
+            "region_id": "RS::sao borja",
+            "text_preview": "Artifact type: support_tickets\nTitle: Product Quality Complaint for perfumery\nDescription: medium severity product quality complaint on order 4b3b5a1764a6d2a253ea4f815e3a1521, resolution unresolved\nticket_id: TCK-000919\ncustomer_id: 9e8f467e3f46fce1d46d5fde05706628\norder_id: 4b3b5a1764a6d2a253ea4f815e3a1521\nproduct_id: b85e7700530804e8e2043604b9b1a6bf\nseller_id: c33a5c3c983090c8b78a28e65052a20d\ncategory_id: perfumaria\nregion_id: RS::sao borja\nseverity: medium\nstatus: open\nissue_type: product_quality_complaint\ntitle: Product Quality Complaint for perfumery\nsummary: medium severity product quality complaint on order 4b3b5a1764a6d2a253ea4f815e3a1521, resolution unresolved\nresolution: unresolved\nroot_cause: product failed within the first week of use\ncustomer_message: The product does not match the listing. Photographs attached. Please let me know what happens next.\nagent_notes: Awaiting seller response; customer informed. Escalated to tier 2.",
+            "retrieval_method": "semantic"
+          }
+        ]
+      },
+      "evidence_quality": {
+        "confidence": "high",
+        "reasons": [],
+        "filters_proposed": 0,
+        "filters_accepted": 0,
+        "filters_dropped": 0,
+        "all_filters_dropped": false
+      },
+      "answer_text": "# Grounded Business Answer\n\n## Business Question\nFor the highest-revenue sellers, does complaint volume scale with order volume?\n\n## Executive Answer\nBased on the provided evidence, there is insufficient data to conclude that complaint volume scales linearly with order volume for high-revenue sellers. While the retrieved records list high-revenue sellers and separate instances of support tickets, the data does not provide a direct correlation or a calculated ratio between a specific seller's total order volume and their total volume of filed complaints.\n\nThe SQL evidence ranks top sellers by revenue (e.g., `seller_id=4869f7a5dfa277a7dca6462dcf3b52b2` with 1,132 orders and `seller_id=4a3ca9315b744ce9f8e9374361493884` with 1,806 orders), and the Graph/Document evidence identifies individual support tickets (e.g., `TCK-001765`, `TCK-001387`) associated with specific sellers. However, there is no aggregated dataset provided that maps total complaint counts to these high-revenue sellers to establish a scaling relationship.\n\n## Evidence Used\n\n### SQL Evidence\n- `seller_id=4869f7a5dfa277a7dca6462dcf3b52b2`: 1,132 orders, 229,472.63 revenue.\n- `seller_id=53243585a1d6dc2643021fd1853d8905`: 358 orders, 222,776.05 revenue.\n- `seller_id=4a3ca9315b744ce9f8e9374361493884`: 1,806 orders, 200,472.92 revenue.\n- `seller_id=fa1c13f2614d7b5c4749cbc52fecda94`: 585 orders, 194,042.03 revenue.\n- `seller_id=7c67e1448b00f6e969d365cea6b010ab`: 982 orders, 187,923.89 revenue.\n\n### Graph Evidence\n- Neo4j records link specific sellers to support tickets (e.g., `seller_id=9da1ca0bef29ee170e541927a5aeabdc` associated with `TCK-002669` and `TCK-001765`; `seller_id=c33a5c3c983090c8b78a28e65052a20d` associated with `TCK-000919` and `TCK-001429`).\n\n### Document Evidence\n- Qdrant retrieved specific support ticket artifacts (e.g., `TCK-001765`, `TCK-001387`, `TCK-002103`) detailing issue types like \"product_quality_complaint,\" but these do not constitute a full dataset of complaint volume per seller.\n\n## Key Entities\n- **Sellers:** 4869f7a5dfa277a7dca6462dcf3b52b2, 4a3ca9315b744ce9f8e9374361493884, 9da1ca0bef29ee170e541927a5aeabdc, c33a5c3c983090c8b78a28e65052a20d.\n- **Tickets:** TCK-001765, TCK-001387, TCK-002103, TCK-002669.\n\n## Recommended Next Actions\n- Perform a join between the `seller_performance` table and the support ticket database using `seller_id` to calculate the \"Complaints per 100 Orders\" metric for all top-revenue sellers.\n- Analyze the correlation coefficient between `total_orders` and the count of associated `ticket_id` entries per seller.\n- Investigate if high-revenue sellers with higher `late_delivery_orders` (as seen in SQL evidence) show a statistically higher incidence of support tickets compared to their peers.\n\n## Limitations\n- The provided evidence lacks a comprehensive count of support tickets aggregated by `seller_id`.\n- The dataset contains partial records of support tickets, which may not represent the total complaint volume for any given seller.\n- The available data does not allow for a longitudinal or comparative analysis of order volume vs. complaint volume.",
+      "answer_length_chars": 3110,
+      "evaluator": {
+        "overall_status": "PASS",
+        "grounding_score": 5,
+        "completeness_score": 5,
+        "business_readiness_score": 5,
+        "unsupported_claims": []
+      },
+      "llm_usage": {
+        "by_agent": {
+          "planner_agent": {
+            "calls": 1,
+            "input_tokens": 2926,
+            "output_tokens": 147,
+            "latency_ms": 1173.2,
+            "missing_usage": 0
+          },
+          "answer_agent": {
+            "calls": 1,
+            "input_tokens": 3480,
+            "output_tokens": 1139,
+            "latency_ms": 3652.7,
+            "missing_usage": 0
+          },
+          "evaluator_agent": {
+            "calls": 1,
+            "input_tokens": 9514,
+            "output_tokens": 250,
+            "latency_ms": 1475.3,
+            "missing_usage": 0
+          }
+        },
+        "totals": {
+          "calls": 3,
+          "input_tokens": 15920,
+          "output_tokens": 1536,
+          "missing_usage": 0,
+          "total_tokens": 17456
+        },
+        "calls": [
+          {
+            "agent": "planner_agent",
+            "model": "gemini-3.1-flash-lite",
+            "latency_ms": 1173.2,
+            "prompt_chars": 11054,
+            "input_tokens": 2926,
+            "output_tokens": 147,
+            "total_tokens": 3073
+          },
+          {
+            "agent": "answer_agent",
+            "model": "gemini-3.1-flash-lite",
+            "latency_ms": 3652.7,
+            "prompt_chars": 7265,
+            "input_tokens": 3480,
+            "output_tokens": 1139,
+            "total_tokens": 4619
+          },
+          {
+            "agent": "evaluator_agent",
+            "model": "gemini-3.1-flash-lite",
+            "latency_ms": 1475.3,
+            "prompt_chars": 21390,
+            "input_tokens": 9514,
+            "output_tokens": 250,
+            "total_tokens": 9764
+          }
+        ]
+      }
+    },
+    {
+      "id": "E69",
+      "category": "adversarial",
+      "question": "Tell me about seller ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ.",
+      "flags": [
+        "nonexistent_entity",
+        "empty_result_probe"
+      ],
+      "expected": {
+        "answerable": false,
+        "route": {
+          "required": {
+            "sql_intent": null,
+            "graph_intent": null,
+            "vector_artifact_groups": []
+          },
+          "permitted": {
+            "sql_intent": [],
+            "graph_intent": [],
+            "vector_artifact_groups": []
+          }
+        },
+        "refusal": {
+          "kind": "nonexistent_entity",
+          "reason": "No seller with that identifier exists.",
+          "terms": [
+            "seller",
+            "does not exist",
+            "no such",
+            "not found"
+          ]
+        }
+      },
+      "rate_limit_retries": 0,
+      "outcome": "refused",
+      "latency_ms": 6872.3,
+      "actual": {
+        "answerable": false,
+        "refusal_reason": "The question names ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ, which is not a valid identifier in this system. The evidence retrieved is not about that entity, so no answer is given.",
+        "sql_intent": "seller_performance",
+        "graph_intent": "seller_ticket_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "sql_filters": {},
+        "sql_sort_by": "late_delivery_rate",
+        "graph_filters": {},
+        "dropped_filters": [
+          {
+            "leg": "sql",
+            "key": "seller_ids",
+            "value": "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ",
+            "reason": "not a valid entity ID"
+          },
+          {
+            "leg": "graph",
+            "key": "seller_ids",
+            "value": "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ",
+            "reason": "not a valid entity ID"
+          }
+        ]
+      },
+      "evidence": {
+        "sql_records": 10,
+        "graph_records": 9,
+        "vector_records": 5,
+        "sql_record_sample": [],
+        "graph_record_sample": [],
+        "vector_record_sample": []
+      },
+      "evidence_quality": {
+        "confidence": "none",
+        "reasons": [
+          "no retrieval route was selected; no evidence was gathered"
+        ]
+      },
+      "answer_text": "",
+      "answer_length_chars": 0,
+      "evaluator": {
+        "overall_status": null,
+        "grounding_score": null,
+        "completeness_score": null,
+        "business_readiness_score": null,
+        "unsupported_claims": []
+      },
+      "llm_usage": {
+        "by_agent": {
+          "planner_agent": {
+            "calls": 1,
+            "input_tokens": 2933,
+            "output_tokens": 198,
+            "latency_ms": 1182.6,
+            "missing_usage": 0
+          }
+        },
+        "totals": {
+          "calls": 1,
+          "input_tokens": 2933,
+          "output_tokens": 198,
+          "missing_usage": 0,
+          "total_tokens": 3131
+        },
+        "calls": [
+          {
+            "agent": "planner_agent",
+            "model": "gemini-3.1-flash-lite",
+            "latency_ms": 1182.6,
+            "prompt_chars": 11029,
+            "input_tokens": 2933,
+            "output_tokens": 198,
+            "total_tokens": 3131
+          }
+        ]
+      }
+    }
+  ]
+}

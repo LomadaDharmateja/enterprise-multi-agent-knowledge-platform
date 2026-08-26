@@ -376,6 +376,7 @@ def build_source_summary(
     document_evidence: dict[str, Any],
     sql_result: dict[str, Any] | None = None,
     graph_result: dict[str, Any] | None = None,
+    vector_result: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     sql_result = sql_result or {}
     graph_result = graph_result or {}
@@ -403,6 +404,8 @@ def build_source_summary(
             "artifact_groups": document_evidence["artifact_groups"],
             "records": document_evidence["total_records_returned"],
             "role": document_evidence["retrieval_role"],
+            "id_lookups": (vector_result or {}).get("id_lookups", []),
+            "id_lookup_hits": (vector_result or {}).get("id_lookup_hits", 0),
         },
     }
 
@@ -489,6 +492,19 @@ def build_context_text(context: dict[str, Any]) -> str:
     # The dangerous case is not an error, it is a question whose filters all failed
     # to resolve: the query silently degrades to the unfiltered one F-03 was about,
     # and the resulting table looks exactly like a filtered one. Say so in the prompt.
+    unavailable = context.get("unavailable_legs") or []
+
+    if unavailable:
+        lines.append("DEGRADED RETRIEVAL -- one or more sources were unavailable:")
+        for leg in unavailable:
+            lines.append(f"- {leg['source']} ({leg.get('dependency')}): {leg.get('reason')}")
+        lines.append(
+            "State plainly in the answer which source was unavailable and that the "
+            "answer is based on the remaining sources only. Do not present the "
+            "evidence as complete."
+        )
+        lines.append("")
+
     evidence_quality = context.get("evidence_quality") or {}
 
     if evidence_quality:
@@ -587,6 +603,7 @@ def build_retrieval_context(
         document_evidence=document_evidence,
         sql_result=sql_result,
         graph_result=graph_result,
+        vector_result=vector_result,
     )
 
     entity_ids = collect_entity_ids(raw_report)
@@ -620,6 +637,7 @@ def build_retrieval_context(
         },
         "source_summary": source_summary,
         "evidence_quality": raw_report.get("summary", {}).get("evidence_quality", {}),
+        "unavailable_legs": raw_report.get("summary", {}).get("unavailable_legs", []),
         "sql_evidence": sql_evidence,
         "graph_evidence": graph_evidence,
         "document_evidence": document_evidence,

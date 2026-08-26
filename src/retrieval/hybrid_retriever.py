@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 import re
 from datetime import datetime, timezone
 from pathlib import Path
@@ -17,6 +18,17 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 
 from retrieval_parameters import SQL_DEFAULT_SORT, build_bind_parameters
+
+_OBSERVABILITY_DIR = Path(__file__).resolve().parents[2] / "src" / "observability"
+
+if str(_OBSERVABILITY_DIR) not in sys.path:
+    sys.path.append(str(_OBSERVABILITY_DIR))
+
+from resilience import (  # noqa: E402
+    DependencyUnavailable,
+    breaker_states,
+    call_with_resilience,
+)
 
 
 DEFAULT_VECTOR_LIMIT = 5
@@ -75,15 +87,21 @@ def build_qdrant_client(settings: dict[str, Any]) -> QdrantClient:
 
 
 def records_query(engine: Engine, sql: str, params: dict[str, Any] | None = None) -> list[dict[str, Any]]:
-    with engine.begin() as connection:
-        result = connection.execute(text(sql), params or {})
-        return [dict(row._mapping) for row in result]
+    def run():
+        with engine.begin() as connection:
+            result = connection.execute(text(sql), params or {})
+            return [dict(row._mapping) for row in result]
+
+    return call_with_resilience("postgres", "records_query", run)
 
 
 def graph_query(driver: Driver, cypher: str, params: dict[str, Any] | None = None) -> list[dict[str, Any]]:
-    with driver.session(database="neo4j") as session:
-        result = session.run(cypher, params or {})
-        return [dict(record) for record in result]
+    def run():
+        with driver.session(database="neo4j") as session:
+            result = session.run(cypher, params or {})
+            return [dict(record) for record in result]
+
+    return call_with_resilience("neo4j", "graph_query", run)
 
 
 def normalize_query(query: str) -> str:
@@ -183,6 +201,28 @@ def detect_vector_filters(query: str) -> list[str]:
         ]
 
     return filters
+
+
+def unavailable_leg_result(source: str, error: Exception) -> dict[str, Any]:
+    """A leg whose dependency could not be reached.
+
+    Distinct from `skipped_leg_result`: skipped means the plan did not select this
+    leg, unavailable means it was selected and the dependency did not answer. The
+    answer prompt must be able to tell those apart -- "not consulted" and "consulted
+    but down" support different conclusions.
+    """
+    return {
+        "source": source,
+        "intent": None,
+        "filters": {},
+        "sort_by": None,
+        "record_count": 0,
+        "records": [],
+        "skipped": False,
+        "unavailable": True,
+        "unavailable_reason": str(error),
+        "unavailable_dependency": getattr(error, "dependency", source),
+    }
 
 
 def skipped_leg_result(source: str) -> dict[str, Any]:
@@ -646,15 +686,17 @@ def id_lookup_points(
         must=[FieldCondition(key=key, match=MatchValue(value=value))]
     )
 
-    points, _ = client.scroll(
-        collection_name=collection_name,
-        scroll_filter=query_filter,
-        limit=5,
-        with_payload=True,
-        with_vectors=False,
-    )
+    def run():
+        points, _ = client.scroll(
+            collection_name=collection_name,
+            scroll_filter=query_filter,
+            limit=5,
+            with_payload=True,
+            with_vectors=False,
+        )
+        return points
 
-    return points
+    return call_with_resilience("qdrant", "id_lookup", run)
 
 
 def build_artifact_filter(artifact_group: str) -> Filter:
@@ -1027,7 +1069,18 @@ def assess_evidence_quality(
             )
         )
 
+    unavailable = [r for r in leg_results if r.get("unavailable")]
+
+    for result in unavailable:
+        reasons.append(
+            f"{result['source']} was unavailable and was not consulted: "
+            f"{result.get('unavailable_reason')}"
+        )
+
     for result in leg_results:
+        if result.get("unavailable"):
+            continue
+
         if result.get("skipped"):
             reasons.append(f"{result['source']} was not selected by the plan")
             continue
@@ -1042,7 +1095,9 @@ def assess_evidence_quality(
         if result["record_count"] == 0:
             reasons.append(f"{result['source']} returned no records")
 
-    if all_filters_dropped:
+    if unavailable:
+        confidence = "degraded"
+    elif all_filters_dropped:
         confidence = "low"
     elif reasons:
         confidence = "medium"
@@ -1115,15 +1170,24 @@ def run_hybrid_retrieval(
                 "skipped": True,
             }
         else:
-            vector_results = vector_retrieve(
-                client=qdrant_client,
-                model=embedding_model,
-                collection_name=settings["qdrant_collection"],
-                query=query,
-                per_group_limit=vector_limit,
-                forced_artifact_groups=forced_vector_groups,
-            )
-            vector_results["skipped"] = False
+            try:
+                vector_results = vector_retrieve(
+                    client=qdrant_client,
+                    model=embedding_model,
+                    collection_name=settings["qdrant_collection"],
+                    query=query,
+                    per_group_limit=vector_limit,
+                    forced_artifact_groups=forced_vector_groups,
+                )
+                vector_results["skipped"] = False
+            except DependencyUnavailable as exc:
+                print(f"  qdrant unavailable: {exc}")
+                vector_results = {
+                    "source": "qdrant", "artifact_groups": [], "record_count": 0,
+                    "results_by_artifact_group": {}, "skipped": False,
+                    "unavailable": True, "unavailable_reason": str(exc),
+                    "unavailable_dependency": "qdrant",
+                }
 
         harvested = harvest_entity_ids(vector_results) if link_enabled else {}
 
@@ -1147,6 +1211,7 @@ def run_hybrid_retrieval(
         if forced_sql_intent is None:
             sql_results = skipped_leg_result("postgresql")
         else:
+          try:
             sql_results = sql_retrieve(
                 engine=postgres_engine,
                 query=query,
@@ -1184,11 +1249,15 @@ def run_hybrid_retrieval(
                 sql_results["confidence_flag"] = (
                     "filtered_subset_warning" if filtered_count > 0 else None
                 )
+          except DependencyUnavailable as exc:
+            print(f"  postgresql unavailable: {exc}")
+            sql_results = unavailable_leg_result("postgresql", exc)
 
         print("Running graph retrieval...")
         if forced_graph_intent is None:
             graph_results = skipped_leg_result("neo4j")
         else:
+          try:
             graph_results = graph_retrieve(
                 driver=neo4j_driver,
                 query=query,
@@ -1215,6 +1284,9 @@ def run_hybrid_retrieval(
                 graph_results["confidence_flag"] = (
                     "filtered_subset_warning" if graph_filtered_count > 0 else None
                 )
+          except DependencyUnavailable as exc:
+            print(f"  neo4j unavailable: {exc}")
+            graph_results = unavailable_leg_result("neo4j", exc)
 
         accepted_filter_count = len(planner_sql_filters) + len(planner_graph_filters)
 
@@ -1239,6 +1311,16 @@ def run_hybrid_retrieval(
                 "sql_evidence_link_bypassed": sql_bypass,
                 "evidence_linked_ids": {k: len(v) for k, v in harvested.items()},
                 "evidence_quality": evidence_quality,
+                "unavailable_legs": [
+                    {
+                        "source": leg["source"],
+                        "dependency": leg.get("unavailable_dependency"),
+                        "reason": leg.get("unavailable_reason"),
+                    }
+                    for leg in (sql_results, graph_results, vector_results)
+                    if leg.get("unavailable")
+                ],
+                "circuit_breakers": breaker_states(),
             },
             "retrieval_results": {
                 "sql": sql_results,
