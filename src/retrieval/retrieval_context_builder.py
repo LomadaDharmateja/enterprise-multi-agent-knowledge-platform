@@ -564,6 +564,7 @@ def build_retrieval_context(
     vector_limit: int,
     max_records_per_section: int,
     route_plan: dict[str, Any] | None = None,
+    embedding_model: Any | None = None,
 ) -> dict[str, Any]:
     print("Running hybrid retrieval...")
     raw_report = run_hybrid_retrieval(
@@ -573,6 +574,7 @@ def build_retrieval_context(
         graph_limit=graph_limit,
         vector_limit=vector_limit,
         route_plan=route_plan,
+        embedding_model=embedding_model,
     )
 
     sql_result = raw_report["retrieval_results"]["sql"]

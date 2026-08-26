@@ -42,6 +42,7 @@ from gemini_query_planner import plan_query_with_gemini
 from retrieval_context_builder import build_retrieval_context
 from answer_generator import generate_answer, save_outputs, load_settings
 from observability import new_run_id, record_event, trace_span
+from query_cache import cache_enabled, get_cache
 
 class EnterpriseWorkflowState(TypedDict, total=False):
     query: str
@@ -736,7 +737,26 @@ def build_enterprise_workflow():
 def run_agentic_workflow(
     query: str,
     output_dir: Path,
+    use_cache: bool | None = None,
 ) -> dict[str, Any]:
+    """Run the pipeline, consulting the query cache first.
+
+    A hit returns the stored response without touching a database or an LLM. The M5
+    cost table puts an answered query at $0.00456 and ~15s, so a hit is worth all of
+    it. Refusals are cached too -- they are a legitimate, reproducible outcome, and
+    re-deriving one still costs a planner call.
+    """
+    caching = cache_enabled() if use_cache is None else use_cache
+    cache = get_cache() if caching else None
+
+    if cache is not None:
+        cached = cache.get(query)
+
+        if cached is not None:
+            response = dict(cached)
+            response["cache"] = {"hit": True, "backend": cache.backend.backend}
+            return response
+
     output_dir.mkdir(parents=True, exist_ok=True)
 
     workflow = build_enterprise_workflow()
@@ -767,6 +787,13 @@ def run_agentic_workflow(
     # output_files block of its own.
     final_response.setdefault("output_files", {})
     final_response["output_files"]["workflow_report"] = str(workflow_report_path)
+    final_response["cache"] = {
+        "hit": False,
+        "backend": cache.backend.backend if cache is not None else None,
+    }
+
+    if cache is not None:
+        cache.set(query, final_response)
 
     return final_response
 

@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 import sys
+import threading
 import re
 from datetime import datetime, timezone
 from pathlib import Path
@@ -77,6 +78,52 @@ def build_neo4j_driver(settings: dict[str, Any]) -> Driver:
         settings["neo4j_uri"],
         auth=(settings["neo4j_username"], settings["neo4j_password"]),
     )
+
+
+# --------------------------------------------------------------------------------
+# Embedding model: loaded once per process (M5 Task 1, AUDIT.md F-09)
+# --------------------------------------------------------------------------------
+#
+# The embedding model was constructed inside run_hybrid_retrieval, which runs
+# per request, so every query paid ~1.25s to re-read the weights from disk. The
+# encode itself costs ~10ms. The model is immutable after construction and the
+# revision is pinned, so one instance per process is safe and there is no cache
+# invalidation to get wrong.
+
+_EMBEDDING_MODELS: dict[tuple[str, str], SentenceTransformer] = {}
+_EMBEDDING_LOCK = threading.Lock()
+
+
+def get_embedding_model(
+    settings: dict[str, Any] | None = None,
+    model: SentenceTransformer | None = None,
+) -> SentenceTransformer:
+    """Return the process-wide model, constructing it at most once.
+
+    An explicitly supplied model wins, so the API can hand down the instance it
+    warmed at startup and a test can inject a stub.
+    """
+    if model is not None:
+        return model
+
+    settings = settings or load_settings()
+    key = (settings["embedding_model_name"], settings["embedding_model_revision"])
+
+    with _EMBEDDING_LOCK:
+        cached = _EMBEDDING_MODELS.get(key)
+
+        if cached is None:
+            print(f"Loading embedding model: {key[0]} @ {key[1]}")
+            cached = SentenceTransformer(key[0], revision=key[1])
+            _EMBEDDING_MODELS[key] = cached
+
+    return cached
+
+
+def embedding_model_is_loaded(settings: dict[str, Any] | None = None) -> bool:
+    settings = settings or load_settings()
+    key = (settings["embedding_model_name"], settings["embedding_model_revision"])
+    return key in _EMBEDDING_MODELS
 
 
 def build_qdrant_client(settings: dict[str, Any]) -> QdrantClient:
@@ -1122,6 +1169,7 @@ def run_hybrid_retrieval(
     vector_limit: int,
     route_plan: dict[str, Any] | None = None,
     evidence_linked_filtering: bool | None = None,
+    embedding_model: SentenceTransformer | None = None,
 ) -> dict[str, Any]:
     settings = load_settings()
 
@@ -1129,14 +1177,7 @@ def run_hybrid_retrieval(
     neo4j_driver = build_neo4j_driver(settings)
     qdrant_client = build_qdrant_client(settings)
 
-    print(
-        f"Loading embedding model: {settings['embedding_model_name']}"
-        f" @ {settings['embedding_model_revision']}"
-    )
-    embedding_model = SentenceTransformer(
-        settings["embedding_model_name"],
-        revision=settings["embedding_model_revision"],
-    )
+    embedding_model = get_embedding_model(settings, embedding_model)
 
     plan = route_plan or {}
 

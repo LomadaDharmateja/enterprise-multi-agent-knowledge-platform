@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
@@ -12,11 +15,17 @@ from pydantic import BaseModel, Field
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 ORCHESTRATION_DIR = PROJECT_ROOT / "src" / "orchestration"
 
-if str(ORCHESTRATION_DIR) not in sys.path:
-    sys.path.append(str(ORCHESTRATION_DIR))
+RETRIEVAL_DIR = PROJECT_ROOT / "src" / "retrieval"
+OBSERVABILITY_DIR = PROJECT_ROOT / "src" / "observability"
+
+for _directory in (ORCHESTRATION_DIR, RETRIEVAL_DIR, OBSERVABILITY_DIR):
+    if str(_directory) not in sys.path:
+        sys.path.append(str(_directory))
 
 
 from agentic_workflow import run_agentic_workflow
+from hybrid_retriever import get_embedding_model, load_settings
+from query_cache import get_cache
 
 
 class QueryRequest(BaseModel):
@@ -42,10 +51,58 @@ class QueryResponse(BaseModel):
     answer_preview: str
 
 
+# Measured on the M3 run (docs/M5_COST_TABLE.md): mean tokens for an answered query.
+# Used to turn a hit count into an estimated saving.
+MEAN_TOKENS_PER_QUERY = {"input": 9515.0, "output": 1067.0}
+
+
+class CacheStatsResponse(BaseModel):
+    backend: str | None
+    enabled: bool
+    hits: int
+    misses: int
+    lookups: int
+    hit_rate: float
+    stores: int
+    evictions: int
+    entries: int
+    max_size: int | None
+    estimated_tokens_saved: dict[str, int]
+    estimated_cost_saved_usd: float
+
+
 class HealthResponse(BaseModel):
     status: str
     service: str
     generated_at: str
+
+
+@asynccontextmanager
+async def lifespan(application: FastAPI):
+    """Warm the embedding model before the first request (AUDIT.md F-09).
+
+    It was previously constructed inside the per-request retrieval call, costing
+    ~1.25s of disk reads on every query against a ~10ms encode. It is immutable and
+    the revision is pinned, so one instance per process is correct.
+    """
+    settings = load_settings()
+
+    started = time.perf_counter()
+    application.state.embedding_model = get_embedding_model(settings)
+    elapsed_ms = (time.perf_counter() - started) * 1000.0
+
+    application.state.embedding_model_name = settings["embedding_model_name"]
+    application.state.embedding_model_revision = settings["embedding_model_revision"]
+    application.state.startup_model_load_ms = round(elapsed_ms, 1)
+
+    print(
+        f"Embedding model warmed at startup in {elapsed_ms:.0f} ms: "
+        f"{settings['embedding_model_name']} @ {settings['embedding_model_revision']}"
+    )
+
+    yield
+
+    application.state.embedding_model = None
 
 
 app = FastAPI(
@@ -55,6 +112,7 @@ app = FastAPI(
         "agentic workflow platform."
     ),
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 
@@ -120,3 +178,14 @@ def query(request: QueryRequest) -> QueryResponse:
             status_code=500,
             detail=f"Failed to run enterprise workflow: {exc}",
         ) from exc
+
+
+@app.get("/cache/stats", response_model=CacheStatsResponse)
+def cache_stats() -> CacheStatsResponse:
+    """Hit/miss counts and the tokens those hits avoided spending.
+
+    The saving is an ESTIMATE: hits x the mean tokens an answered query cost on the
+    M3 run. A hit on a refusal actually saves less than that mean, so this is an
+    upper bound rather than a measurement of the specific queries served.
+    """
+    return CacheStatsResponse(**get_cache().as_dict(MEAN_TOKENS_PER_QUERY))

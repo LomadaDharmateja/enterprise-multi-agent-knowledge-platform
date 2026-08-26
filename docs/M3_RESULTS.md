@@ -254,11 +254,15 @@ reach answers through the vector leg's `policy_seller_ids` instead. Pinned by
 | LLM calls | 204 |
 | input tokens | 779,995 |
 | output tokens | 68,153 |
-| **estimated cost** | **$0.105 total, $0.00128 per item** |
+| **cost** | **$0.2972 total, $0.00362 per item** |
 
 Token counts are **measured** (`missing_usage_calls: 0` — all 204 calls reported usage).
-The price per token is an **assumption**: $0.10/1M input, $0.40/1M output. The two are
-not stated with the same confidence.
+
+**CORRECTED IN M5.** This originally read "$0.105 total, $0.00128 per item" against an
+assumed rate of $0.10/1M input and $0.40/1M output, flagged at the time as an
+assumption. The published `gemini-3.1-flash-lite` rate is **$0.25/1M input, $1.50/1M
+output** — 2.5x and 3.75x higher. The token counts were correct; the price applied to
+them was not. Full breakdown: `docs/M5_COST_TABLE.md`.
 
 Most of the wall clock is deliberate: 4.5 s of client-side pacing per call, because the
 Gemini free tier allows 15 requests/minute and the first unpaced run lost 26 of 82 items
