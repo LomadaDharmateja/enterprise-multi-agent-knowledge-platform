@@ -234,7 +234,15 @@ def call_with_resilience(
             last_error = exc
 
             if not is_transient(exc):
-                breaker.record_failure()
+                # A non-transient error is the dependency working correctly and
+                # refusing: a permission denial, a read-only transaction rejecting a
+                # write, a syntax error. It says nothing about dependency health, so
+                # it must NOT count toward the breaker.
+                #
+                # Found by the M6 write probes: three refused writes in a row opened
+                # the Postgres breaker and took the leg down for 60s, which would turn
+                # a working security control into a self-inflicted outage.
+                breaker.record_success()
                 raise
         else:
             breaker.record_success()

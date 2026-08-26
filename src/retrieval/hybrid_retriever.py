@@ -42,8 +42,19 @@ def load_settings() -> dict[str, Any]:
 
     return {
         "postgres_db": os.getenv("POSTGRES_DB", "enterprise_ai"),
-        "postgres_user": os.getenv("POSTGRES_USER", "enterprise_user"),
-        "postgres_password": os.getenv("POSTGRES_PASSWORD", "enterprise_password"),
+        # M6: the runtime query path connects as a non-superuser, SELECT-only role.
+        # AUDIT.md P2 found the runtime using the schema owner -- a superuser with
+        # Create role, Create DB, Replication and Bypass RLS -- so "the runtime is
+        # read-only" was enforced by nothing below the application. The loaders keep
+        # POSTGRES_USER, which owns the schema and legitimately writes.
+        #
+        # No password default. A working credential as a source-code fallback is how
+        # the audit found 17 of them; an unset variable must fail loudly instead.
+        "postgres_user": os.getenv("POSTGRES_READONLY_USER")
+        or os.getenv("POSTGRES_USER", "enterprise_user"),
+        "postgres_password": os.getenv("POSTGRES_READONLY_PASSWORD")
+        or os.getenv("POSTGRES_PASSWORD")
+        or "",
         "postgres_host": os.getenv("POSTGRES_HOST", "localhost"),
         "postgres_port": os.getenv("POSTGRES_PORT", "5432"),
         "neo4j_username": os.getenv("NEO4J_USERNAME", "neo4j"),
@@ -53,6 +64,13 @@ def load_settings() -> dict[str, Any]:
         "qdrant_host": os.getenv("QDRANT_HOST", "localhost"),
         "qdrant_port": int(os.getenv("QDRANT_HTTP_PORT", "6333")),
         "qdrant_collection": os.getenv("QDRANT_COLLECTION", "enterprise_knowledge"),
+        # M6: no default. An unset key must fail loudly, not connect unauthenticated.
+        "qdrant_api_key": os.getenv("QDRANT_API_KEY"),
+        # The client turns on HTTPS as soon as an api_key is supplied. Local Qdrant
+        # speaks plain HTTP, so this must be explicit. In a real deployment the key
+        # must travel over TLS -- set QDRANT_HTTPS=true there.
+        "qdrant_https": os.getenv("QDRANT_HTTPS", "false").strip().lower()
+        in {"true", "1", "yes"},
         "embedding_model_name": os.getenv(
             "EMBEDDING_MODEL_NAME",
             "sentence-transformers/all-MiniLM-L6-v2",
@@ -65,6 +83,13 @@ def load_settings() -> dict[str, Any]:
 
 
 def build_postgres_engine(settings: dict[str, Any]) -> Engine:
+    if not settings.get("postgres_password"):
+        raise RuntimeError(
+            "No PostgreSQL password configured. Set POSTGRES_READONLY_PASSWORD (for the "
+            "runtime read-only role) or POSTGRES_PASSWORD. Refusing to connect with an "
+            "empty credential."
+        )
+
     connection_url = (
         f"postgresql+psycopg2://{settings['postgres_user']}:{settings['postgres_password']}"
         f"@{settings['postgres_host']}:{settings['postgres_port']}/{settings['postgres_db']}"
@@ -130,23 +155,53 @@ def build_qdrant_client(settings: dict[str, Any]) -> QdrantClient:
     return QdrantClient(
         host=settings["qdrant_host"],
         port=settings["qdrant_port"],
+        api_key=settings.get("qdrant_api_key"),
+        https=settings.get("qdrant_https", False),
     )
 
 
 def records_query(engine: Engine, sql: str, params: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+    """Execute a read query in an explicitly read-only transaction.
+
+    M6 Task 2, second enforcement layer. This was `engine.begin()` -- a committing
+    read-write transaction -- and AUDIT.md P2 passed a row-returning INSERT through
+    this helper and confirmed on a fresh connection that it committed.
+
+    `postgresql_readonly=True` is SQLAlchemy's spelling for the PostgreSQL dialect; it
+    emits `SET TRANSACTION READ ONLY`, so the server rejects a write even if the
+    connecting role were somehow granted one. The role grant (Task 1) and this are
+    independent: either alone stops the write, and neither relies on the other.
+    """
     def run():
-        with engine.begin() as connection:
-            result = connection.execute(text(sql), params or {})
-            return [dict(row._mapping) for row in result]
+        with engine.connect() as connection:
+            readonly = connection.execution_options(
+                postgresql_readonly=True,
+                postgresql_deferrable=True,
+            )
+
+            with readonly.begin():
+                result = readonly.execute(text(sql), params or {})
+                return [dict(row._mapping) for row in result]
 
     return call_with_resilience("postgres", "records_query", run)
 
 
 def graph_query(driver: Driver, cypher: str, params: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+    """Execute Cypher in a read transaction.
+
+    M6 Task 2. This was `session.run()`, which opens an auto-commit transaction in
+    WRITE access mode -- AUDIT.md P2 ran CREATE, index DDL and DELETE through it with
+    no error. `execute_read` opens the transaction in READ access mode, and the server
+    rejects a write with "Writing in read access mode not allowed" regardless of what
+    the Cypher says.
+    """
     def run():
-        with driver.session(database="neo4j") as session:
-            result = session.run(cypher, params or {})
-            return [dict(record) for record in result]
+        with driver.session(database="neo4j", default_access_mode="READ") as session:
+            def read(tx):
+                result = tx.run(cypher, params or {})
+                return [dict(record) for record in result]
+
+            return session.execute_read(read)
 
     return call_with_resilience("neo4j", "graph_query", run)
 

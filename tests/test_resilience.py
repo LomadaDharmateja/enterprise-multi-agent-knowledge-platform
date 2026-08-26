@@ -246,3 +246,47 @@ def test_breakers_are_isolated_per_dependency():
     assert breaker_for("neo4j").state == "closed"
     assert breaker_for("qdrant").state == "closed"
     assert breaker_for("gemini").state == "closed"
+
+
+def test_a_refused_write_does_not_open_the_breaker():
+    """M6 finding: a permission denial is the dependency working, not failing.
+
+    Three refused writes in a row opened the Postgres breaker and took the leg down
+    for 60s -- a working security control turned into a self-inflicted outage.
+    """
+    profile = DependencyProfile("postgres", timeout_seconds=1.0, max_retries=0)
+
+    def permission_denied():
+        raise PermissionError("permission denied for table sellers")
+
+    for _ in range(5):
+        with pytest.raises(PermissionError):
+            call_with_resilience(
+                "postgres", "denied", permission_denied, profile=profile, sleep=no_sleep
+            )
+
+    assert breaker_for("postgres").state == "closed"
+    assert breaker_for("postgres").consecutive_failures == 0
+
+
+def test_a_refused_write_does_not_mask_a_real_outage():
+    """The counter-check: transient failures must still open the breaker."""
+    profile = DependencyProfile("postgres", timeout_seconds=1.0, max_retries=0)
+
+    with pytest.raises(PermissionError):
+        call_with_resilience(
+            "postgres", "denied",
+            lambda: (_ for _ in ()).throw(PermissionError("permission denied")),
+            profile=profile, sleep=no_sleep,
+        )
+
+    def refused():
+        raise ConnectionError("connection refused")
+
+    for _ in range(3):
+        with pytest.raises(DependencyUnavailable):
+            call_with_resilience(
+                "postgres", "down", refused, profile=profile, sleep=no_sleep
+            )
+
+    assert breaker_for("postgres").state == "open"

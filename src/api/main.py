@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import os
+import secrets
 import sys
+import uuid
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -8,7 +11,9 @@ from typing import Any
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi import Response
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 
 
@@ -26,6 +31,59 @@ for _directory in (ORCHESTRATION_DIR, RETRIEVAL_DIR, OBSERVABILITY_DIR):
 from agentic_workflow import run_agentic_workflow
 from hybrid_retriever import get_embedding_model, load_settings
 from query_cache import get_cache
+
+
+
+# --------------------------------------------------------------------------------
+# Authentication (M6 Task 4)
+# --------------------------------------------------------------------------------
+#
+# AUDIT.md P2/F-08: /query took no credential at all, and its exception handler
+# returned `detail=f"Failed to run enterprise workflow: {exc}"` to the caller. For a
+# database failure that string carries the host and port -- the audit observed
+# `connection to server at "localhost" (::1), port 5432 failed` reaching an
+# unauthenticated caller.
+
+_bearer = HTTPBearer(auto_error=False)
+
+
+def _configured_token() -> str | None:
+    token = os.getenv("API_BEARER_TOKEN", "").strip()
+    return token or None
+
+
+def require_bearer_token(
+    credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
+) -> str:
+    """401 on a missing or wrong token. Never 403, never 500.
+
+    `HTTPBearer(auto_error=False)` because the default raises 403 for a missing
+    header, and "you did not authenticate" is 401.
+    """
+    expected = _configured_token()
+
+    if expected is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="API authentication is not configured on this server.",
+        )
+
+    if credentials is None or not credentials.credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing bearer token.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Constant-time compare so a wrong token cannot be found byte by byte.
+    if not secrets.compare_digest(credentials.credentials, expected):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid bearer token.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return credentials.credentials
 
 
 class QueryRequest(BaseModel):
@@ -130,17 +188,125 @@ def root() -> dict[str, Any]:
     }
 
 
-@app.get("/health", response_model=HealthResponse)
-def health() -> HealthResponse:
-    return HealthResponse(
-        status="ok",
-        service="enterprise-agentic-workflow-api",
-        generated_at=datetime.now(timezone.utc).isoformat(),
-    )
+
+# --------------------------------------------------------------------------------
+# Health (M6 Task 5)
+# --------------------------------------------------------------------------------
+#
+# AUDIT.md F-07: /health returned a hardcoded status="ok". During the audit the
+# container's DNS failed entirely, every dependency was unreachable and /query was
+# returning 500 on 100% of requests, and /health still reported ok.
+
+DEPENDENCY_CHECK_TIMEOUT_SECONDS = 3.0
+
+
+def _check_postgres() -> None:
+    from sqlalchemy import text as sql_text
+
+    from hybrid_retriever import build_postgres_engine
+
+    engine = build_postgres_engine(load_settings())
+
+    try:
+        with engine.connect() as connection:
+            connection.execute(sql_text("SELECT 1"))
+    finally:
+        engine.dispose()
+
+
+def _check_neo4j() -> None:
+    from hybrid_retriever import build_neo4j_driver
+
+    driver = build_neo4j_driver(load_settings())
+
+    try:
+        with driver.session(database="neo4j", default_access_mode="READ") as session:
+            session.execute_read(lambda tx: tx.run("RETURN 1 AS ok").single())
+    finally:
+        driver.close()
+
+
+def _check_qdrant() -> None:
+    from hybrid_retriever import build_qdrant_client
+
+    settings = load_settings()
+    build_qdrant_client(settings).get_collection(settings["qdrant_collection"])
+
+
+DEPENDENCY_CHECKS = {
+    "postgres": _check_postgres,
+    "neo4j": _check_neo4j,
+    "qdrant": _check_qdrant,
+}
+
+
+def check_dependencies() -> dict[str, dict[str, Any]]:
+    """Probe each dependency with the cheapest query that proves it is answering.
+
+    Gemini is deliberately not probed: the cheapest check is a billable generation
+    call, and a health endpoint that costs money per poll will be polled less often
+    or turned off. Its absence is stated in the response rather than implied.
+    """
+    from concurrent.futures import ThreadPoolExecutor
+    from concurrent.futures import TimeoutError as FuturesTimeout
+
+    results: dict[str, dict[str, Any]] = {}
+
+    with ThreadPoolExecutor(max_workers=len(DEPENDENCY_CHECKS)) as pool:
+        futures = {
+            name: pool.submit(check) for name, check in DEPENDENCY_CHECKS.items()
+        }
+
+        for name, future in futures.items():
+            started = time.perf_counter()
+
+            try:
+                future.result(timeout=DEPENDENCY_CHECK_TIMEOUT_SECONDS)
+                results[name] = {
+                    "status": "ok",
+                    "latency_ms": round((time.perf_counter() - started) * 1000, 1),
+                }
+            except FuturesTimeout:
+                results[name] = {
+                    "status": "down",
+                    "error": f"did not respond within {DEPENDENCY_CHECK_TIMEOUT_SECONDS}s",
+                }
+            except Exception as exc:  # noqa: BLE001
+                # The dependency name and failure class are operational facts a
+                # health endpoint exists to report. The message is truncated so a
+                # driver error cannot spill a full connection string.
+                results[name] = {
+                    "status": "down",
+                    "error": f"{type(exc).__name__}: {str(exc).splitlines()[0][:120]}",
+                }
+
+    return results
+
+
+@app.get("/health")
+def health(response: Response) -> dict[str, Any]:
+    """200 only if every checked dependency answers; 503 with the failures named."""
+    dependencies = check_dependencies()
+    failed = sorted(n for n, r in dependencies.items() if r["status"] != "ok")
+
+    if failed:
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+
+    return {
+        "status": "degraded" if failed else "ok",
+        "service": "enterprise-agentic-workflow-api",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "dependencies": dependencies,
+        "failed": failed,
+        "not_checked": {"gemini": "not probed: the cheapest check is a billable call"},
+    }
 
 
 @app.post("/query", response_model=QueryResponse)
-def query(request: QueryRequest) -> QueryResponse:
+def query(
+    request: QueryRequest,
+    _token: str = Depends(require_bearer_token),
+) -> QueryResponse:
     try:
         safe_query_name = (
             request.query.lower()
@@ -174,9 +340,23 @@ def query(request: QueryRequest) -> QueryResponse:
         )
 
     except Exception as exc:
+        # The caller gets an opaque reference; the detail goes to the server log.
+        # The audit observed a psycopg2 OperationalError -- host and port included --
+        # returned verbatim to an unauthenticated caller (F-08).
+        incident = uuid.uuid4().hex[:12]
+
+        print(
+            f"[incident {incident}] /query failed: {type(exc).__name__}: {exc}",
+            file=sys.stderr,
+        )
+
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to run enterprise workflow: {exc}",
+            detail={
+                "error": "internal_error",
+                "message": "The request could not be completed.",
+                "incident_id": incident,
+            },
         ) from exc
 
 

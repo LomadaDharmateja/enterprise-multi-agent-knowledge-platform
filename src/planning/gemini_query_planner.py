@@ -411,7 +411,7 @@ def build_vocabulary_engine():
 
     url = (
         f"postgresql+psycopg2://{os.getenv('POSTGRES_USER', 'enterprise_user')}:"
-        f"{os.getenv('POSTGRES_PASSWORD', 'enterprise_password')}@"
+        f"{os.getenv('POSTGRES_PASSWORD', "")}@"
         f"{os.getenv('POSTGRES_HOST', 'localhost')}:"
         f"{os.getenv('POSTGRES_PORT', '5432')}/"
         f"{os.getenv('POSTGRES_DB', 'enterprise_ai')}"

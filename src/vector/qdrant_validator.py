@@ -86,6 +86,8 @@ def build_qdrant_client(settings: dict[str, Any]) -> QdrantClient:
     return QdrantClient(
         host=settings["qdrant_host"],
         port=settings["qdrant_port"],
+        api_key=settings.get("qdrant_api_key"),
+        https=settings.get("qdrant_https", False),
     )
 
 

@@ -30,6 +30,8 @@ def qdrant(project_root):
         client = QdrantClient(
             host=os.getenv("QDRANT_HOST", "localhost"),
             port=int(os.getenv("QDRANT_HTTP_PORT", "6333")),
+            api_key=os.getenv("QDRANT_API_KEY"),
+            https=os.getenv("QDRANT_HTTPS", "false").lower() in {"true", "1", "yes"},
         )
         client.get_collection(collection)
     except Exception as exc:  # noqa: BLE001 -- any failure means "no stack"

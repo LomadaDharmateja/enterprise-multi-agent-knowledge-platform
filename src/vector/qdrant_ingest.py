@@ -35,6 +35,10 @@ def load_settings() -> dict[str, Any]:
         "qdrant_host": os.getenv("QDRANT_HOST", "localhost"),
         "qdrant_http_port": int(os.getenv("QDRANT_HTTP_PORT", "6333")),
         "qdrant_collection": os.getenv("QDRANT_COLLECTION", "enterprise_knowledge"),
+        # M6: no default. An unset key must fail loudly, not connect unauthenticated.
+        "qdrant_api_key": os.getenv("QDRANT_API_KEY"),
+        "qdrant_https": os.getenv("QDRANT_HTTPS", "false").strip().lower()
+        in {"true", "1", "yes"},
         "embedding_model_name": os.getenv(
             "EMBEDDING_MODEL_NAME",
             "sentence-transformers/all-MiniLM-L6-v2",
@@ -513,10 +517,14 @@ def assert_join_keys_present(documents: list[dict[str, Any]]) -> None:
         )
 
 
-def create_qdrant_client(host: str, port: int) -> QdrantClient:
+def create_qdrant_client(
+    host: str, port: int, api_key: str | None = None, https: bool = False
+) -> QdrantClient:
     return QdrantClient(
         host=host,
         port=port,
+        api_key=api_key,
+        https=https,
         timeout=120,
     )
 
@@ -616,6 +624,8 @@ def ingest_documents(
     client = create_qdrant_client(
         host=settings["qdrant_host"],
         port=settings["qdrant_http_port"],
+        api_key=settings.get("qdrant_api_key"),
+        https=settings.get("qdrant_https", False),
     )
 
     ensure_qdrant_collection(

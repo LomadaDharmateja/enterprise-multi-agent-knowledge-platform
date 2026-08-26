@@ -380,7 +380,7 @@ def build_postgres_engine() -> Engine:
 
     db_name = os.getenv("POSTGRES_DB", "enterprise_ai")
     db_user = os.getenv("POSTGRES_USER", "enterprise_user")
-    db_password = os.getenv("POSTGRES_PASSWORD", "enterprise_password")
+    db_password = os.getenv("POSTGRES_PASSWORD", "")
     db_port = os.getenv("POSTGRES_PORT", "5432")
     db_host = os.getenv("POSTGRES_HOST", "localhost")
 

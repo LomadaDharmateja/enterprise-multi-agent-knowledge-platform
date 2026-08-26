@@ -291,7 +291,7 @@ def write_jsonl(path: Path, records: list[dict[str, Any]]) -> None:
 def build_postgres_engine() -> Engine:
     load_dotenv()
     user = os.getenv("POSTGRES_USER", "enterprise_user")
-    password = os.getenv("POSTGRES_PASSWORD", "enterprise_password")
+    password = os.getenv("POSTGRES_PASSWORD", "")
     host = os.getenv("POSTGRES_HOST", "localhost")
     port = os.getenv("POSTGRES_PORT", "5432")
     database = os.getenv("POSTGRES_DB", "enterprise_ai")
