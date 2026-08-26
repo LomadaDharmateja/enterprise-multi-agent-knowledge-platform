@@ -1,0 +1,456 @@
+{
+  "purpose": "Maps blind numbers back to items and the evaluator's scores. Do not read before hand-labelling.",
+  "shuffle_seed": 20260826,
+  "entries": [
+    {
+      "blind_number": 1,
+      "item_id": "A05",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 2,
+      "item_id": "A01",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 3,
+      "item_id": "B24",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 4,
+      "item_id": "A13",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 5,
+      "item_id": "A11",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 6,
+      "item_id": "E72",
+      "run": "m3fix",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 7,
+      "item_id": "E68",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 8,
+      "item_id": "B21",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 9,
+      "item_id": "E69",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 10,
+      "item_id": "C41",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 11,
+      "item_id": "B31",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 12,
+      "item_id": "C48",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 13,
+      "item_id": "B29",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 14,
+      "item_id": "A02",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 15,
+      "item_id": "B20",
+      "run": "m3fix",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 16,
+      "item_id": "B28",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 17,
+      "item_id": "E67",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 18,
+      "item_id": "B22",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 19,
+      "item_id": "B18",
+      "run": "m3fix",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 20,
+      "item_id": "C33",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 21,
+      "item_id": "B23",
+      "run": "full2",
+      "evaluator_grounding": 2
+    },
+    {
+      "blind_number": 22,
+      "item_id": "E75",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 23,
+      "item_id": "B25",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 24,
+      "item_id": "A09",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 25,
+      "item_id": "E78",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 26,
+      "item_id": "C46",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 27,
+      "item_id": "D57",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 28,
+      "item_id": "C38",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 29,
+      "item_id": "C36",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 30,
+      "item_id": "A11",
+      "run": "m3fix",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 31,
+      "item_id": "C45",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 32,
+      "item_id": "E70",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 33,
+      "item_id": "C43",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 34,
+      "item_id": "B19",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 35,
+      "item_id": "A10",
+      "run": "m3fix",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 36,
+      "item_id": "A15",
+      "run": "m3fix",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 37,
+      "item_id": "C34",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 38,
+      "item_id": "A16",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 39,
+      "item_id": "A04",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 40,
+      "item_id": "C47",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 41,
+      "item_id": "B18",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 42,
+      "item_id": "B25",
+      "run": "m3fix",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 43,
+      "item_id": "D55",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 44,
+      "item_id": "C44",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 45,
+      "item_id": "A13",
+      "run": "m3fix",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 46,
+      "item_id": "B30",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 47,
+      "item_id": "C35",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 48,
+      "item_id": "C42",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 49,
+      "item_id": "E72",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 50,
+      "item_id": "C43",
+      "run": "m3fix",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 51,
+      "item_id": "B32",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 52,
+      "item_id": "B26",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 53,
+      "item_id": "C37",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 54,
+      "item_id": "E77",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 55,
+      "item_id": "A12",
+      "run": "m3fix",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 56,
+      "item_id": "B29",
+      "run": "m3fix",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 57,
+      "item_id": "A08",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 58,
+      "item_id": "A14",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 59,
+      "item_id": "A03",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 60,
+      "item_id": "E71",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 61,
+      "item_id": "C39",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 62,
+      "item_id": "A07",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 63,
+      "item_id": "A12",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 64,
+      "item_id": "B26",
+      "run": "m3fix",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 65,
+      "item_id": "D58",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 66,
+      "item_id": "A15",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 67,
+      "item_id": "B17",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 68,
+      "item_id": "B27",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 69,
+      "item_id": "A14",
+      "run": "m3fix",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 70,
+      "item_id": "B20",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 71,
+      "item_id": "C40",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 72,
+      "item_id": "A10",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 73,
+      "item_id": "A06",
+      "run": "full2",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 74,
+      "item_id": "B19",
+      "run": "m3fix",
+      "evaluator_grounding": 5
+    },
+    {
+      "blind_number": 75,
+      "item_id": "E82",
+      "run": "full2",
+      "evaluator_grounding": 5
+    }
+  ]
+}

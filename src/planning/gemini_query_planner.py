@@ -8,6 +8,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+PROJECT_ROOT_FOR_USAGE = Path(__file__).resolve().parents[2]
+_OBSERVABILITY_DIR = PROJECT_ROOT_FOR_USAGE / "src" / "observability"
+
+if str(_OBSERVABILITY_DIR) not in sys.path:
+    sys.path.append(str(_OBSERVABILITY_DIR))
+
+from llm_usage import timed_call  # noqa: E402
+
 from dotenv import load_dotenv
 
 
@@ -222,16 +230,17 @@ Required JSON schema:
 
 Worked example of values (routes omitted for brevity):
 
-User query: Which seller had the highest revenue?
-{{"answerable": true, "sql_intent": "seller_performance", "graph_intent": null,
-  "vector_artifact_groups": [], "sql_filters": {{"min_orders": 1}},
-  "sql_sort_by": "total_item_revenue", "graph_filters": {{}}}}
+User query: List the highest-value orders placed in 2018
+{{"answerable": true, "sql_intent": "order_summary", "graph_intent": null,
+  "vector_artifact_groups": [],
+  "sql_filters": {{"date_from": "2018-01-01", "date_to": "2018-12-31"}},
+  "sql_sort_by": "total_payment_value", "graph_filters": {{}}}}
 
-User query: purple monkey dishwasher
-{{"answerable": false, "refusal_reason": "The query is not a business question about
-  this data and names no entity, metric or document type.", "sql_intent": null,
-  "graph_intent": null, "vector_artifact_groups": [], "sql_filters": {{}},
-  "graph_filters": {{}}}}
+User query: What is the capital of Portugal?
+{{"answerable": false, "refusal_reason": "The query is general knowledge, not a
+  question about the seller, order, review or support data this system holds.",
+  "sql_intent": null, "graph_intent": null, "vector_artifact_groups": [],
+  "sql_filters": {{}}, "graph_filters": {{}}}}
 
 User query:
 {query}
@@ -432,10 +441,12 @@ def call_gemini_for_plan(
 
     client = genai.Client(api_key=api_key)
 
-    response = client.models.generate_content(
-        model=model,
-        contents=prompt,
-    )
+    with timed_call("planner_agent", model, len(prompt)) as call:
+        response = client.models.generate_content(
+            model=model,
+            contents=prompt,
+        )
+        call["response"] = response
 
     response_text = getattr(response, "text", None)
 

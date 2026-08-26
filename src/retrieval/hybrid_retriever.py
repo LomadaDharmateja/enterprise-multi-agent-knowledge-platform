@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -600,6 +601,62 @@ def graph_retrieve(
     }
 
 
+
+# --------------------------------------------------------------------------------
+# ID lookup (M3 fix: semantic search cannot fetch a document by its identifier)
+# --------------------------------------------------------------------------------
+#
+# A11 asked for the root cause on ticket TCK-000002 and the vector leg returned
+# TCK-001642, TCK-001232, TCK-002097 -- semantically similar tickets, none of them the
+# one named. Same for WRN-000001, INC-000001 and GDE-000002. Embedding an ID and
+# searching for nearby vectors is not a lookup; a payload filter is.
+
+ARTIFACT_ID_PATTERNS = {
+    "ticket_id": r"\bTCK-\d{6}\b",
+    "incident_id": r"\bINC-\d{6}\b",
+    "claim_id": r"\bWRN-\d{6}\b",
+    "policy_id": r"\bPOL-\d{6}\b",
+    "guide_id": r"\bGDE-\d{6}\b",
+    "email_id": r"\bEML-\d{6}\b",
+}
+
+
+def extract_artifact_ids(query: str) -> list[tuple[str, str]]:
+    """Return [(payload_key, id_value)] for every artifact ID named in the question."""
+    found = []
+
+    for key, pattern in ARTIFACT_ID_PATTERNS.items():
+        for match in re.findall(pattern, query or "", flags=re.IGNORECASE):
+            pair = (key, match.upper())
+
+            if pair not in found:
+                found.append(pair)
+
+    return found
+
+
+def id_lookup_points(
+    client: QdrantClient,
+    collection_name: str,
+    key: str,
+    value: str,
+) -> list[Any]:
+    """Fetch points whose payload carries this exact identifier."""
+    query_filter = Filter(
+        must=[FieldCondition(key=key, match=MatchValue(value=value))]
+    )
+
+    points, _ = client.scroll(
+        collection_name=collection_name,
+        scroll_filter=query_filter,
+        limit=5,
+        with_payload=True,
+        with_vectors=False,
+    )
+
+    return points
+
+
 def build_artifact_filter(artifact_group: str) -> Filter:
     return Filter(
         must=[
@@ -691,6 +748,45 @@ def vector_retrieve(
 
     total_results = 0
 
+    # An explicitly named artifact ID is a lookup, not a similarity search. Matched
+    # points are prepended to their group and marked, so the answer agent sees the
+    # document that was actually asked for first.
+    id_hits: dict[str, list[dict[str, Any]]] = {}
+
+    for key, value in extract_artifact_ids(query):
+        matched_points = id_lookup_points(client, collection_name, key, value)
+
+        # Owning document first, then referencing documents.
+        matched_points.sort(
+            key=lambda pt: not str(
+                (pt.payload or {}).get("stable_document_id") or ""
+            ).endswith(value)
+        )
+
+        for point in matched_points:
+            payload = point.payload or {}
+            group = payload.get("artifact_group")
+
+            if not group:
+                continue
+
+            compact = compact_vector_result(
+                type("P", (), {"payload": payload, "score": 1.0})()
+            )
+            compact["retrieval_method"] = "id_lookup"
+            compact["matched_id"] = f"{key}={value}"
+            # An ID can appear on more than one point: EML-000001 carries
+            # ticket_id=TCK-000002 because the email is a follow-up to that ticket.
+            # The document that OWNS the identifier -- whose stable_document_id ends
+            # with it -- is the one that was asked for; referencing documents follow.
+            compact["owns_id"] = str(
+                compact.get("artifact_id") or ""
+            ).endswith(value)
+            id_hits.setdefault(group, []).append(compact)
+
+            if group not in artifact_groups:
+                artifact_groups = list(artifact_groups) + [group]
+
     for artifact_group in artifact_groups:
         points = qdrant_query_points(
             client=client,
@@ -702,6 +798,17 @@ def vector_retrieve(
 
         compact_results = [compact_vector_result(point) for point in points]
 
+        for result in compact_results:
+            result.setdefault("retrieval_method", "semantic")
+
+        looked_up = id_hits.get(artifact_group, [])
+
+        if looked_up:
+            matched_ids = {r["artifact_id"] for r in looked_up}
+            compact_results = looked_up + [
+                r for r in compact_results if r["artifact_id"] not in matched_ids
+            ]
+
         grouped_results[artifact_group] = compact_results
         total_results += len(compact_results)
 
@@ -709,7 +816,71 @@ def vector_retrieve(
         "source": "qdrant",
         "artifact_groups": artifact_groups,
         "record_count": total_results,
+        "id_lookups": [
+            {"key": k, "value": v} for k, v in extract_artifact_ids(query)
+        ],
+        "id_lookup_hits": sum(len(v) for v in id_hits.values()),
         "results_by_artifact_group": grouped_results,
+    }
+
+
+
+# --------------------------------------------------------------------------------
+# Question scope: population vs entity (M3 fix for the C43 class of failure)
+# --------------------------------------------------------------------------------
+#
+# C43 asked "for the highest-revenue sellers, does complaint volume scale with order
+# volume?". The planner correctly chose sort_by=total_item_revenue -- and then
+# evidence-linked filtering restricted the query to the 5 seller_ids harvested from 5
+# support-ticket hits, so "highest revenue" was computed over those 5. The top seller
+# by revenue in the answer had 1,484 in revenue; the real top has 229,472.
+#
+# A superlative, a total, or a population statistic is a claim about the WHOLE
+# population. Narrowing it to entities that happen to appear in the retrieved
+# documents does not focus the answer, it falsifies it. Those questions bypass
+# evidence linking on the SQL leg entirely.
+
+SUPERLATIVE_PATTERNS = [
+    r"\bhighest\b", r"\blowest\b", r"\blargest\b", r"\bsmallest\b",
+    r"\bbiggest\b", r"\bmost\b", r"\bleast\b", r"\bworst\b", r"\bbest\b",
+    r"\btop\s+\d+\b", r"\btop\s+(?:ten|five|three|twenty)\b",
+    r"\brank\b", r"\branking\b", r"\bmaximum\b", r"\bminimum\b",
+]
+
+TOTAL_PATTERNS = [
+    r"\bhow many\b", r"\btotal number\b", r"\bcount of\b", r"\bin total\b",
+    r"\bevery\b", r"\ball of\b", r"\bdistinct\b", r"\bhow much\b",
+]
+
+POPULATION_STAT_PATTERNS = [
+    r"\baverage\b", r"\bmean\b", r"\bmedian\b", r"\boverall\b",
+    r"\bproportion\b", r"\bpercentage\b", r"\bpercent\b", r"\brate across\b",
+    r"\bacross all\b", r"\bcompare\b", r"\bdistribution\b",
+]
+
+SCOPE_PATTERNS = {
+    "superlative": SUPERLATIVE_PATTERNS,
+    "total": TOTAL_PATTERNS,
+    "population_statistic": POPULATION_STAT_PATTERNS,
+}
+
+
+def classify_question_scope(query: str) -> dict[str, Any]:
+    """Deterministic. No model call -- this must not itself become a thing to evaluate."""
+    lowered = (query or "").lower()
+
+    matched: dict[str, list[str]] = {}
+
+    for kind, patterns in SCOPE_PATTERNS.items():
+        hits = [p for p in patterns if re.search(p, lowered)]
+
+        if hits:
+            matched[kind] = hits
+
+    return {
+        "scope": "population" if matched else "entity",
+        "evidence_link_override": "bypass" if matched else None,
+        "matched": {k: len(v) for k, v in matched.items()},
     }
 
 
@@ -735,6 +906,11 @@ def vector_retrieve(
 EVIDENCE_LINK_KEYS = ["seller_id", "order_id", "product_id", "customer_id"]
 
 MAX_LINKED_IDS = 25
+
+# Below this many rows, a leg narrowed by harvested IDs is treated as a subset rather
+# than an answer and is re-run unfiltered. C43 returned 2 and passed the old `== 0`
+# check.
+EVIDENCE_LINK_MIN_ROWS = 5
 
 # Which harvested ID feeds which template parameter. A template not listed here, or a
 # key not listed for it, is never filled from retrieved evidence.
@@ -951,8 +1127,17 @@ def run_hybrid_retrieval(
 
         harvested = harvest_entity_ids(vector_results) if link_enabled else {}
 
+        # A superlative/total/population question is a claim about the whole
+        # population; narrowing it to harvested IDs falsifies it (C43).
+        scope = classify_question_scope(query)
+        sql_bypass = (
+            (sql_plan.get("evidence_link_override") or scope["evidence_link_override"])
+            == "bypass"
+        )
+
         sql_filters, sql_linked = apply_evidence_links(
-            "sql", forced_sql_intent, planner_sql_filters, harvested
+            "sql", forced_sql_intent, planner_sql_filters,
+            {} if sql_bypass else harvested,
         )
         graph_filters, graph_linked = apply_evidence_links(
             "graph", forced_graph_intent, planner_graph_filters, harvested
@@ -978,7 +1163,12 @@ def run_hybrid_retrieval(
             # answering itself -- but the intersection of those filters with IDs
             # harvested from the vector leg can be empty when neither is. Fall back,
             # and record it, rather than handing the answer agent an empty table.
-            if sql_results["record_count"] == 0 and sql_linked:
+            # Two triggers, not one. `== 0` missed C43, which returned 2 rows from a
+            # 5-seller harvested set and looked like a real answer. A leg narrowed by
+            # harvested IDs to a handful of rows is a subset masquerading as a ranking.
+            filtered_count = sql_results["record_count"]
+
+            if sql_linked and filtered_count < EVIDENCE_LINK_MIN_ROWS:
                 sql_results = sql_retrieve(
                     engine=postgres_engine,
                     query=query,
@@ -989,6 +1179,11 @@ def run_hybrid_retrieval(
                 )
                 sql_results["evidence_linked_filters"] = []
                 sql_results["evidence_link_fallback"] = True
+                sql_results["evidence_link_filtered_count"] = filtered_count
+                sql_results["evidence_link_unfiltered_count"] = sql_results["record_count"]
+                sql_results["confidence_flag"] = (
+                    "filtered_subset_warning" if filtered_count > 0 else None
+                )
 
         print("Running graph retrieval...")
         if forced_graph_intent is None:
@@ -1003,7 +1198,9 @@ def run_hybrid_retrieval(
             )
             graph_results["evidence_linked_filters"] = graph_linked
 
-            if graph_results["record_count"] == 0 and graph_linked:
+            graph_filtered_count = graph_results["record_count"]
+
+            if graph_linked and graph_filtered_count < EVIDENCE_LINK_MIN_ROWS:
                 graph_results = graph_retrieve(
                     driver=neo4j_driver,
                     query=query,
@@ -1013,6 +1210,11 @@ def run_hybrid_retrieval(
                 )
                 graph_results["evidence_linked_filters"] = []
                 graph_results["evidence_link_fallback"] = True
+                graph_results["evidence_link_filtered_count"] = graph_filtered_count
+                graph_results["evidence_link_unfiltered_count"] = graph_results["record_count"]
+                graph_results["confidence_flag"] = (
+                    "filtered_subset_warning" if graph_filtered_count > 0 else None
+                )
 
         accepted_filter_count = len(planner_sql_filters) + len(planner_graph_filters)
 
@@ -1033,6 +1235,8 @@ def run_hybrid_retrieval(
                 "graph_records": graph_results["record_count"],
                 "vector_records": vector_results["record_count"],
                 "evidence_linked_filtering": link_enabled,
+                "question_scope": scope,
+                "sql_evidence_link_bypassed": sql_bypass,
                 "evidence_linked_ids": {k: len(v) for k, v in harvested.items()},
                 "evidence_quality": evidence_quality,
             },

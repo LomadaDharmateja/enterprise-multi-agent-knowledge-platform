@@ -100,3 +100,10 @@ models/
 
 # Editable-install metadata
 *.egg-info/
+
+# M3 evaluation: per-item workflow artifacts (raw retrieval, context, prompt,
+# answer, evaluation JSON for each item). ~12MB of intermediates. The run_*.json
+# and baseline_*.json summaries carry everything the metrics are computed from --
+# routes, evidence samples, answer text, scores, token counts -- so the artifact
+# directories are reproducible output, not source.
+tests/eval/results/*/

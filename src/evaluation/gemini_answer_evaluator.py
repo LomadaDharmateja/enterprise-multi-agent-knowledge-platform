@@ -3,9 +3,18 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+PROJECT_ROOT_FOR_USAGE = Path(__file__).resolve().parents[2]
+_OBSERVABILITY_DIR = PROJECT_ROOT_FOR_USAGE / "src" / "observability"
+
+if str(_OBSERVABILITY_DIR) not in sys.path:
+    sys.path.append(str(_OBSERVABILITY_DIR))
+
+from llm_usage import timed_call  # noqa: E402
 
 from dotenv import load_dotenv
 
@@ -254,10 +263,12 @@ def call_gemini(prompt: str, model: str, api_key: str | None) -> str:
 
     client = genai.Client(api_key=api_key)
 
-    response = client.models.generate_content(
-        model=model,
-        contents=prompt,
-    )
+    with timed_call("evaluator_agent", model, len(prompt)) as call:
+        response = client.models.generate_content(
+            model=model,
+            contents=prompt,
+        )
+        call["response"] = response
 
     response_text = getattr(response, "text", None)
 

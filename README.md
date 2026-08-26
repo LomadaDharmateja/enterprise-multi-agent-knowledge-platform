@@ -769,6 +769,35 @@ It is designed to show how enterprise AI systems can be built beyond simple chat
 
 ---
 
+## 23b. Known Limitations
+
+Measured during the M3 evaluation (83 held-out questions). Stated here rather than in a
+footnote because a stated limitation is cheaper than a false claim.
+
+**Population counts and aggregate statistics are not supported.** The system answers
+questions about specific entities and relationships. Every SQL template is a
+`SELECT ... ORDER BY ... LIMIT :limit` over a view; none computes `COUNT`, `AVG`,
+`MEDIAN` or `SUM` across a population. So "how many orders were cancelled in total?",
+"what is the average review score across all delivered orders?" and "which state has
+the most sellers?" have no route that can answer them.
+
+The system does not guess when asked one of these. Measured behaviour on
+`"What is the total number of orders?"`:
+
+> "The provided records are insufficient to determine the total number of orders. The
+> SQL evidence returned a sample of 10 specific order records, but it does not contain
+> a count or an aggregate summary of the total order volume in the database."
+
+That is the correct outcome for an unsupported question type, and it is a deliberate
+scope boundary, not a defect awaiting a patch.
+
+**Some document fields never reach the embedded text.** `qdrant_ingest.build_document_text()`
+rebuilds each document from selected top-level keys instead of embedding the
+generator's authored `document_text`. Fields outside that selection -- `root_cause` on
+support tickets, `procedure_steps` on troubleshooting guides -- are absent from the
+retrieved text even when the correct document is retrieved. Tracked as F-10; see
+`docs/M3_FINDINGS.md`.
+
 ## 24. Future Improvements
 
 Possible future enhancements:

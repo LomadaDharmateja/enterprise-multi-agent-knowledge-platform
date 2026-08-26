@@ -389,3 +389,78 @@ must be a declared parameter of that template.
   Gemini judge with no measured human agreement. M3 calibrates it.
 - **The five validation cases are still the planner's own few-shot examples.** Nothing
   in §2 is a held-out measurement.
+
+---
+
+## 12. Post-M2 prompt correction
+
+**Found at the start of M3, while extracting the exclusion list for the held-out
+evaluation set. It is a contamination introduced by M2 itself.**
+
+The audit's P3 finding was that the five validation cases were byte-identical to the
+planner's own few-shot worked examples, so 5/5 routing accuracy was guaranteed by
+construction. M2 Task 3 extended the planner prompt with two worked examples showing
+how to emit filter values and a refusal — and used the two M2 controls as the
+illustrations:
+
+```
+User query: Which seller had the highest revenue?
+User query: purple monkey dishwasher
+```
+
+Both are frozen baseline controls. **M2 therefore raised the contamination from 5 of
+10 baseline questions to 7 of 10**, and the two questions it made worse were precisely
+the two the milestone's exit criteria turned on. The behaviour those criteria describe
+was real, but as measurements they were no longer clean: the planner had been shown the
+answer to each.
+
+### The replacement
+
+Both illustrations were replaced with questions that appear nowhere in the frozen
+baseline, nowhere in the planner's other examples, and nowhere in the 80-question M3
+set. Checked mechanically by sequence similarity against all 90 strings; the closest
+match to either replacement scores 0.588, well under the 0.70 flag threshold.
+
+| role | was | now |
+|---|---|---|
+| SQL-only plan with a bound filter and a non-default sort | `Which seller had the highest revenue?` | `List the highest-value orders placed in 2018` |
+| refusal | `purple monkey dishwasher` | `What is the capital of Portugal?` |
+
+The refusal illustration deliberately changed *kind*, not just wording. The old one
+taught the planner to refuse a nonsense token string, which is exactly the shape of the
+control. The new one is a well-formed, answerable-sounding question that this system
+simply holds no data for — a harder and more general lesson, and one that leaves the
+nonsense-string control as a genuine test rather than a recital.
+
+### Re-verification
+
+Both controls re-run end to end against the corrected prompt:
+
+| | `purple monkey dishwasher` | `Which seller had the highest revenue?` |
+|---|---|---|
+| overall status | **REFUSED** | **PASS** |
+| answerable | false | true |
+| sql / graph / vector intent | null / null / [] | `seller_performance` / null / [] |
+| sort key | — | `total_item_revenue` |
+| records (sql/graph/vector) | 0 / 0 / 0 | 10 / 0 / 0 |
+| grounding | — | 5 |
+
+Both M2 exit criteria still hold with the contamination removed.
+
+Two details are worth more than the pass/fail. The refusal reason came back as *"The
+query is incoherent and does not relate to the available business data or entity
+types"* — different wording from the removed example, so the planner is reasoning
+rather than reproducing a memorised string. And the revenue question still selected
+`total_item_revenue` as its sort key without having been shown that mapping, which is
+the specific behaviour the worked example had been teaching.
+
+Artefacts: `reports/m3_control_reverify/summary.json`.
+
+### Why this is recorded here rather than quietly fixed
+
+The whole point of the rebuild plan is that a confident write-up was wrong twice. A
+contamination introduced by the milestone that was supposed to make evaluation
+trustworthy, found one step later by the milestone that builds the evaluation set, is
+worth stating plainly. It also sets the standard for M3: **any question used to
+illustrate behaviour in a prompt is thereby disqualified as a measurement of that
+behaviour.**

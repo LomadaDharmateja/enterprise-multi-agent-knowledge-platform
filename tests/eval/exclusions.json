@@ -1,0 +1,36 @@
+{
+  "purpose": "Questions the system has already seen. No M3 evaluation item may match these.",
+  "planner_few_shot": [
+    "Find sellers with negative customer complaints, warranty issues, and relevant support policies",
+    "Investigate late delivery logistics incidents by customer region and find troubleshooting guidance",
+    "Find payment questions, refund policies, and customer support cases",
+    "Investigate product quality complaints and find troubleshooting procedures",
+    "Show seller ticket paths for negative complaints and product issues",
+    "Which seller had the highest revenue?",
+    "purple monkey dishwasher"
+  ],
+  "frozen_baseline": [
+    "Find sellers with negative customer complaints, warranty issues, and relevant support policies",
+    "Investigate late delivery logistics incidents by customer region and find troubleshooting guidance",
+    "Find payment questions, refund policies, and customer support cases",
+    "Investigate product quality complaints and find troubleshooting procedures",
+    "Show seller ticket paths for negative complaints and product issues",
+    "Which sellers have the most complaints?",
+    "Find vendors connected to poor customer experiences.",
+    "Show suppliers associated with negative reviews and warranty issues.",
+    "purple monkey dishwasher",
+    "Which seller had the highest revenue?"
+  ],
+  "union": [
+    "Find sellers with negative customer complaints, warranty issues, and relevant support policies",
+    "Investigate late delivery logistics incidents by customer region and find troubleshooting guidance",
+    "Find payment questions, refund policies, and customer support cases",
+    "Investigate product quality complaints and find troubleshooting procedures",
+    "Show seller ticket paths for negative complaints and product issues",
+    "Which seller had the highest revenue?",
+    "purple monkey dishwasher",
+    "Which sellers have the most complaints?",
+    "Find vendors connected to poor customer experiences.",
+    "Show suppliers associated with negative reviews and warranty issues."
+  ]
+}

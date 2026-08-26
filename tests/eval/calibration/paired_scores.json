@@ -1,0 +1,177 @@
+[
+  {
+    "n": 1,
+    "item": "A05",
+    "run": "full2",
+    "human": 4,
+    "evaluator": 5
+  },
+  {
+    "n": 2,
+    "item": "A01",
+    "run": "full2",
+    "human": 4,
+    "evaluator": 5
+  },
+  {
+    "n": 3,
+    "item": "B24",
+    "run": "full2",
+    "human": 5,
+    "evaluator": 5
+  },
+  {
+    "n": 4,
+    "item": "A13",
+    "run": "full2",
+    "human": 5,
+    "evaluator": 5
+  },
+  {
+    "n": 5,
+    "item": "A11",
+    "run": "full2",
+    "human": 5,
+    "evaluator": 5
+  },
+  {
+    "n": 6,
+    "item": "E72",
+    "run": "m3fix",
+    "human": 5,
+    "evaluator": 5
+  },
+  {
+    "n": 7,
+    "item": "E68",
+    "run": "full2",
+    "human": 5,
+    "evaluator": 5
+  },
+  {
+    "n": 8,
+    "item": "B21",
+    "run": "full2",
+    "human": 5,
+    "evaluator": 5
+  },
+  {
+    "n": 9,
+    "item": "E69",
+    "run": "full2",
+    "human": 5,
+    "evaluator": 5
+  },
+  {
+    "n": 10,
+    "item": "C41",
+    "run": "full2",
+    "human": 5,
+    "evaluator": 5
+  },
+  {
+    "n": 11,
+    "item": "B31",
+    "run": "full2",
+    "human": 5,
+    "evaluator": 5
+  },
+  {
+    "n": 12,
+    "item": "C48",
+    "run": "full2",
+    "human": 5,
+    "evaluator": 5
+  },
+  {
+    "n": 13,
+    "item": "B29",
+    "run": "full2",
+    "human": 5,
+    "evaluator": 5
+  },
+  {
+    "n": 14,
+    "item": "A02",
+    "run": "full2",
+    "human": 5,
+    "evaluator": 5
+  },
+  {
+    "n": 15,
+    "item": "B20",
+    "run": "m3fix",
+    "human": 5,
+    "evaluator": 5
+  },
+  {
+    "n": 16,
+    "item": "B28",
+    "run": "full2",
+    "human": 5,
+    "evaluator": 5
+  },
+  {
+    "n": 17,
+    "item": "E67",
+    "run": "full2",
+    "human": 5,
+    "evaluator": 5
+  },
+  {
+    "n": 18,
+    "item": "B22",
+    "run": "full2",
+    "human": 5,
+    "evaluator": 5
+  },
+  {
+    "n": 19,
+    "item": "B18",
+    "run": "m3fix",
+    "human": 3,
+    "evaluator": 5
+  },
+  {
+    "n": 20,
+    "item": "C33",
+    "run": "full2",
+    "human": 5,
+    "evaluator": 5
+  },
+  {
+    "n": 21,
+    "item": "B23",
+    "run": "full2",
+    "human": 2,
+    "evaluator": 2
+  },
+  {
+    "n": 22,
+    "item": "E75",
+    "run": "full2",
+    "human": 3,
+    "evaluator": 5
+  },
+  {
+    "n": 23,
+    "item": "B25",
+    "run": "full2",
+    "human": 3,
+    "evaluator": 5
+  },
+  {
+    "n": 24,
+    "item": "A09",
+    "run": "full2",
+    "human": 5,
+    "evaluator": 5
+  },
+  {
+    "n": 25,
+    "item": "E78",
+    "run": "full2",
+    "human": 5,
+    "evaluator": 5
+  }
+]
