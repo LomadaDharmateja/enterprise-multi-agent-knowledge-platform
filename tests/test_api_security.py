@@ -45,6 +45,7 @@ def test_authenticated_request_is_accepted(client, api, monkeypatch):
     def fake_workflow(query, output_dir, **_kwargs):
         return {
             "overall_status": "PASS",
+            "run_id": "stub_run",
             "query": query,
             "answer_provider": "gemini",
             "answer_model": "test",

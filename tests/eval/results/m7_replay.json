@@ -1,0 +1,157 @@
+{
+  "recorded": {
+    "run_id": "agentic_workflow_20260825T150209_69adc391",
+    "query": "For the sellers with the worst late-delivery rates, what do their customers actually complain about?",
+    "timestamp": "2026-08-25T15:02:13.783543+00:00",
+    "status": "PASS",
+    "route": {
+      "sql_intent": "seller_performance",
+      "graph_intent": "seller_ticket_product_paths",
+      "vector_artifact_groups": [
+        "support_tickets"
+      ],
+      "sql_sort_by": "late_delivery_rate"
+    },
+    "eval_item_id": "C33",
+    "eval_run_id": "run_20260825T145424Z_full2"
+  },
+  "attempts": [
+    {
+      "attempt": 1,
+      "replayed": {
+        "sql_intent": "seller_performance",
+        "graph_intent": "seller_ticket_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets",
+          "customer_emails"
+        ],
+        "sql_sort_by": "late_delivery_rate"
+      },
+      "fields": {
+        "sql_intent": {
+          "recorded": "seller_performance",
+          "replayed": "seller_performance",
+          "match": true,
+          "asserted": true
+        },
+        "graph_intent": {
+          "recorded": "seller_ticket_product_paths",
+          "replayed": "seller_ticket_product_paths",
+          "match": true,
+          "asserted": true
+        },
+        "vector_artifact_groups": {
+          "recorded": [
+            "support_tickets"
+          ],
+          "replayed": [
+            "support_tickets",
+            "customer_emails"
+          ],
+          "match": false,
+          "asserted": false
+        },
+        "sql_sort_by": {
+          "recorded": "late_delivery_rate",
+          "replayed": "late_delivery_rate",
+          "match": true,
+          "asserted": false
+        }
+      },
+      "asserted_fields_match": true,
+      "all_fields_match": false
+    },
+    {
+      "attempt": 2,
+      "replayed": {
+        "sql_intent": "seller_performance",
+        "graph_intent": "seller_ticket_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "sql_sort_by": "late_delivery_rate"
+      },
+      "fields": {
+        "sql_intent": {
+          "recorded": "seller_performance",
+          "replayed": "seller_performance",
+          "match": true,
+          "asserted": true
+        },
+        "graph_intent": {
+          "recorded": "seller_ticket_product_paths",
+          "replayed": "seller_ticket_product_paths",
+          "match": true,
+          "asserted": true
+        },
+        "vector_artifact_groups": {
+          "recorded": [
+            "support_tickets"
+          ],
+          "replayed": [
+            "support_tickets"
+          ],
+          "match": true,
+          "asserted": false
+        },
+        "sql_sort_by": {
+          "recorded": "late_delivery_rate",
+          "replayed": "late_delivery_rate",
+          "match": true,
+          "asserted": false
+        }
+      },
+      "asserted_fields_match": true,
+      "all_fields_match": true
+    },
+    {
+      "attempt": 3,
+      "replayed": {
+        "sql_intent": "seller_performance",
+        "graph_intent": "seller_ticket_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "sql_sort_by": "late_delivery_rate"
+      },
+      "fields": {
+        "sql_intent": {
+          "recorded": "seller_performance",
+          "replayed": "seller_performance",
+          "match": true,
+          "asserted": true
+        },
+        "graph_intent": {
+          "recorded": "seller_ticket_product_paths",
+          "replayed": "seller_ticket_product_paths",
+          "match": true,
+          "asserted": true
+        },
+        "vector_artifact_groups": {
+          "recorded": [
+            "support_tickets"
+          ],
+          "replayed": [
+            "support_tickets"
+          ],
+          "match": true,
+          "asserted": false
+        },
+        "sql_sort_by": {
+          "recorded": "late_delivery_rate",
+          "replayed": "late_delivery_rate",
+          "match": true,
+          "asserted": false
+        }
+      },
+      "asserted_fields_match": true,
+      "all_fields_match": true
+    }
+  ],
+  "asserted_fields": [
+    "sql_intent",
+    "graph_intent"
+  ],
+  "asserted_match_count": 3,
+  "attempt_count": 3
+}

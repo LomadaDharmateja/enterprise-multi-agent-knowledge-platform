@@ -1,0 +1,341 @@
+{
+  "items": [
+    "A03",
+    "A16",
+    "B28",
+    "C33",
+    "C37",
+    "D45",
+    "E71",
+    "E75"
+  ],
+  "repeat": 2,
+  "rows": [
+    {
+      "item": "A03",
+      "attempt": 1,
+      "recorded": {
+        "sql_intent": "seller_performance",
+        "graph_intent": "seller_ticket_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "sql_sort_by": "late_delivery_rate"
+      },
+      "replayed": {
+        "sql_intent": "seller_performance",
+        "graph_intent": "seller_ticket_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "sql_sort_by": "late_delivery_rate"
+      },
+      "asserted_match": true,
+      "all_match": true
+    },
+    {
+      "item": "A03",
+      "attempt": 2,
+      "recorded": {
+        "sql_intent": "seller_performance",
+        "graph_intent": "seller_ticket_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "sql_sort_by": "late_delivery_rate"
+      },
+      "replayed": {
+        "sql_intent": "seller_performance",
+        "graph_intent": "seller_ticket_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "sql_sort_by": "late_delivery_rate"
+      },
+      "asserted_match": true,
+      "all_match": true
+    },
+    {
+      "item": "A16",
+      "attempt": 1,
+      "recorded": {
+        "sql_intent": "seller_performance",
+        "graph_intent": "category_policy_guide_paths",
+        "vector_artifact_groups": [
+          "policy_documents"
+        ],
+        "sql_sort_by": "late_delivery_rate"
+      },
+      "replayed": {
+        "sql_intent": "seller_performance",
+        "graph_intent": "category_policy_guide_paths",
+        "vector_artifact_groups": [
+          "policy_documents"
+        ],
+        "sql_sort_by": "late_delivery_rate"
+      },
+      "asserted_match": true,
+      "all_match": true
+    },
+    {
+      "item": "A16",
+      "attempt": 2,
+      "recorded": {
+        "sql_intent": "seller_performance",
+        "graph_intent": "category_policy_guide_paths",
+        "vector_artifact_groups": [
+          "policy_documents"
+        ],
+        "sql_sort_by": "late_delivery_rate"
+      },
+      "replayed": {
+        "sql_intent": "seller_performance",
+        "graph_intent": "category_policy_guide_paths",
+        "vector_artifact_groups": [
+          "policy_documents"
+        ],
+        "sql_sort_by": "late_delivery_rate"
+      },
+      "asserted_match": true,
+      "all_match": true
+    },
+    {
+      "item": "B28",
+      "attempt": 1,
+      "recorded": {
+        "sql_intent": "seller_performance",
+        "graph_intent": "seller_ticket_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "sql_sort_by": "late_delivery_rate"
+      },
+      "replayed": {
+        "sql_intent": "seller_performance",
+        "graph_intent": "seller_ticket_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "sql_sort_by": "late_delivery_rate"
+      },
+      "asserted_match": true,
+      "all_match": true
+    },
+    {
+      "item": "B28",
+      "attempt": 2,
+      "recorded": {
+        "sql_intent": "seller_performance",
+        "graph_intent": "seller_ticket_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "sql_sort_by": "late_delivery_rate"
+      },
+      "replayed": {
+        "sql_intent": "seller_performance",
+        "graph_intent": "seller_ticket_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "sql_sort_by": "late_delivery_rate"
+      },
+      "asserted_match": true,
+      "all_match": true
+    },
+    {
+      "item": "C33",
+      "attempt": 1,
+      "recorded": {
+        "sql_intent": "seller_performance",
+        "graph_intent": "seller_ticket_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "sql_sort_by": "late_delivery_rate"
+      },
+      "replayed": {
+        "sql_intent": "seller_performance",
+        "graph_intent": "seller_ticket_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "sql_sort_by": "late_delivery_rate"
+      },
+      "asserted_match": true,
+      "all_match": true
+    },
+    {
+      "item": "C33",
+      "attempt": 2,
+      "recorded": {
+        "sql_intent": "seller_performance",
+        "graph_intent": "seller_ticket_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "sql_sort_by": "late_delivery_rate"
+      },
+      "replayed": {
+        "sql_intent": "seller_performance",
+        "graph_intent": "seller_ticket_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "sql_sort_by": "late_delivery_rate"
+      },
+      "asserted_match": true,
+      "all_match": true
+    },
+    {
+      "item": "C37",
+      "attempt": 1,
+      "recorded": {
+        "sql_intent": "product_performance",
+        "graph_intent": "category_policy_guide_paths",
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "sql_sort_by": "total_items_sold"
+      },
+      "replayed": {
+        "sql_intent": "product_performance",
+        "graph_intent": "customer_ticket_order_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "sql_sort_by": "total_items_sold"
+      },
+      "asserted_match": false,
+      "all_match": false
+    },
+    {
+      "item": "C37",
+      "attempt": 2,
+      "recorded": {
+        "sql_intent": "product_performance",
+        "graph_intent": "category_policy_guide_paths",
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "sql_sort_by": "total_items_sold"
+      },
+      "replayed": {
+        "sql_intent": "product_performance",
+        "graph_intent": "customer_ticket_order_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "sql_sort_by": "total_items_sold"
+      },
+      "asserted_match": false,
+      "all_match": false
+    },
+    {
+      "item": "E71",
+      "attempt": 1,
+      "recorded": {
+        "sql_intent": null,
+        "graph_intent": "category_policy_guide_paths",
+        "vector_artifact_groups": [
+          "policy_documents"
+        ],
+        "sql_sort_by": null
+      },
+      "replayed": {
+        "sql_intent": null,
+        "graph_intent": "category_policy_guide_paths",
+        "vector_artifact_groups": [
+          "policy_documents"
+        ],
+        "sql_sort_by": null
+      },
+      "asserted_match": true,
+      "all_match": true
+    },
+    {
+      "item": "E71",
+      "attempt": 2,
+      "recorded": {
+        "sql_intent": null,
+        "graph_intent": "category_policy_guide_paths",
+        "vector_artifact_groups": [
+          "policy_documents"
+        ],
+        "sql_sort_by": null
+      },
+      "replayed": {
+        "sql_intent": null,
+        "graph_intent": "category_policy_guide_paths",
+        "vector_artifact_groups": [
+          "policy_documents"
+        ],
+        "sql_sort_by": null
+      },
+      "asserted_match": true,
+      "all_match": true
+    },
+    {
+      "item": "E75",
+      "attempt": 1,
+      "recorded": {
+        "sql_intent": "seller_performance",
+        "graph_intent": "seller_ticket_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "sql_sort_by": "avg_review_score_worst"
+      },
+      "replayed": {
+        "sql_intent": "seller_performance",
+        "graph_intent": null,
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "sql_sort_by": "avg_review_score_worst"
+      },
+      "asserted_match": false,
+      "all_match": false
+    },
+    {
+      "item": "E75",
+      "attempt": 2,
+      "recorded": {
+        "sql_intent": "seller_performance",
+        "graph_intent": "seller_ticket_product_paths",
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "sql_sort_by": "avg_review_score_worst"
+      },
+      "replayed": {
+        "sql_intent": "seller_performance",
+        "graph_intent": null,
+        "vector_artifact_groups": [
+          "support_tickets"
+        ],
+        "sql_sort_by": "avg_review_score_worst"
+      },
+      "asserted_match": false,
+      "all_match": false
+    }
+  ],
+  "per_field": {
+    "sql_intent": {
+      "matched": 14,
+      "total": 14
+    },
+    "graph_intent": {
+      "matched": 10,
+      "total": 14
+    },
+    "vector_artifact_groups": {
+      "matched": 14,
+      "total": 14
+    },
+    "sql_sort_by": {
+      "matched": 14,
+      "total": 14
+    }
+  }
+}

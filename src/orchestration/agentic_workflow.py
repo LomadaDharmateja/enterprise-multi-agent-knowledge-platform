@@ -42,6 +42,10 @@ from gemini_query_planner import plan_query_with_gemini
 from retrieval_context_builder import build_retrieval_context
 from answer_generator import generate_answer, save_outputs, load_settings
 from observability import new_run_id, record_event, trace_span
+from opentelemetry.trace import Status, StatusCode
+
+from otel import agent_span, record_llm_usage, set_attributes, workflow_span
+from llm_usage import collect
 from query_cache import cache_enabled, get_cache
 
 class EnterpriseWorkflowState(TypedDict, total=False):
@@ -72,6 +76,7 @@ def normalize_query(query: str) -> str:
     return query.lower().strip()
 
 
+
 def query_planner_node(state: EnterpriseWorkflowState) -> EnterpriseWorkflowState:
     query = state["query"]
     run_id = state["run_id"]
@@ -81,8 +86,22 @@ def query_planner_node(state: EnterpriseWorkflowState) -> EnterpriseWorkflowStat
         component="gemini_planner_agent",
         operation="plan_query_with_gemini",
         metadata={"query": query},
-    ) as span:
-        planned_route = plan_query_with_gemini(query)
+    ) as span, agent_span(run_id, "planner", query=query) as otel_span:
+        with collect() as calls:
+            planned_route = plan_query_with_gemini(query)
+
+        record_llm_usage(otel_span, calls)
+        set_attributes(
+            otel_span,
+            {
+                "answerable": planned_route.get("answerable", True),
+                "sql_intent": planned_route.get("sql_intent"),
+                "graph_intent": planned_route.get("graph_intent"),
+                "vector_groups": planned_route.get("vector_artifact_groups") or [],
+                "dropped_filter_count": len(planned_route.get("dropped_filters") or []),
+                "model": planned_route.get("model"),
+            },
+        )
 
         span["output"] = {
             "answerable": planned_route.get("answerable", True),
@@ -279,9 +298,11 @@ def retrieval_context_node(state: EnterpriseWorkflowState) -> EnterpriseWorkflow
             vector_limit=5,
             max_records_per_section=5,
             route_plan=state["planned_route"],
+            run_id=run_id,
         )
 
         source_summary = context.get("source_summary", {})
+
 
         span["output"] = {
             "sql_intent": source_summary.get("sql", {}).get("intent"),
@@ -322,11 +343,21 @@ def answer_generation_node(state: EnterpriseWorkflowState) -> EnterpriseWorkflow
             "business_question": context.get("business_question"),
             "model": settings["gemini_model"],
         },
-    ) as span:
-        result = generate_answer(
-            context=context,
-            gemini_model=settings["gemini_model"],
-            gemini_api_key=settings["gemini_api_key"],
+    ) as span, agent_span(run_id, "answer") as otel_span:
+        with collect() as calls:
+            result = generate_answer(
+                context=context,
+                gemini_model=settings["gemini_model"],
+                gemini_api_key=settings["gemini_api_key"],
+            )
+
+        record_llm_usage(otel_span, calls)
+        set_attributes(
+            otel_span,
+            {
+                "answer_length_chars": len(result.get("answer_text", "")),
+                "model": result.get("model"),
+            },
         )
 
         save_outputs(
@@ -361,12 +392,27 @@ def answer_evaluation_node(state: EnterpriseWorkflowState) -> EnterpriseWorkflow
             "business_question": context.get("business_question"),
             "model": settings["gemini_model"],
         },
-    ) as span:
-        evaluation_result = evaluate_answer_with_gemini(
-            context=context,
-            answer_result=answer_result,
-            gemini_model=settings["gemini_model"],
-            gemini_api_key=settings["gemini_api_key"],
+    ) as span, agent_span(run_id, "evaluator") as otel_span:
+        with collect() as calls:
+            evaluation_result = evaluate_answer_with_gemini(
+                context=context,
+                answer_result=answer_result,
+                gemini_model=settings["gemini_model"],
+                gemini_api_key=settings["gemini_api_key"],
+            )
+
+        record_llm_usage(otel_span, calls)
+        summary_for_span = evaluation_result.get("summary", {})
+        set_attributes(
+            otel_span,
+            {
+                "grounding_score": summary_for_span.get("grounding_score"),
+                "completeness_score": summary_for_span.get("completeness_score"),
+                "overall_status": summary_for_span.get("overall_status"),
+                "unsupported_claim_count": len(
+                    summary_for_span.get("unsupported_claims") or []
+                ),
+            },
         )
 
         save_evaluation_output(
@@ -774,7 +820,24 @@ def run_agentic_workflow(
         "errors": [],
     }
 
-    final_state = workflow.invoke(initial_state)
+    run_id = initial_state["run_id"]
+
+    with workflow_span(run_id, query) as root:
+        final_state = workflow.invoke(initial_state)
+
+        response_for_span = final_state.get("final_response") or {}
+        set_attributes(
+            root,
+            {
+                "overall_status": response_for_span.get("overall_status"),
+                "answerable": response_for_span.get("answerable", True),
+                "refused": response_for_span.get("answerable") is False,
+                "degraded": bool(response_for_span.get("degraded")),
+                "replan_attempted": bool(
+                    (response_for_span.get("replan") or {}).get("attempted")
+                ),
+            },
+        )
 
     final_response = final_state["final_response"]
 

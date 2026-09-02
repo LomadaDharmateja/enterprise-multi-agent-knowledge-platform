@@ -1,0 +1,202 @@
+{
+  "run_id": "agentic_workflow_20260902T205350_c3932ef8",
+  "span_count": 8,
+  "root_span_id": "8631eee93e32f169",
+  "trace_id": "35c248844fd238143a8fae27b3e768de",
+  "status": "OK",
+  "duration_ms": 20491.762,
+  "spans": [
+    {
+      "name": "workflow",
+      "span_id": "8631eee93e32f169",
+      "trace_id": "35c248844fd238143a8fae27b3e768de",
+      "parent_span_id": null,
+      "status": "OK",
+      "status_description": null,
+      "duration_ms": 20491.762,
+      "ended": true,
+      "attributes": {
+        "run_id": "agentic_workflow_20260902T205350_c3932ef8",
+        "query": "For the sellers with the worst late-delivery rates, what do their customers actually complain about?",
+        "overall_status": "PASS",
+        "answerable": true,
+        "refused": false,
+        "degraded": false,
+        "replan_attempted": false
+      },
+      "events": []
+    },
+    {
+      "name": "agent.planner",
+      "span_id": "ae80e6fa4103dab5",
+      "trace_id": "35c248844fd238143a8fae27b3e768de",
+      "parent_span_id": "8631eee93e32f169",
+      "status": "OK",
+      "status_description": null,
+      "duration_ms": 6148.994,
+      "ended": true,
+      "attributes": {
+        "run_id": "agentic_workflow_20260902T205350_c3932ef8",
+        "agent_name": "planner",
+        "query": "For the sellers with the worst late-delivery rates, what do their customers actually complain about?",
+        "input_tokens": 2930,
+        "output_tokens": 146,
+        "total_tokens": 3076,
+        "cost_usd": 0.0009515,
+        "latency_ms": 4487.2,
+        "llm_calls": 1,
+        "usage_missing_calls": 0,
+        "answerable": true,
+        "sql_intent": "seller_performance",
+        "graph_intent": "seller_ticket_product_paths",
+        "vector_groups": [
+          "support_tickets"
+        ],
+        "dropped_filter_count": 0,
+        "model": "gemini-3.1-flash-lite"
+      },
+      "events": []
+    },
+    {
+      "name": "retrieval",
+      "span_id": "e0a60744ca2540e1",
+      "trace_id": "35c248844fd238143a8fae27b3e768de",
+      "parent_span_id": "8631eee93e32f169",
+      "status": "OK",
+      "status_description": null,
+      "duration_ms": 1136.748,
+      "ended": true,
+      "attributes": {
+        "run_id": "agentic_workflow_20260902T205350_c3932ef8",
+        "sql_records": 10,
+        "graph_records": 10,
+        "vector_records": 5,
+        "total_records": 25,
+        "unavailable_legs": [],
+        "evidence_confidence": "high",
+        "question_scope": "population"
+      },
+      "events": []
+    },
+    {
+      "name": "retrieval.vector",
+      "span_id": "4bb7a1a02d470c56",
+      "trace_id": "35c248844fd238143a8fae27b3e768de",
+      "parent_span_id": "e0a60744ca2540e1",
+      "status": "OK",
+      "status_description": null,
+      "duration_ms": 250.765,
+      "ended": true,
+      "attributes": {
+        "run_id": "agentic_workflow_20260902T205350_c3932ef8",
+        "retrieval_leg": "vector",
+        "record_count": 5,
+        "skipped": false,
+        "evidence_linked_filtering_applied": false,
+        "evidence_linked_filters": [],
+        "evidence_link_fallback": false,
+        "artifact_groups": [
+          "support_tickets"
+        ]
+      },
+      "events": []
+    },
+    {
+      "name": "retrieval.sql",
+      "span_id": "f24a513ba83c4564",
+      "trace_id": "35c248844fd238143a8fae27b3e768de",
+      "parent_span_id": "e0a60744ca2540e1",
+      "status": "OK",
+      "status_description": null,
+      "duration_ms": 733.309,
+      "ended": true,
+      "attributes": {
+        "run_id": "agentic_workflow_20260902T205350_c3932ef8",
+        "retrieval_leg": "sql",
+        "record_count": 10,
+        "intent": "seller_performance",
+        "skipped": false,
+        "evidence_linked_filtering_applied": false,
+        "evidence_linked_filters": [],
+        "evidence_link_fallback": false,
+        "artifact_groups": [],
+        "sort_by": "late_delivery_rate"
+      },
+      "events": []
+    },
+    {
+      "name": "retrieval.graph",
+      "span_id": "f2ca096483ef7ee4",
+      "trace_id": "35c248844fd238143a8fae27b3e768de",
+      "parent_span_id": "e0a60744ca2540e1",
+      "status": "OK",
+      "status_description": null,
+      "duration_ms": 150.428,
+      "ended": true,
+      "attributes": {
+        "run_id": "agentic_workflow_20260902T205350_c3932ef8",
+        "retrieval_leg": "graph",
+        "record_count": 10,
+        "intent": "seller_ticket_product_paths",
+        "skipped": false,
+        "evidence_linked_filtering_applied": true,
+        "evidence_linked_filters": [
+          "seller_ids"
+        ],
+        "evidence_link_fallback": false,
+        "artifact_groups": []
+      },
+      "events": []
+    },
+    {
+      "name": "agent.answer",
+      "span_id": "610b00c534491efd",
+      "trace_id": "35c248844fd238143a8fae27b3e768de",
+      "parent_span_id": "8631eee93e32f169",
+      "status": "OK",
+      "status_description": null,
+      "duration_ms": 8358.076,
+      "ended": true,
+      "attributes": {
+        "run_id": "agentic_workflow_20260902T205350_c3932ef8",
+        "agent_name": "answer",
+        "input_tokens": 3438,
+        "output_tokens": 892,
+        "total_tokens": 4330,
+        "cost_usd": 0.0021975,
+        "latency_ms": 7905.3,
+        "llm_calls": 1,
+        "usage_missing_calls": 0,
+        "answer_length_chars": 3142,
+        "model": "gemini-3.1-flash-lite"
+      },
+      "events": []
+    },
+    {
+      "name": "agent.evaluator",
+      "span_id": "136a0b7ff69944b8",
+      "trace_id": "35c248844fd238143a8fae27b3e768de",
+      "parent_span_id": "8631eee93e32f169",
+      "status": "OK",
+      "status_description": null,
+      "duration_ms": 4585.257,
+      "ended": true,
+      "attributes": {
+        "run_id": "agentic_workflow_20260902T205350_c3932ef8",
+        "agent_name": "evaluator",
+        "input_tokens": 9225,
+        "output_tokens": 249,
+        "total_tokens": 9474,
+        "cost_usd": 0.00267975,
+        "latency_ms": 4129.7,
+        "llm_calls": 1,
+        "usage_missing_calls": 0,
+        "grounding_score": 5,
+        "completeness_score": 5,
+        "overall_status": "PASS",
+        "unsupported_claim_count": 0
+      },
+      "events": []
+    }
+  ]
+}

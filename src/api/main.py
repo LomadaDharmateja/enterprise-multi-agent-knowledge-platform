@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import secrets
 import sys
 import uuid
@@ -31,6 +32,7 @@ for _directory in (ORCHESTRATION_DIR, RETRIEVAL_DIR, OBSERVABILITY_DIR):
 from agentic_workflow import run_agentic_workflow
 from hybrid_retriever import get_embedding_model, load_settings
 from query_cache import get_cache
+from otel import memory_store, span_to_dict
 
 
 
@@ -99,6 +101,9 @@ class QueryRequest(BaseModel):
 
 class QueryResponse(BaseModel):
     overall_status: str
+    # The handle for GET /traces/{run_id}. Without it a caller cannot ask for the
+    # trace of the request it just made.
+    run_id: str
     query: str
     answer_provider: str
     answer_model: str
@@ -183,6 +188,7 @@ def root() -> dict[str, Any]:
         "endpoints": {
             "health": "GET /health",
             "query": "POST /query",
+            "traces": "GET /traces/{run_id}",
             "docs": "GET /docs",
         },
     }
@@ -329,6 +335,7 @@ def query(
 
         return QueryResponse(
             overall_status=result["overall_status"],
+            run_id=result["run_id"],
             query=result["query"],
             answer_provider=result["answer_provider"],
             answer_model=result["answer_model"],
@@ -369,3 +376,86 @@ def cache_stats() -> CacheStatsResponse:
     upper bound rather than a measurement of the specific queries served.
     """
     return CacheStatsResponse(**get_cache().as_dict(MEAN_TOKENS_PER_QUERY))
+
+
+# --------------------------------------------------------------------------------
+# Trace viewer (M7 Task 4)
+# --------------------------------------------------------------------------------
+#
+# The M7 exit criterion is that a failing run is diagnosable from the trace alone,
+# without re-running it. That requires the trace to be *reachable*, so this reads the
+# in-memory span store the OTel provider exports to alongside console or OTLP.
+#
+# The store is bounded at 50 runs and lives in the API process. It is a viewer, not a
+# backend: for retention, set OTEL_EXPORTER=otlp and read the collector. A run that has
+# aged out returns 404, which is honest -- an empty span list would read as "this run
+# produced no spans", which is a different and much worse claim.
+
+RUN_ID_PATTERN = re.compile(r"^[A-Za-z0-9_.:-]{1,128}$")
+
+
+class TraceResponse(BaseModel):
+    run_id: str
+    span_count: int
+    root_span_id: str | None
+    trace_id: str | None
+    status: str | None
+    duration_ms: float | None
+    spans: list[dict[str, Any]]
+
+
+@app.get("/traces/{run_id}", response_model=TraceResponse)
+def get_trace(
+    run_id: str,
+    _token: str = Depends(require_bearer_token),
+) -> TraceResponse:
+    """The OTel spans for one run: name, status, attributes, duration and parent."""
+    if not RUN_ID_PATTERN.match(run_id):
+        raise HTTPException(status_code=400, detail="Malformed run_id.")
+
+    spans = memory_store().spans_for(run_id)
+
+    if not spans:
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                f"No trace held for run_id {run_id!r}. The in-memory store keeps the "
+                f"{memory_store().max_runs} most recent runs of this process."
+            ),
+        )
+
+    # Spans arrive in completion order, which puts a parent after every one of its
+    # children. Chronological order is the fix -- but start_time alone is not enough:
+    # `time_ns()` resolves to ~0.4 ms on this Windows host, and a parent and the child
+    # opened immediately inside it land on the same tick. Measured on a live run:
+    # `retrieval` and `retrieval.vector` shared a start_time to the nanosecond, and a
+    # stable sort then listed the child above its own parent. Depth breaks the tie, so
+    # a parent always precedes its children no matter how fast the clock is.
+    payload = [span_to_dict(span) for span in spans]
+    starts = {d["span_id"]: (s.start_time or 0) for d, s in zip(payload, spans)}
+    parents = {s["span_id"]: s["parent_span_id"] for s in payload}
+
+    def depth(span_id: str) -> int:
+        seen, levels = set(), 0
+        parent = parents.get(span_id)
+
+        while parent is not None and parent in parents and parent not in seen:
+            seen.add(parent)
+            levels += 1
+            parent = parents.get(parent)
+
+        return levels
+
+    payload.sort(key=lambda s: (starts[s["span_id"]], depth(s["span_id"])))
+
+    root = next((s for s in payload if s["parent_span_id"] is None), None)
+
+    return TraceResponse(
+        run_id=run_id,
+        span_count=len(payload),
+        root_span_id=root["span_id"] if root else None,
+        trace_id=payload[0]["trace_id"] if payload else None,
+        status=root["status"] if root else None,
+        duration_ms=root["duration_ms"] if root else None,
+        spans=payload,
+    )

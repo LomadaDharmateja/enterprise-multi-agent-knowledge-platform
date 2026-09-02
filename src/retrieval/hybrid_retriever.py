@@ -25,6 +25,7 @@ _OBSERVABILITY_DIR = Path(__file__).resolve().parents[2] / "src" / "observabilit
 if str(_OBSERVABILITY_DIR) not in sys.path:
     sys.path.append(str(_OBSERVABILITY_DIR))
 
+from otel import retrieval_parent_span, retrieval_span, set_attributes  # noqa: E402
 from resilience import (  # noqa: E402
     DependencyUnavailable,
     breaker_states,
@@ -325,6 +326,30 @@ def unavailable_leg_result(source: str, error: Exception) -> dict[str, Any]:
         "unavailable_reason": str(error),
         "unavailable_dependency": getattr(error, "dependency", source),
     }
+
+
+def annotate_leg_span(span: Any, result: dict[str, Any]) -> None:
+    """Put the leg's outcome on its span while the span is still open.
+
+    Emitted inside the call rather than reconstructed afterwards, so start and end
+    times bracket the actual database work and `duration_ms` is a measurement rather
+    than a zero.
+    """
+    set_attributes(
+        span,
+        {
+            "record_count": result.get("record_count", 0),
+            "intent": result.get("intent"),
+            "skipped": bool(result.get("skipped")),
+            "evidence_linked_filtering_applied": bool(
+                result.get("evidence_linked_filters")
+            ),
+            "evidence_linked_filters": result.get("evidence_linked_filters") or [],
+            "evidence_link_fallback": bool(result.get("evidence_link_fallback")),
+            "artifact_groups": result.get("artifact_groups") or [],
+            "sort_by": result.get("sort_by"),
+        },
+    )
 
 
 def skipped_leg_result(source: str) -> dict[str, Any]:
@@ -1225,6 +1250,7 @@ def run_hybrid_retrieval(
     route_plan: dict[str, Any] | None = None,
     evidence_linked_filtering: bool | None = None,
     embedding_model: SentenceTransformer | None = None,
+    run_id: str = "unknown",
 ) -> dict[str, Any]:
     settings = load_settings()
 
@@ -1256,6 +1282,7 @@ def run_hybrid_retrieval(
     link_enabled = evidence_linked_filtering_enabled(evidence_linked_filtering)
 
     try:
+      with retrieval_parent_span(run_id) as _retrieval_parent:
         print("Running vector retrieval...")
         if forced_vector_groups == []:
             vector_results = {
@@ -1267,15 +1294,17 @@ def run_hybrid_retrieval(
             }
         else:
             try:
-                vector_results = vector_retrieve(
-                    client=qdrant_client,
-                    model=embedding_model,
-                    collection_name=settings["qdrant_collection"],
-                    query=query,
-                    per_group_limit=vector_limit,
-                    forced_artifact_groups=forced_vector_groups,
-                )
-                vector_results["skipped"] = False
+                with retrieval_span(run_id, "vector") as _span:
+                    vector_results = vector_retrieve(
+                        client=qdrant_client,
+                        model=embedding_model,
+                        collection_name=settings["qdrant_collection"],
+                        query=query,
+                        per_group_limit=vector_limit,
+                        forced_artifact_groups=forced_vector_groups,
+                    )
+                    vector_results["skipped"] = False
+                    annotate_leg_span(_span, vector_results)
             except DependencyUnavailable as exc:
                 print(f"  qdrant unavailable: {exc}")
                 vector_results = {
@@ -1307,82 +1336,91 @@ def run_hybrid_retrieval(
         if forced_sql_intent is None:
             sql_results = skipped_leg_result("postgresql")
         else:
-          try:
-            sql_results = sql_retrieve(
-                engine=postgres_engine,
-                query=query,
-                limit=sql_limit,
-                forced_intent=forced_sql_intent,
-                filters=sql_filters,
-                sort_by=planner_sort_by,
-            )
-            sql_results["evidence_linked_filters"] = sql_linked
+            try:
+                with retrieval_span(run_id, "sql") as sql_span:
+                    sql_results = sql_retrieve(
+                        engine=postgres_engine,
+                        query=query,
+                        limit=sql_limit,
+                        forced_intent=forced_sql_intent,
+                        filters=sql_filters,
+                        sort_by=planner_sort_by,
+                    )
+                    sql_results["evidence_linked_filters"] = sql_linked
 
-            # Evidence linking is an enrichment the question did not ask for, so it
-            # must never be the reason a leg comes back empty. The planner's own
-            # filters may legitimately return nothing -- that is the user's question
-            # answering itself -- but the intersection of those filters with IDs
-            # harvested from the vector leg can be empty when neither is. Fall back,
-            # and record it, rather than handing the answer agent an empty table.
-            # Two triggers, not one. `== 0` missed C43, which returned 2 rows from a
-            # 5-seller harvested set and looked like a real answer. A leg narrowed by
-            # harvested IDs to a handful of rows is a subset masquerading as a ranking.
-            filtered_count = sql_results["record_count"]
+                    # Evidence linking is an enrichment the question did not ask for,
+                    # so it must never be the reason a leg comes back empty. Two
+                    # triggers, not one: `== 0` missed C43, which returned 2 rows from
+                    # a 5-seller harvested set and looked like a real answer.
+                    filtered_count = sql_results["record_count"]
 
-            if sql_linked and filtered_count < EVIDENCE_LINK_MIN_ROWS:
-                sql_results = sql_retrieve(
-                    engine=postgres_engine,
-                    query=query,
-                    limit=sql_limit,
-                    forced_intent=forced_sql_intent,
-                    filters=planner_sql_filters,
-                    sort_by=planner_sort_by,
-                )
-                sql_results["evidence_linked_filters"] = []
-                sql_results["evidence_link_fallback"] = True
-                sql_results["evidence_link_filtered_count"] = filtered_count
-                sql_results["evidence_link_unfiltered_count"] = sql_results["record_count"]
-                sql_results["confidence_flag"] = (
-                    "filtered_subset_warning" if filtered_count > 0 else None
-                )
-          except DependencyUnavailable as exc:
-            print(f"  postgresql unavailable: {exc}")
-            sql_results = unavailable_leg_result("postgresql", exc)
+                    if sql_linked and filtered_count < EVIDENCE_LINK_MIN_ROWS:
+                        sql_results = sql_retrieve(
+                            engine=postgres_engine,
+                            query=query,
+                            limit=sql_limit,
+                            forced_intent=forced_sql_intent,
+                            filters=planner_sql_filters,
+                            sort_by=planner_sort_by,
+                        )
+                        sql_results["evidence_linked_filters"] = []
+                        sql_results["evidence_link_fallback"] = True
+                        sql_results["evidence_link_filtered_count"] = filtered_count
+                        sql_results["evidence_link_unfiltered_count"] = sql_results[
+                            "record_count"
+                        ]
+                        sql_results["confidence_flag"] = (
+                            "filtered_subset_warning" if filtered_count > 0 else None
+                        )
+
+                    # Annotated unconditionally, and inside the span, so the attributes
+                    # describe the leg that actually ran -- fallback included.
+                    annotate_leg_span(sql_span, sql_results)
+            except DependencyUnavailable as exc:
+                print(f"  postgresql unavailable: {exc}")
+                sql_results = unavailable_leg_result("postgresql", exc)
 
         print("Running graph retrieval...")
         if forced_graph_intent is None:
             graph_results = skipped_leg_result("neo4j")
         else:
-          try:
-            graph_results = graph_retrieve(
-                driver=neo4j_driver,
-                query=query,
-                limit=graph_limit,
-                forced_intent=forced_graph_intent,
-                filters=graph_filters,
-            )
-            graph_results["evidence_linked_filters"] = graph_linked
+            try:
+                with retrieval_span(run_id, "graph") as graph_span:
+                    graph_results = graph_retrieve(
+                        driver=neo4j_driver,
+                        query=query,
+                        limit=graph_limit,
+                        forced_intent=forced_graph_intent,
+                        filters=graph_filters,
+                    )
+                    graph_results["evidence_linked_filters"] = graph_linked
 
-            graph_filtered_count = graph_results["record_count"]
+                    graph_filtered_count = graph_results["record_count"]
 
-            if graph_linked and graph_filtered_count < EVIDENCE_LINK_MIN_ROWS:
-                graph_results = graph_retrieve(
-                    driver=neo4j_driver,
-                    query=query,
-                    limit=graph_limit,
-                    forced_intent=forced_graph_intent,
-                    filters=planner_graph_filters,
-                )
-                graph_results["evidence_linked_filters"] = []
-                graph_results["evidence_link_fallback"] = True
-                graph_results["evidence_link_filtered_count"] = graph_filtered_count
-                graph_results["evidence_link_unfiltered_count"] = graph_results["record_count"]
-                graph_results["confidence_flag"] = (
-                    "filtered_subset_warning" if graph_filtered_count > 0 else None
-                )
-          except DependencyUnavailable as exc:
-            print(f"  neo4j unavailable: {exc}")
-            graph_results = unavailable_leg_result("neo4j", exc)
+                    if graph_linked and graph_filtered_count < EVIDENCE_LINK_MIN_ROWS:
+                        graph_results = graph_retrieve(
+                            driver=neo4j_driver,
+                            query=query,
+                            limit=graph_limit,
+                            forced_intent=forced_graph_intent,
+                            filters=planner_graph_filters,
+                        )
+                        graph_results["evidence_linked_filters"] = []
+                        graph_results["evidence_link_fallback"] = True
+                        graph_results["evidence_link_filtered_count"] = graph_filtered_count
+                        graph_results["evidence_link_unfiltered_count"] = graph_results[
+                            "record_count"
+                        ]
+                        graph_results["confidence_flag"] = (
+                            "filtered_subset_warning"
+                            if graph_filtered_count > 0
+                            else None
+                        )
+
+                    annotate_leg_span(graph_span, graph_results)
+            except DependencyUnavailable as exc:
+                print(f"  neo4j unavailable: {exc}")
+                graph_results = unavailable_leg_result("neo4j", exc)
 
         accepted_filter_count = len(planner_sql_filters) + len(planner_graph_filters)
 
@@ -1424,6 +1462,27 @@ def run_hybrid_retrieval(
                 "vector": vector_results,
             },
         }
+
+        set_attributes(
+            _retrieval_parent,
+            {
+                "sql_records": sql_results["record_count"],
+                "graph_records": graph_results["record_count"],
+                "vector_records": vector_results["record_count"],
+                "total_records": (
+                    sql_results["record_count"]
+                    + graph_results["record_count"]
+                    + vector_results["record_count"]
+                ),
+                "unavailable_legs": [
+                    leg["source"]
+                    for leg in (sql_results, graph_results, vector_results)
+                    if leg.get("unavailable")
+                ],
+                "evidence_confidence": evidence_quality.get("confidence"),
+                "question_scope": scope["scope"],
+            },
+        )
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
