@@ -1,0 +1,772 @@
+[
+  {
+    "id": 1,
+    "claim": "99,441 customers",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`psql -c \"select count(*) from ecommerce.customers\"` → 99441",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 2,
+    "claim": "3,095 sellers",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "→ 3095",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 3,
+    "claim": "32,340 products",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "→ 32340",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 4,
+    "claim": "99,441 orders",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "→ 99441",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 5,
+    "claim": "111,046 order items",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "→ 111046",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 6,
+    "claim": "103,886 payments",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "→ 103886",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 7,
+    "claim": "99,224 reviews",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "→ 99224",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 8,
+    "claim": "73 product-category translations",
+    "verdict_raw": "CAVEAT",
+    "evidence": "73 rows, but `product_category_name_english` NULL in 73/73 — F-04. Row count right, content absent",
+    "baseline": "CAVEAT"
+  },
+  {
+    "id": 9,
+    "claim": "\"created the database schema, added indexes\"",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`database/postgres/schema.sql`, `indexes.sql`; 22 indexes live in `pg_indexes`",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 10,
+    "claim": "\"created and validated six business views\"",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "6 views in `pg_views`; `views.sql` has 6 `CREATE`; `sql_view_validator.py` exercises them",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 11,
+    "claim": "\"validated the database by checking expected row counts and testing the business views\"",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`postgres_validator.py`, `sql_view_validator.py`; both ran PASS",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 12,
+    "claim": "Graph has nine node types",
+    "verdict_raw": "CAVEAT",
+    "evidence": "The nine Olist labels exist; the loaded graph has **15** labels (6 synthetic). Undercount, not overcount",
+    "baseline": "CAVEAT"
+  },
+  {
+    "id": 13,
+    "claim": "Eight main relationship types",
+    "verdict_raw": "CAVEAT",
+    "evidence": "All 8 present with correct counts; the graph actually has **24** types. Undercount",
+    "baseline": "CAVEAT"
+  },
+  {
+    "id": 14,
+    "claim": "`Customer PLACED Order` = 99,441 etc.",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`MATCH ()-[r]->() RETURN type(r), count(*)` — all 8 match the row counts exactly",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 15,
+    "claim": "\"created graph constraints and indexes\"",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`SHOW CONSTRAINTS` → 15; `SHOW INDEXES` → 38",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 16,
+    "claim": "Validation checks node counts, rel counts, missing rels, orphans, business paths",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`neo4j_validator.py:69-208`; ran it, all present",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 17,
+    "claim": "Validated path `Customer→Order→Payment`",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`customer_order_payment_paths: 103886`",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 18,
+    "claim": "Validated path `Customer→Order→Review`",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`customer_order_review_paths: 99224`",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 19,
+    "claim": "Validated `Negative Review→Order→OrderItem→Product→Seller`",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`negative_review_product_seller_paths: 17756`",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 20,
+    "claim": "\"All orphan checks passed with zero missing mandatory relationships\"",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "9/9 orphan checks = 0, live",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 21,
+    "claim": "3,000 support tickets",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`wc -l data/synthetic/support_tickets.jsonl` → 3000",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 22,
+    "claim": "3,000 customer emails",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "→ 3000",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 23,
+    "claim": "1,000 logistics incidents",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "→ 1000",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 24,
+    "claim": "1,000 warranty claims",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "→ 1000",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 25,
+    "claim": "79 policy documents",
+    "verdict_raw": "CAVEAT",
+    "evidence": "79 files; 73 are the same template with the category name swapped — F-15",
+    "baseline": "CAVEAT"
+  },
+  {
+    "id": 26,
+    "claim": "73 troubleshooting guides",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "→ 73",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 27,
+    "claim": "8,152 total synthetic records",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "sum = 8152; Qdrant `points_count: 8152`",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 28,
+    "claim": "Records connected to Olist entities via customer/order/product/seller ID",
+    "verdict_raw": "CAVEAT",
+    "evidence": "True in the JSONL (`build_linked_entities`, generator:299). But emails are an entity-clone of tickets and warranty claims a subset, so 8,152 artifacts cover 3,337 distinct orders — 3.4% (P1)",
+    "baseline": "CAVEAT"
+  },
+  {
+    "id": 29,
+    "claim": "\"allowed vector-search results to be connected back to PostgreSQL and Neo4j evidence\"",
+    "verdict_raw": "**CONTRADICTED**",
+    "evidence": "0 of 8,152 Qdrant points carry customer/order/product/seller ID — F-01",
+    "baseline": "CONTRADICTED"
+  },
+  {
+    "id": 30,
+    "claim": "\"a retrieved warranty claim could reference a product ID and seller ID that also existed in PostgreSQL and Neo4j\"",
+    "verdict_raw": "**CONTRADICTED**",
+    "evidence": "Warranty-claim payload keys: `artifact_group, artifact_type, claim_id, created_at, document_type, entity_ids{claim_id}, ingested_at, severity, source_file, stable_document_id, text, title`. No product or seller ID",
+    "baseline": "CONTRADICTED"
+  },
+  {
+    "id": 31,
+    "claim": "Used `all-MiniLM-L6-v2`",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`.env` + `qdrant_ingest.py:468`; re-encode cos = 1.0",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 32,
+    "claim": "Produces 384-dimensional vectors",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`/collections/enterprise_knowledge` → `\"size\":384`; `get_embedding_dimension()` → 384",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 33,
+    "claim": "Collection `enterprise_knowledge` with all 8,152 artifacts indexed",
+    "verdict_raw": "CAVEAT",
+    "evidence": "Collection and count correct; `indexed_vectors_count: 0` — below the 10,000 HNSW threshold, so searches are brute-force",
+    "baseline": "CAVEAT"
+  },
+  {
+    "id": 34,
+    "claim": "Each record contains embedding, original text, artifact type, record id, entity IDs, metadata",
+    "verdict_raw": "**CONTRADICTED**",
+    "evidence": "Embedding ✓, `text` ✓, `artifact_type` ✓, own record id ✓. **Entity IDs absent** (F-01); `entity_ids` holds only the artifact's own id",
+    "baseline": "CONTRADICTED"
+  },
+  {
+    "id": 35,
+    "claim": "Planner could restrict retrieval to specific artifact groups",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`build_artifact_filter` (`hybrid_retriever.py:392`); per-group filtering observed in live runs",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 36,
+    "claim": "\"no traditional chunking needed — records are short\"",
+    "verdict_raw": "CAVEAT",
+    "evidence": "True for 4/6 groups; 763/8152 (9.4%) exceed the 256-token window and are silently truncated, incl. 74% of troubleshooting guides — F-10",
+    "baseline": "CAVEAT"
+  },
+  {
+    "id": 37,
+    "claim": "PostgreSQL for exact facts, Neo4j for relationships, Qdrant for semantics",
+    "verdict_raw": "CAVEAT",
+    "evidence": "Each source is used for its stated role, but the SQL/graph legs are query-invariant lookups — F-03",
+    "baseline": "CAVEAT"
+  },
+  {
+    "id": 38,
+    "claim": "\"For complex questions, the system could use two or all three sources\"",
+    "verdict_raw": "**CONTRADICTED**",
+    "evidence": "It always uses all three. `run_hybrid_retrieval` (`hybrid_retriever.py:517-548`) calls `sql_retrieve`, `graph_retrieve`, `vector_retrieve` unconditionally; the plan schema requires all three fields",
+    "baseline": "CONTRADICTED"
+  },
+  {
+    "id": 39,
+    "claim": "\"deterministic retrieval tools instead of unrestricted database commands\"",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "Template dicts at `hybrid_retriever.py:184` and `:306`; 8/8 attacks blocked",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 40,
+    "claim": "\"LLM could not generate and execute arbitrary SQL, Cypher, Python or shell\"",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "P2 attacks 1-2",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 41,
+    "claim": "\"An LLM interprets the user's objective\"",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`plan_query_with_gemini` at `agentic_workflow.py:111`",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 42,
+    "claim": "\"It dynamically selects tools and data sources\"",
+    "verdict_raw": "**CONTRADICTED**",
+    "evidence": "Selects an *intent within* each source; all three sources always execute — see #38",
+    "baseline": "CONTRADICTED"
+  },
+  {
+    "id": 43,
+    "claim": "\"Multiple specialised agents perform different responsibilities\"",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "Three distinct Gemini calls with distinct prompts: planner, answerer, evaluator",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 44,
+    "claim": "\"LangGraph maintains shared state across the workflow\"",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`StateGraph(EnterpriseWorkflowState)`, `agentic_workflow.py:293-309`",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 45,
+    "claim": "\"The final answer is evaluated by another agent\"",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`answer_evaluation_node`, `agentic_workflow.py:213-254`",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 46,
+    "claim": "Workflow order: planner→retrieval→context→answer→eval→response",
+    "verdict_raw": "CAVEAT",
+    "evidence": "Correct, but it is a **strictly linear chain** — no conditional edges, no branches (`agentic_workflow.py:299-307`). LangGraph provides typed state passing over a 5-step function pipeline",
+    "baseline": "CAVEAT"
+  },
+  {
+    "id": 47,
+    "claim": "Shared state contains query, plan, routes, SQL/graph/vector results, context, answer, evaluation, status",
+    "verdict_raw": "CAVEAT",
+    "evidence": "All present in `EnterpriseWorkflowState:46-61`, except `errors`, which is initialised and never written — F-13",
+    "baseline": "CAVEAT"
+  },
+  {
+    "id": 48,
+    "claim": "Planner receives question + source info + allowed SQL/graph/vector routes + output format",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`build_planner_prompt`, `gemini_query_planner.py:50-172`",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 49,
+    "claim": "\"if the question asks for the highest-revenue seller, the planner should select PostgreSQL\"",
+    "verdict_raw": "**CONTRADICTED**",
+    "evidence": "Live: `\"Which seller had the highest revenue?\"` → `ValueError: Invalid graph intent from Gemini: None`. A SQL-only plan is unrepresentable",
+    "baseline": "CONTRADICTED"
+  },
+  {
+    "id": 50,
+    "claim": "\"The planner output was validated and mapped to predefined deterministic retrieval functions\"",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`validate_and_normalize_plan:190-231` → template dict lookup",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 51,
+    "claim": "Tools return predictable dicts and lists, not free-form text",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`hybrid_retriever.py:293-300`, `:383-390`, `:485-493`",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 52,
+    "claim": "Context builder normalises, separates sources, groups by entity ID, removes fields, builds evidence",
+    "verdict_raw": "CAVEAT",
+    "evidence": "Normalise/separate/remove ✓ (`retrieval_context_builder.py:114-146`). \"Group related evidence using entity IDs\" collects IDs from SQL and graph only — the vector leg contributes none (F-01)",
+    "baseline": "CAVEAT"
+  },
+  {
+    "id": 53,
+    "claim": "\"The context-builder validator passed all five representative validation cases\"",
+    "verdict_raw": "CAVEAT",
+    "evidence": "The five cases are byte-identical to the workflow validator's and to the planner's own few-shot examples — P3. Not independent evidence",
+    "baseline": "CAVEAT"
+  },
+  {
+    "id": 54,
+    "claim": "Answer agent receives question + context + grounding instructions",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`reports/api_runs/.../workflow_prompt.txt` — all instructions present verbatim",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 55,
+    "claim": "\"The answer agent does not independently access unrestricted tools\"",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`generate_answer(context, model, key)` — no tool bindings, no function calling",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 56,
+    "claim": "Evaluator checks grounding, completeness, unsupported claims, missing evidence, business usefulness",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`build_evaluation_prompt:105-119`; output schema at `:120-134`",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 57,
+    "claim": "Evaluator output includes the three scores, unsupported claims, missing evidence, deterministic failures, status",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`normalize_evaluation:296-318`",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 58,
+    "claim": "\"I also used deterministic checks alongside the LLM evaluator\"",
+    "verdict_raw": "**CONTRADICTED** in substance",
+    "evidence": "The 5 checks are keyword-presence and length; 4 of 5 are `severity: medium` and cannot cause a FAIL. Only `len >= 1000` is decisive — `gemini_answer_evaluator.py:210-296`",
+    "baseline": "CONTRADICTED"
+  },
+  {
+    "id": 59,
+    "claim": "\"the workflow stops after evaluation; no automatic replanning\"",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`agentic_workflow.py:299-307` — linear edges only, no conditional edge, no loop",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 60,
+    "claim": "Two endpoints `GET /health` and `POST /query`",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`main.py:74`, `:82`. (A third undocumented `GET /` exists at `:61`)",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 61,
+    "claim": "\"`/health` checks whether the backend and workflow are available\"",
+    "verdict_raw": "**CONTRADICTED**",
+    "evidence": "Static literal (`main.py:73-79`); returned `ok` live while all four dependencies were unreachable — F-07",
+    "baseline": "CONTRADICTED"
+  },
+  {
+    "id": 62,
+    "claim": "`/query` accepts an NL question, runs the workflow, returns structured JSON",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`main.py:82-116`; 200 OK observed in container logs",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 63,
+    "claim": "Response contains status, answer, SQL/graph/vector route summaries, evaluation, report locations",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`QueryResponse:33-42`; matches `workflow_report.json`",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 64,
+    "claim": "\"The API validator passed two endpoint checks and five query cases\"",
+    "verdict_raw": "**CONTRADICTED** as a current statement",
+    "evidence": "Was true on 2026-07-12 (`reports/api_validation_report.json`). Today: 2 endpoint checks pass, first query case → HTTP 500 — F-14. The 2 endpoint checks also assert only hardcoded literals, and the 5 query cases are the same 5",
+    "baseline": "CONTRADICTED"
+  },
+  {
+    "id": 65,
+    "claim": "Streamlit shows health, question box, examples, run, answer, routes, artifact groups, eval scores, unsupported claims, missing evidence, reports",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`streamlit_app.py:61-193, 198-290` — every listed feature present",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 66,
+    "claim": "\"Streamlit communicates with FastAPI rather than the databases\"",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "Only `requests.get/post` to `API_BASE_URL` (`streamlit_app.py:22-38`); no DB driver imported",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 67,
+    "claim": "Observability writes JSONL events, CSV metrics and a report to `reports/observability`",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`workflow_events.jsonl` + `workflow_metrics.csv` present; `observability_report.py` exists",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 68,
+    "claim": "\"A successful run produced eight events across four traced components\"",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "Live: 28 of 31 runs have exactly 8 events across 4 components — planner, hybrid retrieval, answer, evaluation. Exactly as claimed",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 69,
+    "claim": "Logs record operation, start, completion, status, duration, error, run metadata",
+    "verdict_raw": "CAVEAT",
+    "evidence": "All fields present; one run carries a genuine `span_error` with `OperationalError` detail. But crashes *between* spans leave a truncated all-PASS trace — F-19. Also `operation` is `plan_query_route`, a dead function — F-13",
+    "baseline": "CAVEAT"
+  },
+  {
+    "id": 70,
+    "claim": "\"Token counts were not added to the observability system\"",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "No token field in any of 233 events; the only metric name is `duration_ms`",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 71,
+    "claim": "Five Docker services run separately",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`docker-compose.yml` — postgres, neo4j, qdrant, api, ui; all five containers running",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 72,
+    "claim": "Services communicate via Docker network service names",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`docker-compose.yml:54-58` sets `POSTGRES_HOST: postgres`, `NEO4J_URI: bolt://neo4j:7687`, `QDRANT_HOST: qdrant`; UI gets `API_BASE_URL: http://api:8000`",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 73,
+    "claim": "\"I performed a complete local Docker runtime test; all nine items passed\"",
+    "verdict_raw": "CAVEAT",
+    "evidence": "Credible for 2026-07-12 (dated reports exist). Not reproducible today: `/query` 500s in-container — F-14",
+    "baseline": "CAVEAT"
+  },
+  {
+    "id": 74,
+    "claim": "\"The final agentic workflow passed all five cases\"",
+    "verdict_raw": "CAVEAT",
+    "evidence": "Reproduced live today: 5/5 PASS, identical routes and scores. But the five cases are the planner's own few-shot examples — P3",
+    "baseline": "CAVEAT"
+  },
+  {
+    "id": 75,
+    "claim": "\"I would not describe this as 100% general accuracy\"",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "Correct, and understated — 1/3 on the document's own paraphrases (P3)",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 76,
+    "claim": "\"I did not create a large benchmark with hundreds of human-labelled questions\"",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "No labelled dataset anywhere in the repo",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 77,
+    "claim": "Did not measure precision / recall / hallucination rate / planner accuracy / latency / p95 / tokens / cost / concurrency",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "No such code exists. `duration_ms` is recorded but never aggregated into p50/p95",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 78,
+    "claim": "\"The LLM cannot execute arbitrary shell commands\"",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "No `subprocess`, `os.system`, `eval` or `exec` anywhere in `src/`",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 79,
+    "claim": "\"The LLM cannot run unrestricted Python\"",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "Same",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 80,
+    "claim": "\"It does not generate and execute arbitrary SQL or Cypher\"",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "P2 attacks 1-2",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 81,
+    "claim": "\"Tool actions are allowlisted\"",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`gemini_query_planner.py:13-38` + fail-closed validation; note the vector-group allowlist exists only at the planner (`hybrid_retriever.py:392` fails open)",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 82,
+    "claim": "\"The runtime workflow is intended to be read-only\"",
+    "verdict_raw": "**CONTRADICTED**",
+    "evidence": "Superuser account; `engine.begin()` commits; `session.run()` writes; Qdrant unauthenticated — P2 attacks 3-4",
+    "baseline": "CONTRADICTED"
+  },
+  {
+    "id": 83,
+    "claim": "\"Credentials are provided through environment configuration\"",
+    "verdict_raw": "CAVEAT",
+    "evidence": "True, but the real working passwords are also source-code defaults in 17 places — F-17",
+    "baseline": "CAVEAT"
+  },
+  {
+    "id": 84,
+    "claim": "\"The project uses structured API requests\"",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "Pydantic `QueryRequest`/`QueryResponse`, `main.py:22-46`",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 85,
+    "claim": "No user authentication",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "Zero auth code in `main.py` or `streamlit_app.py`; no `Depends`, no middleware",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 86,
+    "claim": "No role-based authorisation / row-level security / document permissions",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "None exists; `Bypass RLS` on the account makes RLS moot anyway",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 87,
+    "claim": "No managed secret storage",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "Plain `.env` + `python-dotenv`",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 88,
+    "claim": "No prompt-injection protection",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "Demonstrated live — P2 attack 5",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 89,
+    "claim": "No security-grade audit logs",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "Observability logs operations, not principals; there are no principals",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 90,
+    "claim": "\"Because Gemini is external, query and evidence may be sent to Gemini\"",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "The full context is embedded in the prompt (`workflow_prompt.txt`, 6,954 bytes incl. real customer IDs and Portuguese review text) and sent to `generativelanguage.googleapis.com` three times per query",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 91,
+    "claim": "Only five end-to-end validation questions",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "And they are the planner's own examples — P3",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 92,
+    "claim": "\"Synthetic support and operational documents\"",
+    "verdict_raw": "CAVEAT",
+    "evidence": "The *scaffolding* is synthetic; 100% of ticket `customer_message` values are verbatim real Olist review text — F-16",
+    "baseline": "CAVEAT"
+  },
+  {
+    "id": 93,
+    "claim": "No human-calibrated evaluation dataset",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "None exists",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 94,
+    "claim": "No single-agent baseline comparison",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "None exists",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 95,
+    "claim": "No automatic replanning / answer-regeneration loop",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "Linear graph, `agentic_workflow.py:299-307`",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 96,
+    "claim": "No retrieval reranker",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "Raw cosine order straight from Qdrant, no rerank step",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 97,
+    "claim": "No caching",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "No cache anywhere — and the embedding model is reloaded from disk on every request, F-09",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 98,
+    "claim": "No automatic retries or circuit breakers",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "Demonstrated: one DNS failure → HTTP 500, no retry — F-14",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 99,
+    "claim": "No load testing",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "No such code",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 100,
+    "claim": "No token or cost calculation",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "See #70",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 101,
+    "claim": "No CI/CD",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "No `.github/`, no test files, no pytest, no packaging",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 102,
+    "claim": "No cloud deployment",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "Local compose only",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 103,
+    "claim": "No backup / DR / HA",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "Single-replica containers, named volumes, no backup config",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 104,
+    "claim": "\"production-oriented, fully validated local prototype\"",
+    "verdict_raw": "**CONTRADICTED** on \"fully validated\"",
+    "evidence": "The retrieval layer is untested by anything (F-12), the five cases test the planner on its own answer key, and the only decisive deterministic gate is a string-length check",
+    "baseline": "CONTRADICTED"
+  },
+  {
+    "id": 105,
+    "claim": "\"I prepared the databases, loaded and validated the data, created the graph, generated synthetic artifacts, built the vector index, implemented hybrid retrieval, integrated Gemini, created the LangGraph workflow, exposed it through FastAPI, developed the Streamlit interface, added observability, containerised the platform, ran the validators\"",
+    "verdict_raw": "UNVERIFIABLE",
+    "evidence": "All the artefacts exist and are consistent with this. Four commits, all authored by `LomadaDharmaTeja`, but three of the four are bulk commits, so the repo carries no evidence of incremental authorship either way. Not something an audit can settle",
+    "baseline": "UNVERIFIABLE"
+  },
+  {
+    "id": 106,
+    "claim": "\"I used AI-assisted development … but I executed the commands, analysed the errors, made the design decisions\"",
+    "verdict_raw": "UNVERIFIABLE",
+    "evidence": "No trace in the repo either way",
+    "baseline": "UNVERIFIABLE"
+  },
+  {
+    "id": 107,
+    "claim": "The Olist dataset is the core structured dataset",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "`data/raw/olist_*.csv`, Oct 2021 file dates, counts match the public dataset",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 108,
+    "claim": "The dataset contains customers, sellers, products, categories, orders, items, payments, reviews",
+    "verdict_raw": "CONFIRMED",
+    "evidence": "8 tables in the `ecommerce` schema",
+    "baseline": "CONFIRMED"
+  },
+  {
+    "id": 109,
+    "claim": "(Not claimed) geolocation data",
+    "verdict_raw": "UNVERIFIABLE / not claimed",
+    "evidence": "`geolocation_cleaned.csv` (44 MB) exists on disk but is loaded into neither PostgreSQL nor Neo4j. Unused artefact; the document does not claim it, so no contradiction",
+    "baseline": "UNVERIFIABLE"
+  },
+  {
+    "id": 110,
+    "claim": "\"Refining the routing logic, improving planner instructions, restricting the planner, repeatedly running the same validation cases\" fixed early routing failures",
+    "verdict_raw": "CAVEAT",
+    "evidence": "The mechanism is visible: eight hand-written routing rules (`gemini_query_planner.py:92-100`) and five worked examples were added to the prompt. But \"repeatedly running the same validation cases\" until they pass, where those cases *are* the prompt examples, is overfitting rather than fixing — P3",
+    "baseline": "CAVEAT"
+  }
+]

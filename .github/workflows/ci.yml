@@ -1,8 +1,12 @@
 name: CI
 
 on:
+  # Every branch, not just main. The previous filter was `branches: [main]`, and
+  # M2 through M8 were each developed and committed on their own branch without a
+  # pull request -- so seven milestones of work never ran CI once. The gate existed
+  # and guarded nothing. The failure that finally appeared did so only when main was
+  # fast-forwarded at the end of M8, seven milestones after it was introduced.
   push:
-    branches: [main]
   pull_request:
   workflow_dispatch:
 

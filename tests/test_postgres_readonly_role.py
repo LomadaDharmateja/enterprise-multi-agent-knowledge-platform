@@ -218,6 +218,42 @@ def test_the_runtime_settings_select_the_readonly_role(project_root):
     """The role is worthless if the retrieval layer still connects as the owner."""
     load_dotenv(project_root / ".env")
 
+    configured = os.getenv("POSTGRES_READONLY_USER")
+
+    if not configured:
+        pytest.skip("POSTGRES_READONLY_USER is not configured in this environment")
+
     from hybrid_retriever import load_settings
 
-    assert load_settings()["postgres_user"] == os.getenv("POSTGRES_READONLY_USER")
+    assert load_settings()["postgres_user"] == configured
+
+
+def test_without_the_readonly_role_the_runtime_falls_back_to_the_owner(monkeypatch):
+    """A known weakness, asserted rather than left to a paragraph in a findings doc.
+
+    `load_settings` resolves `POSTGRES_READONLY_USER or POSTGRES_USER or
+    "enterprise_user"`. With none of them set it connects as the schema owner and
+    nothing complains -- so the read-only guarantee holds only while an environment
+    variable happens to be present. This is one of the username-class credential
+    defaults M6 deferred (docs/M6_FINDINGS.md); M6 removed the password defaults,
+    which are the ones that let a wrong environment actually connect.
+
+    CI is where this surfaced: with no .env at all, the previous version of the test
+    above compared the resolved user against an unset variable and failed the build.
+    """
+    import hybrid_retriever
+
+    # `load_settings` calls `load_dotenv()` itself, which puts .env back into the
+    # environment the moment the variables are deleted. Neutralising it here is what
+    # lets the test reproduce a machine that has no .env -- which is exactly the
+    # machine CI runs on.
+    monkeypatch.setattr(hybrid_retriever, "load_dotenv", lambda *a, **k: False)
+    monkeypatch.delenv("POSTGRES_READONLY_USER", raising=False)
+    monkeypatch.delenv("POSTGRES_USER", raising=False)
+
+    resolved = hybrid_retriever.load_settings()["postgres_user"]
+
+    assert resolved == "enterprise_user", (
+        f"the documented fallback changed: resolved {resolved!r}. If this was "
+        f"deliberate, update docs/M6_FINDINGS.md and this test together."
+    )

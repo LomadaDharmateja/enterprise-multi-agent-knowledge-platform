@@ -1,0 +1,1159 @@
+{
+  "schema_version": 1,
+  "baseline_audit": {
+    "date": "2026-08-20",
+    "commit": "f8dc45c",
+    "source": "AUDIT.md",
+    "total": 110
+  },
+  "coverage": {
+    "executable": 70,
+    "manual_judged": 5,
+    "inherited_unchecked": 35
+  },
+  "claims": [
+    {
+      "id": 1,
+      "claim": "99,441 customers",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`psql -c \"select count(*) from ecommerce.customers\"` → 99441",
+      "check": "sql_count",
+      "query": "SELECT count(*) FROM ecommerce.customers",
+      "expected": 99441
+    },
+    {
+      "id": 2,
+      "claim": "3,095 sellers",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "→ 3095",
+      "check": "sql_count",
+      "query": "SELECT count(*) FROM ecommerce.sellers",
+      "expected": 3095
+    },
+    {
+      "id": 3,
+      "claim": "32,340 products",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "→ 32340",
+      "check": "sql_count",
+      "query": "SELECT count(*) FROM ecommerce.products",
+      "expected": 32340
+    },
+    {
+      "id": 4,
+      "claim": "99,441 orders",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "→ 99441",
+      "check": "sql_count",
+      "query": "SELECT count(*) FROM ecommerce.orders",
+      "expected": 99441
+    },
+    {
+      "id": 5,
+      "claim": "111,046 order items",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "→ 111046",
+      "check": "sql_count",
+      "query": "SELECT count(*) FROM ecommerce.order_items",
+      "expected": 111046
+    },
+    {
+      "id": 6,
+      "claim": "103,886 payments",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "→ 103886",
+      "check": "sql_count",
+      "query": "SELECT count(*) FROM ecommerce.payments",
+      "expected": 103886
+    },
+    {
+      "id": 7,
+      "claim": "99,224 reviews",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "→ 99224",
+      "check": "sql_count",
+      "query": "SELECT count(*) FROM ecommerce.reviews",
+      "expected": 99224
+    },
+    {
+      "id": 8,
+      "claim": "73 product-category translations",
+      "baseline_verdict": "CAVEAT",
+      "baseline_evidence": "73 rows, but `product_category_name_english` NULL in 73/73 — F-04. Row count right, content absent",
+      "check": "sql_count",
+      "query": "SELECT count(*) FROM ecommerce.product_category_translations WHERE product_category_name_english IS NOT NULL",
+      "expected": 73,
+      "note": "The first audit found this NULL in 73/73 (F-04) and gave the claim a CAVEAT. Now populated 73/73, so the caveat is retired."
+    },
+    {
+      "id": 9,
+      "claim": "\"created the database schema, added indexes\"",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`database/postgres/schema.sql`, `indexes.sql`; 22 indexes live in `pg_indexes`",
+      "check": "file_exists",
+      "paths": [
+        "database/postgres/schema.sql",
+        "database/postgres/indexes.sql"
+      ]
+    },
+    {
+      "id": 10,
+      "claim": "\"created and validated six business views\"",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "6 views in `pg_views`; `views.sql` has 6 `CREATE`; `sql_view_validator.py` exercises them",
+      "check": "sql_count",
+      "query": "SELECT count(*) FROM pg_views WHERE schemaname = 'ecommerce'",
+      "expected": 6
+    },
+    {
+      "id": 11,
+      "claim": "\"validated the database by checking expected row counts and testing the business views\"",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`postgres_validator.py`, `sql_view_validator.py`; both ran PASS",
+      "check": "file_exists",
+      "paths": [
+        "src/database/postgres_validator.py"
+      ]
+    },
+    {
+      "id": 12,
+      "claim": "Graph has nine node types",
+      "baseline_verdict": "CAVEAT",
+      "baseline_evidence": "The nine Olist labels exist; the loaded graph has **15** labels (6 synthetic). Undercount, not overcount",
+      "check": "cypher_at_least",
+      "query": "CALL db.labels() YIELD label RETURN count(label)",
+      "minimum": 9
+    },
+    {
+      "id": 13,
+      "claim": "Eight main relationship types",
+      "baseline_verdict": "CAVEAT",
+      "baseline_evidence": "All 8 present with correct counts; the graph actually has **24** types. Undercount",
+      "check": "cypher_at_least",
+      "query": "CALL db.relationshipTypes() YIELD relationshipType RETURN count(relationshipType)",
+      "minimum": 8
+    },
+    {
+      "id": 14,
+      "claim": "`Customer PLACED Order` = 99,441 etc.",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`MATCH ()-[r]->() RETURN type(r), count(*)` — all 8 match the row counts exactly",
+      "check": "cypher_count",
+      "query": "MATCH ()-[r:PLACED]->() RETURN count(r)",
+      "expected": 99441
+    },
+    {
+      "id": 15,
+      "claim": "\"created graph constraints and indexes\"",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`SHOW CONSTRAINTS` → 15; `SHOW INDEXES` → 38",
+      "check": "cypher_at_least",
+      "query": "SHOW CONSTRAINTS YIELD name RETURN count(name)",
+      "minimum": 1
+    },
+    {
+      "id": 16,
+      "claim": "Validation checks node counts, rel counts, missing rels, orphans, business paths",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`neo4j_validator.py:69-208`; ran it, all present",
+      "check": "file_exists",
+      "paths": [
+        "src/graph/neo4j_validator.py"
+      ]
+    },
+    {
+      "id": 17,
+      "claim": "Validated path `Customer→Order→Payment`",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`customer_order_payment_paths: 103886`",
+      "check": "cypher_at_least",
+      "query": "MATCH (c:Customer)-[:PLACED]->(o:Order)-[:HAS_PAYMENT]->(p:Payment) RETURN count(*)",
+      "minimum": 1
+    },
+    {
+      "id": 18,
+      "claim": "Validated path `Customer→Order→Review`",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`customer_order_review_paths: 99224`",
+      "check": "cypher_at_least",
+      "query": "MATCH (c:Customer)-[:PLACED]->(o:Order)-[:HAS_REVIEW]->(r:Review) RETURN count(*)",
+      "minimum": 1
+    },
+    {
+      "id": 19,
+      "claim": "Validated `Negative Review→Order→OrderItem→Product→Seller`",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`negative_review_product_seller_paths: 17756`",
+      "check": "cypher_at_least",
+      "query": "MATCH (r:Review)<-[:HAS_REVIEW]-(o:Order)-[:CONTAINS_ITEM]->(i:OrderItem)-[:REFERENCES_PRODUCT]->(p:Product) MATCH (i)-[:SOLD_BY]->(s:Seller) WHERE r.review_score <= 2 RETURN count(*)",
+      "minimum": 1,
+      "note": "SOLD_BY hangs off OrderItem, not Product -- an order item is what a seller sells. The first version of this check walked Product-[:SOLD_BY]->Seller, matched 0, and reported the claim CONTRADICTED. The path is real: 17,756 traversals from reviews scoring <= 2."
+    },
+    {
+      "id": 20,
+      "claim": "\"All orphan checks passed with zero missing mandatory relationships\"",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "9/9 orphan checks = 0, live",
+      "check": "cypher_count",
+      "query": "MATCH (o:Order) WHERE NOT (o)<-[:PLACED]-() RETURN count(o)",
+      "expected": 0
+    },
+    {
+      "id": 21,
+      "claim": "3,000 support tickets",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`wc -l data/synthetic/support_tickets.jsonl` → 3000",
+      "check": "qdrant_group_has_entity_ids",
+      "group": "support_tickets",
+      "keys": [
+        "seller_id"
+      ]
+    },
+    {
+      "id": 22,
+      "claim": "3,000 customer emails",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "→ 3000",
+      "check": "manual",
+      "verdict": "CONFIRMED",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 23,
+      "claim": "1,000 logistics incidents",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "→ 1000",
+      "check": "manual",
+      "verdict": "CONFIRMED",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 24,
+      "claim": "1,000 warranty claims",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "→ 1000",
+      "check": "manual",
+      "verdict": "CONFIRMED",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 25,
+      "claim": "79 policy documents",
+      "baseline_verdict": "CAVEAT",
+      "baseline_evidence": "79 files; 73 are the same template with the category name swapped — F-15",
+      "check": "manual",
+      "verdict": "CAVEAT",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 26,
+      "claim": "73 troubleshooting guides",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "→ 73",
+      "check": "manual",
+      "verdict": "CONFIRMED",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 27,
+      "claim": "8,152 total synthetic records",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "sum = 8152; Qdrant `points_count: 8152`",
+      "check": "qdrant_composition",
+      "expected": {
+        "support_tickets": 3000,
+        "customer_emails": 985,
+        "logistics_incidents": 1000,
+        "warranty_claims": 1000,
+        "policy_documents": 40,
+        "troubleshooting_guides": 73
+      },
+      "retired_total": 8152
+    },
+    {
+      "id": 28,
+      "claim": "Records connected to Olist entities via customer/order/product/seller ID",
+      "baseline_verdict": "CAVEAT",
+      "baseline_evidence": "True in the JSONL (`build_linked_entities`, generator:299). But emails are an entity-clone of tickets and warranty claims a subset, so 8,152 artifacts cover 3,337 distinct orders — 3.4% (P1)",
+      "check": "qdrant_entity_ids_present",
+      "min_fraction": 0.5
+    },
+    {
+      "id": 29,
+      "claim": "\"allowed vector-search results to be connected back to PostgreSQL and Neo4j evidence\"",
+      "baseline_verdict": "CONTRADICTED",
+      "baseline_evidence": "0 of 8,152 Qdrant points carry customer/order/product/seller ID — F-01",
+      "check": "qdrant_entity_ids_present",
+      "min_fraction": 0.5
+    },
+    {
+      "id": 30,
+      "claim": "\"a retrieved warranty claim could reference a product ID and seller ID that also existed in PostgreSQL and Neo4j\"",
+      "baseline_verdict": "CONTRADICTED",
+      "baseline_evidence": "Warranty-claim payload keys: `artifact_group, artifact_type, claim_id, created_at, document_type, entity_ids{claim_id}, ingested_at, severity, source_file, stable_document_id, text, title`. No product or seller ID",
+      "check": "qdrant_group_has_entity_ids",
+      "group": "warranty_claims",
+      "keys": [
+        "product_id",
+        "seller_id"
+      ]
+    },
+    {
+      "id": 31,
+      "claim": "Used `all-MiniLM-L6-v2`",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`.env` + `qdrant_ingest.py:468`; re-encode cos = 1.0",
+      "check": "source_contains",
+      "path": "src/retrieval/hybrid_retriever.py",
+      "patterns": [
+        "all-MiniLM-L6-v2"
+      ]
+    },
+    {
+      "id": 32,
+      "claim": "Produces 384-dimensional vectors",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`/collections/enterprise_knowledge` → `\"size\":384`; `get_embedding_dimension()` → 384",
+      "check": "qdrant_vector_dim",
+      "expected": 384
+    },
+    {
+      "id": 33,
+      "claim": "Collection `enterprise_knowledge` with all 8,152 artifacts indexed",
+      "baseline_verdict": "CAVEAT",
+      "baseline_evidence": "Collection and count correct; `indexed_vectors_count: 0` — below the 10,000 HNSW threshold, so searches are brute-force",
+      "check": "qdrant_composition",
+      "expected": {
+        "support_tickets": 3000,
+        "customer_emails": 985,
+        "logistics_incidents": 1000,
+        "warranty_claims": 1000,
+        "policy_documents": 40,
+        "troubleshooting_guides": 73
+      },
+      "retired_total": 8152
+    },
+    {
+      "id": 34,
+      "claim": "Each record contains embedding, original text, artifact type, record id, entity IDs, metadata",
+      "baseline_verdict": "CONTRADICTED",
+      "baseline_evidence": "Embedding ✓, `text` ✓, `artifact_type` ✓, own record id ✓. **Entity IDs absent** (F-01); `entity_ids` holds only the artifact's own id",
+      "check": "qdrant_entity_ids_present",
+      "min_fraction": 0.5
+    },
+    {
+      "id": 35,
+      "claim": "Planner could restrict retrieval to specific artifact groups",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`build_artifact_filter` (`hybrid_retriever.py:392`); per-group filtering observed in live runs",
+      "check": "source_contains",
+      "path": "src/retrieval/hybrid_retriever.py",
+      "patterns": [
+        "artifact_groups"
+      ]
+    },
+    {
+      "id": 36,
+      "claim": "\"no traditional chunking needed — records are short\"",
+      "baseline_verdict": "CAVEAT",
+      "baseline_evidence": "True for 4/6 groups; 763/8152 (9.4%) exceed the 256-token window and are silently truncated, incl. 74% of troubleshooting guides — F-10",
+      "check": "manual",
+      "verdict": "CAVEAT",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 37,
+      "claim": "PostgreSQL for exact facts, Neo4j for relationships, Qdrant for semantics",
+      "baseline_verdict": "CAVEAT",
+      "baseline_evidence": "Each source is used for its stated role, but the SQL/graph legs are query-invariant lookups — F-03",
+      "check": "manual",
+      "verdict": "CAVEAT",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 38,
+      "claim": "\"For complex questions, the system could use two or all three sources\"",
+      "baseline_verdict": "CONTRADICTED",
+      "baseline_evidence": "It always uses all three. `run_hybrid_retrieval` (`hybrid_retriever.py:517-548`) calls `sql_retrieve`, `graph_retrieve`, `vector_retrieve` unconditionally; the plan schema requires all three fields",
+      "check": "legs_can_be_skipped"
+    },
+    {
+      "id": 39,
+      "claim": "\"deterministic retrieval tools instead of unrestricted database commands\"",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "Template dicts at `hybrid_retriever.py:184` and `:306`; 8/8 attacks blocked",
+      "check": "pytest_passes",
+      "tests": [
+        "tests/test_allowlist_frozen.py"
+      ]
+    },
+    {
+      "id": 40,
+      "claim": "\"LLM could not generate and execute arbitrary SQL, Cypher, Python or shell\"",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "P2 attacks 1-2",
+      "check": "pytest_passes",
+      "tests": [
+        "tests/test_workflow_routing.py::test_templates_are_static_literals_not_assembled_strings"
+      ]
+    },
+    {
+      "id": 41,
+      "claim": "\"An LLM interprets the user's objective\"",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`plan_query_with_gemini` at `agentic_workflow.py:111`",
+      "check": "manual",
+      "verdict": "CONFIRMED",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 42,
+      "claim": "\"It dynamically selects tools and data sources\"",
+      "baseline_verdict": "CONTRADICTED",
+      "baseline_evidence": "Selects an *intent within* each source; all three sources always execute — see #38",
+      "check": "legs_can_be_skipped"
+    },
+    {
+      "id": 43,
+      "claim": "\"Multiple specialised agents perform different responsibilities\"",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "Three distinct Gemini calls with distinct prompts: planner, answerer, evaluator",
+      "check": "source_contains",
+      "path": "src/orchestration/agentic_workflow.py",
+      "patterns": [
+        "def query_planner_node",
+        "def answer_generation_node",
+        "def answer_evaluation_node"
+      ]
+    },
+    {
+      "id": 44,
+      "claim": "\"LangGraph maintains shared state across the workflow\"",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`StateGraph(EnterpriseWorkflowState)`, `agentic_workflow.py:293-309`",
+      "check": "source_contains",
+      "path": "src/orchestration/agentic_workflow.py",
+      "patterns": [
+        "langgraph|StateGraph"
+      ]
+    },
+    {
+      "id": 45,
+      "claim": "\"The final answer is evaluated by another agent\"",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`answer_evaluation_node`, `agentic_workflow.py:213-254`",
+      "check": "source_contains",
+      "path": "src/orchestration/agentic_workflow.py",
+      "patterns": [
+        "evaluat"
+      ]
+    },
+    {
+      "id": 46,
+      "claim": "Workflow order: planner→retrieval→context→answer→eval→response",
+      "baseline_verdict": "CAVEAT",
+      "baseline_evidence": "Correct, but it is a **strictly linear chain** — no conditional edges, no branches (`agentic_workflow.py:299-307`). LangGraph provides typed state passing over a 5-step function pipeline",
+      "check": "manual",
+      "verdict": "CAVEAT",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 47,
+      "claim": "Shared state contains query, plan, routes, SQL/graph/vector results, context, answer, evaluation, status",
+      "baseline_verdict": "CAVEAT",
+      "baseline_evidence": "All present in `EnterpriseWorkflowState:46-61`, except `errors`, which is initialised and never written — F-13",
+      "check": "manual",
+      "verdict": "CAVEAT",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 48,
+      "claim": "Planner receives question + source info + allowed SQL/graph/vector routes + output format",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`build_planner_prompt`, `gemini_query_planner.py:50-172`",
+      "check": "manual",
+      "verdict": "CONFIRMED",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 49,
+      "claim": "\"if the question asks for the highest-revenue seller, the planner should select PostgreSQL\"",
+      "baseline_verdict": "CONTRADICTED",
+      "baseline_evidence": "Live: `\"Which seller had the highest revenue?\"` → `ValueError: Invalid graph intent from Gemini: None`. A SQL-only plan is unrepresentable",
+      "check": "sql_only_plan_is_representable"
+    },
+    {
+      "id": 50,
+      "claim": "\"The planner output was validated and mapped to predefined deterministic retrieval functions\"",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`validate_and_normalize_plan:190-231` → template dict lookup",
+      "check": "source_contains",
+      "path": "src/planning/gemini_query_planner.py",
+      "patterns": [
+        "def validate_and_normalize_plan",
+        "def resolve_plan_parameters"
+      ]
+    },
+    {
+      "id": 51,
+      "claim": "Tools return predictable dicts and lists, not free-form text",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`hybrid_retriever.py:293-300`, `:383-390`, `:485-493`",
+      "check": "pytest_passes",
+      "tests": [
+        "tests/test_plan_parameters.py"
+      ]
+    },
+    {
+      "id": 52,
+      "claim": "Context builder normalises, separates sources, groups by entity ID, removes fields, builds evidence",
+      "baseline_verdict": "CAVEAT",
+      "baseline_evidence": "Normalise/separate/remove ✓ (`retrieval_context_builder.py:114-146`). \"Group related evidence using entity IDs\" collects IDs from SQL and graph only — the vector leg contributes none (F-01)",
+      "check": "pytest_passes",
+      "tests": [
+        "tests/test_context_builder_grouping.py"
+      ]
+    },
+    {
+      "id": 53,
+      "claim": "\"The context-builder validator passed all five representative validation cases\"",
+      "baseline_verdict": "CAVEAT",
+      "baseline_evidence": "The five cases are byte-identical to the workflow validator's and to the planner's own few-shot examples — P3. Not independent evidence",
+      "check": "manual",
+      "verdict": "CAVEAT",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 54,
+      "claim": "Answer agent receives question + context + grounding instructions",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`reports/api_runs/.../workflow_prompt.txt` — all instructions present verbatim",
+      "check": "manual",
+      "verdict": "CONFIRMED",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 55,
+      "claim": "\"The answer agent does not independently access unrestricted tools\"",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`generate_answer(context, model, key)` — no tool bindings, no function calling",
+      "check": "manual",
+      "verdict": "CONFIRMED",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 56,
+      "claim": "Evaluator checks grounding, completeness, unsupported claims, missing evidence, business usefulness",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`build_evaluation_prompt:105-119`; output schema at `:120-134`",
+      "check": "manual",
+      "verdict": "CONFIRMED",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 57,
+      "claim": "Evaluator output includes the three scores, unsupported claims, missing evidence, deterministic failures, status",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`normalize_evaluation:296-318`",
+      "check": "manual",
+      "verdict": "CONFIRMED",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 58,
+      "claim": "\"I also used deterministic checks alongside the LLM evaluator\"",
+      "baseline_verdict": "CONTRADICTED",
+      "baseline_evidence": "The 5 checks are keyword-presence and length; 4 of 5 are `severity: medium` and cannot cause a FAIL. Only `len >= 1000` is decisive — `gemini_answer_evaluator.py:210-296`",
+      "check": "deterministic_checks_can_fail_a_run"
+    },
+    {
+      "id": 59,
+      "claim": "\"the workflow stops after evaluation; no automatic replanning\"",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`agentic_workflow.py:299-307` — linear edges only, no conditional edge, no loop",
+      "check": "feature_now_exists",
+      "paths": [
+        "src/orchestration/agentic_workflow.py"
+      ],
+      "patterns": [
+        "def replan_node",
+        "should_replan"
+      ],
+      "milestone": "M4"
+    },
+    {
+      "id": 60,
+      "claim": "Two endpoints `GET /health` and `POST /query`",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`main.py:74`, `:82`. (A third undocumented `GET /` exists at `:61`)",
+      "check": "source_contains",
+      "path": "src/api/main.py",
+      "patterns": [
+        "@app\\.get\\(\"/health\"\\)",
+        "@app\\.post\\(\"/query\""
+      ]
+    },
+    {
+      "id": 61,
+      "claim": "\"`/health` checks whether the backend and workflow are available\"",
+      "baseline_verdict": "CONTRADICTED",
+      "baseline_evidence": "Static literal (`main.py:73-79`); returned `ok` live while all four dependencies were unreachable — F-07",
+      "check": "health_reports_real_dependencies"
+    },
+    {
+      "id": 62,
+      "claim": "`/query` accepts an NL question, runs the workflow, returns structured JSON",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`main.py:82-116`; 200 OK observed in container logs",
+      "check": "source_contains",
+      "path": "src/api/main.py",
+      "patterns": [
+        "class QueryRequest",
+        "class QueryResponse"
+      ]
+    },
+    {
+      "id": 63,
+      "claim": "Response contains status, answer, SQL/graph/vector route summaries, evaluation, report locations",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`QueryResponse:33-42`; matches `workflow_report.json`",
+      "check": "source_contains",
+      "path": "src/api/main.py",
+      "patterns": [
+        "source_summary",
+        "evaluation_summary",
+        "output_files"
+      ]
+    },
+    {
+      "id": 64,
+      "claim": "\"The API validator passed two endpoint checks and five query cases\"",
+      "baseline_verdict": "CONTRADICTED",
+      "baseline_evidence": "Was true on 2026-07-12 (`reports/api_validation_report.json`). Today: 2 endpoint checks pass, first query case → HTTP 500 — F-14. The 2 endpoint checks also assert only hardcoded literals, and the 5 query cases are the same 5",
+      "check": "manual",
+      "verdict": "NOT_CLAIMED",
+      "evidence": "The current documentation makes no claim about the 2026-07-12 api_validation_report.json. The live API is verified by tests/test_api_security.py and tests/test_api_query_contract.py, and by the M8 deployment checks."
+    },
+    {
+      "id": 65,
+      "claim": "Streamlit shows health, question box, examples, run, answer, routes, artifact groups, eval scores, unsupported claims, missing evidence, reports",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`streamlit_app.py:61-193, 198-290` — every listed feature present",
+      "check": "pytest_passes",
+      "tests": [
+        "tests/test_ui_evidence_trail.py"
+      ]
+    },
+    {
+      "id": 66,
+      "claim": "\"Streamlit communicates with FastAPI rather than the databases\"",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "Only `requests.get/post` to `API_BASE_URL` (`streamlit_app.py:22-38`); no DB driver imported",
+      "check": "source_absent",
+      "path": "src/ui/streamlit_app.py",
+      "patterns": [
+        "import psycopg2",
+        "from sqlalchemy",
+        "import neo4j",
+        "qdrant_client"
+      ]
+    },
+    {
+      "id": 67,
+      "claim": "Observability writes JSONL events, CSV metrics and a report to `reports/observability`",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`workflow_events.jsonl` + `workflow_metrics.csv` present; `observability_report.py` exists",
+      "check": "source_contains",
+      "path": "src/observability/observability.py",
+      "patterns": [
+        "workflow_events\\.jsonl"
+      ]
+    },
+    {
+      "id": 68,
+      "claim": "\"A successful run produced eight events across four traced components\"",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "Live: 28 of 31 runs have exactly 8 events across 4 components — planner, hybrid retrieval, answer, evaluation. Exactly as claimed",
+      "check": "manual",
+      "verdict": "CONFIRMED",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 69,
+      "claim": "Logs record operation, start, completion, status, duration, error, run metadata",
+      "baseline_verdict": "CAVEAT",
+      "baseline_evidence": "All fields present; one run carries a genuine `span_error` with `OperationalError` detail. But crashes *between* spans leave a truncated all-PASS trace — F-19. Also `operation` is `plan_query_route`, a dead function — F-13",
+      "check": "manual",
+      "verdict": "CAVEAT",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 70,
+      "claim": "\"Token counts were not added to the observability system\"",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "No token field in any of 233 events; the only metric name is `duration_ms`",
+      "check": "feature_now_exists",
+      "paths": [
+        "src/observability/otel.py"
+      ],
+      "patterns": [
+        "input_tokens",
+        "cost_usd"
+      ],
+      "milestone": "M5/M7"
+    },
+    {
+      "id": 71,
+      "claim": "Five Docker services run separately",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`docker-compose.yml` — postgres, neo4j, qdrant, api, ui; all five containers running",
+      "check": "file_exists",
+      "paths": [
+        "docker-compose.yml",
+        "Dockerfile.api",
+        "Dockerfile.ui"
+      ]
+    },
+    {
+      "id": 72,
+      "claim": "Services communicate via Docker network service names",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`docker-compose.yml:54-58` sets `POSTGRES_HOST: postgres`, `NEO4J_URI: bolt://neo4j:7687`, `QDRANT_HOST: qdrant`; UI gets `API_BASE_URL: http://api:8000`",
+      "check": "source_contains",
+      "path": "docker-compose.yml",
+      "patterns": [
+        "POSTGRES_HOST: postgres",
+        "NEO4J_URI: bolt://neo4j"
+      ]
+    },
+    {
+      "id": 73,
+      "claim": "\"I performed a complete local Docker runtime test; all nine items passed\"",
+      "baseline_verdict": "CAVEAT",
+      "baseline_evidence": "Credible for 2026-07-12 (dated reports exist). Not reproducible today: `/query` 500s in-container — F-14",
+      "check": "manual",
+      "verdict": "CAVEAT",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 74,
+      "claim": "\"The final agentic workflow passed all five cases\"",
+      "baseline_verdict": "CAVEAT",
+      "baseline_evidence": "Reproduced live today: 5/5 PASS, identical routes and scores. But the five cases are the planner's own few-shot examples — P3",
+      "check": "manual",
+      "verdict": "CAVEAT",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 75,
+      "claim": "\"I would not describe this as 100% general accuracy\"",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "Correct, and understated — 1/3 on the document's own paraphrases (P3)",
+      "check": "manual",
+      "verdict": "CONFIRMED",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 76,
+      "claim": "\"I did not create a large benchmark with hundreds of human-labelled questions\"",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "No labelled dataset anywhere in the repo",
+      "check": "manual",
+      "verdict": "CONFIRMED",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 77,
+      "claim": "Did not measure precision / recall / hallucination rate / planner accuracy / latency / p95 / tokens / cost / concurrency",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "No such code exists. `duration_ms` is recorded but never aggregated into p50/p95",
+      "check": "manual",
+      "verdict": "CONFIRMED",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 78,
+      "claim": "\"The LLM cannot execute arbitrary shell commands\"",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "No `subprocess`, `os.system`, `eval` or `exec` anywhere in `src/`",
+      "check": "pytest_passes",
+      "tests": [
+        "tests/test_allowlist_frozen.py"
+      ]
+    },
+    {
+      "id": 79,
+      "claim": "\"The LLM cannot run unrestricted Python\"",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "Same",
+      "check": "pytest_passes",
+      "tests": [
+        "tests/test_allowlist_frozen.py"
+      ]
+    },
+    {
+      "id": 80,
+      "claim": "\"It does not generate and execute arbitrary SQL or Cypher\"",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "P2 attacks 1-2",
+      "check": "pytest_passes",
+      "tests": [
+        "tests/test_workflow_routing.py::test_templates_are_static_literals_not_assembled_strings"
+      ]
+    },
+    {
+      "id": 81,
+      "claim": "\"Tool actions are allowlisted\"",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`gemini_query_planner.py:13-38` + fail-closed validation; note the vector-group allowlist exists only at the planner (`hybrid_retriever.py:392` fails open)",
+      "check": "pytest_passes",
+      "tests": [
+        "tests/test_allowlist_frozen.py"
+      ]
+    },
+    {
+      "id": 82,
+      "claim": "\"The runtime workflow is intended to be read-only\"",
+      "baseline_verdict": "CONTRADICTED",
+      "baseline_evidence": "Superuser account; `engine.begin()` commits; `session.run()` writes; Qdrant unauthenticated — P2 attacks 3-4",
+      "check": "runtime_is_read_only"
+    },
+    {
+      "id": 83,
+      "claim": "\"Credentials are provided through environment configuration\"",
+      "baseline_verdict": "CAVEAT",
+      "baseline_evidence": "True, but the real working passwords are also source-code defaults in 17 places — F-17",
+      "check": "manual",
+      "verdict": "CAVEAT",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 84,
+      "claim": "\"The project uses structured API requests\"",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "Pydantic `QueryRequest`/`QueryResponse`, `main.py:22-46`",
+      "check": "manual",
+      "verdict": "CONFIRMED",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 85,
+      "claim": "No user authentication",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "Zero auth code in `main.py` or `streamlit_app.py`; no `Depends`, no middleware",
+      "check": "feature_now_exists",
+      "paths": [
+        "src/api/main.py"
+      ],
+      "patterns": [
+        "require_bearer_token",
+        "HTTPBearer"
+      ],
+      "milestone": "M6"
+    },
+    {
+      "id": 86,
+      "claim": "No role-based authorisation / row-level security / document permissions",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "None exists; `Bypass RLS` on the account makes RLS moot anyway",
+      "check": "manual",
+      "verdict": "CONFIRMED",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 87,
+      "claim": "No managed secret storage",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "Plain `.env` + `python-dotenv`",
+      "check": "manual",
+      "verdict": "CONFIRMED",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 88,
+      "claim": "No prompt-injection protection",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "Demonstrated live — P2 attack 5",
+      "check": "manual",
+      "verdict": "CAVEAT",
+      "evidence": "M6 closed the unauthenticated-insertion path (Qdrant now requires a key) and the planner refuses injected instructions (E74, live). Whether the answer agent obeys a poisoned document that reached the corpus by another route is UNPROVEN -- E83's payload never ranked high enough to be retrieved. docs/M6_FINDINGS.md states this."
+    },
+    {
+      "id": 89,
+      "claim": "No security-grade audit logs",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "Observability logs operations, not principals; there are no principals",
+      "check": "manual",
+      "verdict": "CONFIRMED",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 90,
+      "claim": "\"Because Gemini is external, query and evidence may be sent to Gemini\"",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "The full context is embedded in the prompt (`workflow_prompt.txt`, 6,954 bytes incl. real customer IDs and Portuguese review text) and sent to `generativelanguage.googleapis.com` three times per query",
+      "check": "manual",
+      "verdict": "CONFIRMED",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 91,
+      "claim": "Only five end-to-end validation questions",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "And they are the planner's own examples — P3",
+      "check": "manual",
+      "verdict": "CONFIRMED",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 92,
+      "claim": "\"Synthetic support and operational documents\"",
+      "baseline_verdict": "CAVEAT",
+      "baseline_evidence": "The *scaffolding* is synthetic; 100% of ticket `customer_message` values are verbatim real Olist review text — F-16",
+      "check": "manual",
+      "verdict": "CAVEAT",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 93,
+      "claim": "No human-calibrated evaluation dataset",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "None exists",
+      "check": "feature_now_exists",
+      "paths": [
+        "tests/eval/eval_set_v1.json"
+      ],
+      "patterns": [
+        "expected_refusal_terms",
+        "items"
+      ],
+      "milestone": "M3"
+    },
+    {
+      "id": 94,
+      "claim": "No single-agent baseline comparison",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "None exists",
+      "check": "feature_now_exists",
+      "paths": [
+        "docs/M3_RESULTS.md"
+      ],
+      "patterns": [
+        "single-agent baseline|baseline"
+      ],
+      "milestone": "M3"
+    },
+    {
+      "id": 95,
+      "claim": "No automatic replanning / answer-regeneration loop",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "Linear graph, `agentic_workflow.py:299-307`",
+      "check": "feature_now_exists",
+      "paths": [
+        "src/orchestration/agentic_workflow.py"
+      ],
+      "patterns": [
+        "def replan_node",
+        "should_replan"
+      ],
+      "milestone": "M4"
+    },
+    {
+      "id": 96,
+      "claim": "No retrieval reranker",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "Raw cosine order straight from Qdrant, no rerank step",
+      "check": "manual",
+      "verdict": "CONFIRMED",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 97,
+      "claim": "No caching",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "No cache anywhere — and the embedding model is reloaded from disk on every request, F-09",
+      "check": "feature_now_exists",
+      "paths": [
+        "src/observability/query_cache.py"
+      ],
+      "patterns": [
+        "class QueryCache",
+        "class InMemoryLRUCache"
+      ],
+      "milestone": "M5"
+    },
+    {
+      "id": 98,
+      "claim": "No automatic retries or circuit breakers",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "Demonstrated: one DNS failure → HTTP 500, no retry — F-14",
+      "check": "feature_now_exists",
+      "paths": [
+        "src/observability/resilience.py"
+      ],
+      "patterns": [
+        "circuit|breaker",
+        "backoff"
+      ],
+      "milestone": "M4"
+    },
+    {
+      "id": 99,
+      "claim": "No load testing",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "No such code",
+      "check": "feature_now_exists",
+      "paths": [
+        "tests/eval/results/m5_cache_concurrency.json"
+      ],
+      "patterns": [
+        "concurren"
+      ],
+      "milestone": "M5"
+    },
+    {
+      "id": 100,
+      "claim": "No token or cost calculation",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "See #70",
+      "check": "feature_now_exists",
+      "paths": [
+        "src/observability/otel.py"
+      ],
+      "patterns": [
+        "cost_usd",
+        "INPUT_USD_PER_TOKEN"
+      ],
+      "milestone": "M5/M7"
+    },
+    {
+      "id": 101,
+      "claim": "No CI/CD",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "No `.github/`, no test files, no pytest, no packaging",
+      "check": "manual",
+      "verdict": "CONFIRMED",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 102,
+      "claim": "No cloud deployment",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "Local compose only",
+      "check": "feature_now_exists",
+      "paths": [
+        "render.yaml"
+      ],
+      "patterns": [
+        "enterprise-ai-demo-api"
+      ],
+      "milestone": "M8"
+    },
+    {
+      "id": 103,
+      "claim": "No backup / DR / HA",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "Single-replica containers, named volumes, no backup config",
+      "check": "manual",
+      "verdict": "CONFIRMED",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    },
+    {
+      "id": 104,
+      "claim": "\"production-oriented, fully validated local prototype\"",
+      "baseline_verdict": "CONTRADICTED",
+      "baseline_evidence": "The retrieval layer is untested by anything (F-12), the five cases test the planner on its own answer key, and the only decisive deterministic gate is a string-length check",
+      "check": "test_suite_passes",
+      "minimum": 299
+    },
+    {
+      "id": 105,
+      "claim": "\"I prepared the databases, loaded and validated the data, created the graph, generated synthetic artifacts, built the vector index, implemented hybrid retrieval, integrated Gemini, created the LangGraph workflow, exposed it through FastAPI, developed the Streamlit interface, added observability, containerised the platform, ran the validators\"",
+      "baseline_verdict": "UNVERIFIABLE",
+      "baseline_evidence": "All the artefacts exist and are consistent with this. Four commits, all authored by `LomadaDharmaTeja`, but three of the four are bulk commits, so the repo carries no evidence of incremental authorship either way. Not something an audit can settle",
+      "check": "manual",
+      "verdict": "UNVERIFIABLE",
+      "evidence": "A claim about who performed the work. No command settles it; the git history is the only evidence and it is self-reported."
+    },
+    {
+      "id": 106,
+      "claim": "\"I used AI-assisted development … but I executed the commands, analysed the errors, made the design decisions\"",
+      "baseline_verdict": "UNVERIFIABLE",
+      "baseline_evidence": "No trace in the repo either way",
+      "check": "manual",
+      "verdict": "UNVERIFIABLE",
+      "evidence": "As #105 -- a claim about process, not about the system."
+    },
+    {
+      "id": 107,
+      "claim": "The Olist dataset is the core structured dataset",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "`data/raw/olist_*.csv`, Oct 2021 file dates, counts match the public dataset",
+      "check": "sql_at_least",
+      "query": "SELECT count(*) FROM ecommerce.orders",
+      "minimum": 1
+    },
+    {
+      "id": 108,
+      "claim": "The dataset contains customers, sellers, products, categories, orders, items, payments, reviews",
+      "baseline_verdict": "CONFIRMED",
+      "baseline_evidence": "8 tables in the `ecommerce` schema",
+      "check": "sql_count",
+      "query": "SELECT count(*) FROM information_schema.tables WHERE table_schema='ecommerce' AND table_type='BASE TABLE'",
+      "expected": 8
+    },
+    {
+      "id": 109,
+      "claim": "(Not claimed) geolocation data",
+      "baseline_verdict": "UNVERIFIABLE",
+      "baseline_evidence": "`geolocation_cleaned.csv` (44 MB) exists on disk but is loaded into neither PostgreSQL nor Neo4j. Unused artefact; the document does not claim it, so no contradiction",
+      "check": "manual",
+      "verdict": "NOT_CLAIMED",
+      "evidence": "geolocation_cleaned.csv is on disk and loaded into neither store. The documentation does not claim otherwise."
+    },
+    {
+      "id": 110,
+      "claim": "\"Refining the routing logic, improving planner instructions, restricting the planner, repeatedly running the same validation cases\" fixed early routing failures",
+      "baseline_verdict": "CAVEAT",
+      "baseline_evidence": "The mechanism is visible: eight hand-written routing rules (`gemini_query_planner.py:92-100`) and five worked examples were added to the prompt. But \"repeatedly running the same validation cases\" until they pass, where those cases *are* the prompt examples, is overfitting rather than fixing — P3",
+      "check": "manual",
+      "verdict": "CAVEAT",
+      "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
+      "inherited": true
+    }
+  ]
+}
