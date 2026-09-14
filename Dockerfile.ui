@@ -1,22 +1,66 @@
-FROM python:3.12-slim
+# Multi-stage build for the Streamlit UI (M8 Task 1).
+#
+# Same three fixes as Dockerfile.api -- builder/runtime split, non-root user, no
+# toolchain in the runtime image -- plus one specific to this service: it is built
+# from requirements-ui.txt, not requirements.txt. The UI imports `requests` and
+# `streamlit` and nothing else. It has no reason to carry torch or a database
+# driver, and every one it carries is surface it cannot use but an attacker could.
+
+# ================================================================== builder
+FROM python:3.12-slim AS builder
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+COPY requirements-ui.txt .
+
+RUN pip install --upgrade pip \
+    && pip install -r requirements-ui.txt
+
+# ================================================================== runtime
+FROM python:3.12-slim AS runtime
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app \
+    PATH="/opt/venv/bin:$PATH"
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        curl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd --gid 10001 appuser \
+    && useradd --uid 10001 --gid 10001 --create-home --shell /usr/sbin/nologin appuser
+
+COPY --from=builder --chown=10001:10001 /opt/venv /opt/venv
 
 WORKDIR /app
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONPATH=/app
+COPY --chown=10001:10001 src/ui/ ./src/ui/
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# Streamlit writes ~/.streamlit and a usage-stats file; without a writable HOME a
+# non-root container fails at startup rather than at first request.
+ENV HOME=/home/appuser \
+    STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
 
-COPY requirements.txt .
+USER 10001:10001
 
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
-
-COPY . .
-
+# Render, Koyeb and Cloud Run inject the port to listen on. Defaulted so the image
+# also runs locally with a plain `docker run -p 8501:8501`.
+ENV PORT=8501
 EXPOSE 8501
 
-CMD ["streamlit", "run", "src/ui/streamlit_app.py", "--server.address=0.0.0.0", "--server.port=8501"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+    CMD curl -fsS "http://localhost:${PORT}/_stcore/health" || exit 1
+
+CMD ["sh", "-c", "exec streamlit run src/ui/streamlit_app.py \
+     --server.address=0.0.0.0 --server.port=${PORT} --server.headless=true"]

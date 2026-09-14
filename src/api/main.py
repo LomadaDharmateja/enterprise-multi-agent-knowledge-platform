@@ -19,20 +19,39 @@ from pydantic import BaseModel, Field
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+API_DIR = PROJECT_ROOT / "src" / "api"
 ORCHESTRATION_DIR = PROJECT_ROOT / "src" / "orchestration"
 
 RETRIEVAL_DIR = PROJECT_ROOT / "src" / "retrieval"
 OBSERVABILITY_DIR = PROJECT_ROOT / "src" / "observability"
 
-for _directory in (ORCHESTRATION_DIR, RETRIEVAL_DIR, OBSERVABILITY_DIR):
+# API_DIR is here so `import demo` resolves under `uvicorn src.api.main:app`, where
+# only /app is on sys.path. The tests import this module as bare `main` with the same
+# directory already on the path, so one import form works in both.
+for _directory in (API_DIR, ORCHESTRATION_DIR, RETRIEVAL_DIR, OBSERVABILITY_DIR):
     if str(_directory) not in sys.path:
         sys.path.append(str(_directory))
 
 
-from agentic_workflow import run_agentic_workflow
-from hybrid_retriever import get_embedding_model, load_settings
-from query_cache import get_cache
+import demo  # stdlib only, and it must be importable with no model stack present
+
 from otel import memory_store, span_to_dict
+from query_cache import get_cache
+
+# M8 Task 3. "Zero LLM calls and zero database queries" is enforced here rather than
+# asserted: in demo mode the modules that could make one are never imported. torch,
+# SQLAlchemy, psycopg2, the Neo4j and Qdrant drivers and google-genai all arrive
+# through these two lines and nowhere else, and requirements-demo.txt does not install
+# them at all -- so a demo container physically cannot reach a model or a database.
+DEMO_MODE = demo.demo_mode_enabled()
+
+if DEMO_MODE:
+    run_agentic_workflow = None
+    get_embedding_model = None
+    load_settings = None
+else:
+    from agentic_workflow import run_agentic_workflow
+    from hybrid_retriever import get_embedding_model, load_settings
 
 
 
@@ -62,6 +81,13 @@ def require_bearer_token(
     `HTTPBearer(auto_error=False)` because the default raises 403 for a missing
     header, and "you did not authenticate" is 401.
     """
+    # M8 Task 3: demo mode is deliberately unauthenticated. The point of the mode is
+    # that someone with the link can use it, and there is nothing behind the gate to
+    # protect -- no model call to bill, no database to reach, and the payload is
+    # recorded output that ships in the repository. Live mode is unchanged.
+    if DEMO_MODE:
+        return "demo"
+
     expected = _configured_token()
 
     if expected is None:
@@ -105,6 +131,16 @@ class QueryResponse(BaseModel):
     # trace of the request it just made.
     run_id: str
     query: str
+
+    # A refusal is an outcome, not an error. `refusal_node` returns a response with
+    # no answer_provider, answer_model, answer_length_chars, evaluation_summary or
+    # output_files -- it never generated an answer, so those fields do not exist.
+    # This model listed all five as required, so building it raised
+    # KeyError: 'answer_provider' and the caller got a 500 with an opaque incident
+    # id. Every correctly refused question looked like a server crash.
+    answerable: bool
+    refusal_reason: str | None
+
     answer_provider: str
     answer_model: str
     answer_length_chars: int
@@ -112,6 +148,43 @@ class QueryResponse(BaseModel):
     evaluation_summary: dict[str, Any]
     output_files: dict[str, str]
     answer_preview: str
+
+    # Cost and latency, aggregated from this run's spans. The UI shows them per query
+    # (M8 Task 4) and they are the same numbers GET /traces/{run_id} is built from.
+    # Empty rather than zeroed when the run is no longer in the span store: unknown
+    # cost and no cost are different facts.
+    metrics: dict[str, Any]
+
+    @classmethod
+    def from_workflow(cls, result: dict[str, Any]) -> "QueryResponse":
+        """One constructor for both outcomes, so they cannot drift apart.
+
+        The demo replay (M8 Task 3) goes through this too -- that is what makes a
+        replayed response structurally identical to a live one rather than
+        similar-looking.
+        """
+        answerable = result.get("answerable", True)
+
+        return cls(
+            overall_status=result["overall_status"],
+            run_id=result["run_id"],
+            query=result["query"],
+            answerable=answerable,
+            refusal_reason=result.get("refusal_reason"),
+            # "none" rather than "gemini": no model was called, and naming one here
+            # would put a provider on a response no provider produced.
+            answer_provider=result.get("answer_provider") or "none",
+            answer_model=result.get("answer_model") or "none",
+            answer_length_chars=int(
+                result.get("answer_length_chars")
+                or len(result.get("answer_preview") or "")
+            ),
+            source_summary=result.get("source_summary") or {},
+            evaluation_summary=result.get("evaluation_summary") or {},
+            output_files=result.get("output_files") or {},
+            answer_preview=result.get("answer_preview") or "",
+            metrics=result.get("metrics") or {},
+        )
 
 
 # Measured on the M3 run (docs/M5_COST_TABLE.md): mean tokens for an answered query.
@@ -148,6 +221,22 @@ async def lifespan(application: FastAPI):
     ~1.25s of disk reads on every query against a ~10ms encode. It is immutable and
     the revision is pinned, so one instance per process is correct.
     """
+    if DEMO_MODE:
+        # Nothing to warm: demo mode never encodes anything. Fail here rather than at
+        # the first request if the bundle is missing -- a demo deployment with no
+        # recordings should not come up green.
+        info = demo.bundle_info()
+        application.state.embedding_model = None
+        application.state.demo_bundle = info
+
+        print(
+            f"DEMO_MODE: replaying {info['scenario_count']} recorded runs from "
+            f"{info['source_run']}. No model and no database will be called."
+        )
+
+        yield
+        return
+
     settings = load_settings()
 
     started = time.perf_counter()
@@ -184,11 +273,13 @@ def root() -> dict[str, Any]:
     return {
         "service": "Enterprise Multi-Agent Knowledge Intelligence API",
         "status": "running",
+        "mode": "demo" if DEMO_MODE else "live",
         "version": "0.1.0",
         "endpoints": {
             "health": "GET /health",
             "query": "POST /query",
             "traces": "GET /traces/{run_id}",
+            "scenarios": "GET /demo/scenarios",
             "docs": "GET /docs",
         },
     }
@@ -292,6 +383,26 @@ def check_dependencies() -> dict[str, dict[str, Any]]:
 @app.get("/health")
 def health(response: Response) -> dict[str, Any]:
     """200 only if every checked dependency answers; 503 with the failures named."""
+    if DEMO_MODE:
+        # Running the probes here would import drivers the demo image does not
+        # install, report three dependencies "down", and return 503 -- for a
+        # deployment that is working exactly as intended.
+        return {
+            "status": "ok",
+            "service": "enterprise-agentic-workflow-api",
+            "mode": "demo",
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "dependencies": {},
+            "failed": [],
+            "not_checked": {
+                "postgres": "demo mode: no database is connected",
+                "neo4j": "demo mode: no database is connected",
+                "qdrant": "demo mode: no database is connected",
+                "gemini": "demo mode: no model is called",
+            },
+            "demo": demo.bundle_info(),
+        }
+
     dependencies = check_dependencies()
     failed = sorted(n for n, r in dependencies.items() if r["status"] != "ok")
 
@@ -313,6 +424,11 @@ def query(
     request: QueryRequest,
     _token: str = Depends(require_bearer_token),
 ) -> QueryResponse:
+    if DEMO_MODE:
+        # No try/except around this: it touches no network and no disk beyond one
+        # JSON file read at startup, so there is no failure here worth sanitising.
+        return QueryResponse.from_workflow(demo.replay(request.query))
+
     try:
         safe_query_name = (
             request.query.lower()
@@ -333,18 +449,7 @@ def query(
             output_dir=output_dir,
         )
 
-        return QueryResponse(
-            overall_status=result["overall_status"],
-            run_id=result["run_id"],
-            query=result["query"],
-            answer_provider=result["answer_provider"],
-            answer_model=result["answer_model"],
-            answer_length_chars=result["answer_length_chars"],
-            source_summary=result["source_summary"],
-            evaluation_summary=result.get("evaluation_summary", {}),
-            output_files=result["output_files"],
-            answer_preview=result["answer_preview"],
-        )
+        return QueryResponse.from_workflow(result)
 
     except Exception as exc:
         # The caller gets an opaque reference; the detail goes to the server log.
@@ -413,6 +518,27 @@ def get_trace(
     if not RUN_ID_PATTERN.match(run_id):
         raise HTTPException(status_code=400, detail="Malformed run_id.")
 
+    if DEMO_MODE:
+        recorded = demo.trace_for(run_id)
+
+        if recorded is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Demo mode holds no recorded trace for run_id {run_id!r}.",
+            )
+
+        root = next((s for s in recorded if s["parent_span_id"] is None), None)
+
+        return TraceResponse(
+            run_id=run_id,
+            span_count=len(recorded),
+            root_span_id=root["span_id"] if root else None,
+            trace_id=recorded[0]["trace_id"] if recorded else None,
+            status=root["status"] if root else None,
+            duration_ms=root["duration_ms"] if root else None,
+            spans=recorded,
+        )
+
     spans = memory_store().spans_for(run_id)
 
     if not spans:
@@ -458,4 +584,29 @@ def get_trace(
         status=root["status"] if root else None,
         duration_ms=root["duration_ms"] if root else None,
         spans=payload,
+    )
+
+
+# --------------------------------------------------------------------------------
+# Demo mode (M8 Task 3)
+# --------------------------------------------------------------------------------
+
+
+class DemoScenariosResponse(BaseModel):
+    mode: str
+    bundle: dict[str, Any]
+    scenarios: list[dict[str, Any]]
+
+
+@app.get("/demo/scenarios", response_model=DemoScenariosResponse)
+def demo_scenarios() -> DemoScenariosResponse:
+    """The questions this deployment can replay, with their routes and outcomes.
+
+    Available in live mode too, where it answers "what would the demo show?" without
+    needing a second deployment to find out.
+    """
+    return DemoScenariosResponse(
+        mode="demo" if DEMO_MODE else "live",
+        bundle=demo.bundle_info(),
+        scenarios=demo.scenario_summaries(),
     )

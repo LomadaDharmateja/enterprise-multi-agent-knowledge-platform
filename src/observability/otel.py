@@ -305,3 +305,48 @@ def span_to_dict(span: ReadableSpan) -> dict[str, Any]:
             for event in (span.events or [])
         ],
     }
+
+
+def run_metrics(run_id: str) -> dict[str, Any]:
+    """Cost, tokens and latency for one run, read back off its own spans.
+
+    M7 put cost and tokens on the spans deliberately, rather than into a parallel
+    report that could disagree with them. This aggregates the spans rather than
+    re-deriving the numbers, so the API response and the trace cannot drift: if
+    /query says $0.0058, the spans behind /traces/{run_id} sum to $0.0058.
+
+    Empty when the run is not in the store -- a run that aged out has unknown cost,
+    which is different from a run that cost nothing.
+    """
+    spans = memory_store().spans_for(run_id)
+
+    if not spans:
+        return {}
+
+    root = next(
+        (s for s in spans if s.parent is None and s.name == "workflow"), None
+    )
+
+    agents = [s for s in spans if s.name.startswith("agent.")]
+
+    def total(key: str) -> int:
+        return sum(int((s.attributes or {}).get(key) or 0) for s in agents)
+
+    duration_ms = None
+
+    if root is not None and root.start_time and root.end_time:
+        duration_ms = round((root.end_time - root.start_time) / 1e6, 1)
+
+    return {
+        "cost_usd": round(
+            sum(float((s.attributes or {}).get("cost_usd") or 0.0) for s in agents), 8
+        ),
+        "latency_ms": duration_ms,
+        "input_tokens": total("input_tokens"),
+        "output_tokens": total("output_tokens"),
+        "llm_calls": total("llm_calls"),
+        # Distinct from zero: the provider did not report usage for these calls, so
+        # the cost above is a lower bound rather than a measurement.
+        "usage_missing_calls": total("usage_missing_calls"),
+        "span_count": len(spans),
+    }

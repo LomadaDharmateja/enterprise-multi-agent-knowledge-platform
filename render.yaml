@@ -1,0 +1,65 @@
+# Render blueprint for the demo deployment (M8 Task 2).
+#
+# Two free web services, both built from Dockerfiles already in this repository. No
+# database is provisioned because demo mode does not have one: the API replays
+# demo/scenarios.json and is built from requirements-demo.txt, which does not install
+# torch, google-genai, or any database driver.
+#
+# That is what makes this deployable for nothing and leaves nothing to protect: no
+# Gemini key on a public host, no corpus to migrate, no bill that can run away.
+#
+# Apply it: Render dashboard -> New -> Blueprint -> pick this repository.
+#
+# Known behaviour of the free instance type, stated here rather than discovered later:
+#   * A service spins down after 15 minutes without traffic and takes roughly a minute
+#     to answer the next request. The first page load after a quiet period is slow.
+#   * 750 instance-hours per workspace per calendar month, shared across both services.
+#     Two services running continuously would need ~1,460, so the spin-down is what
+#     keeps this inside the allowance rather than a detail to work around.
+#   * Free instances are explicitly documented as unsuitable for production.
+
+services:
+  - type: web
+    name: enterprise-ai-demo-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile.demo
+    dockerContext: .
+    plan: free
+    region: frankfurt
+    healthCheckPath: /health
+    autoDeploy: false
+    envVars:
+      - key: DEMO_MODE
+        value: "true"
+      # Nothing writes spans in demo mode -- the traces served are the recorded ones
+      # in the bundle -- so the exporter has no work to do.
+      - key: OTEL_EXPORTER
+        value: none
+      # Deliberately absent: GEMINI_API_KEY, API_BEARER_TOKEN, and every database
+      # credential. Demo mode authenticates nothing because there is nothing behind
+      # the gate to bill or to reach, and an absent key is a stronger guarantee than
+      # a code path that promises not to use one.
+
+  - type: web
+    name: enterprise-ai-demo-ui
+    runtime: docker
+    dockerfilePath: ./Dockerfile.ui
+    dockerContext: .
+    plan: free
+    region: frankfurt
+    healthCheckPath: /_stcore/health
+    autoDeploy: false
+    envVars:
+      # `property: host` yields a bare hostname with no scheme. The UI's
+      # normalise_base_url() turns that into https://, so the blueprint needs no
+      # hand-edited URL and the trace links are clickable from the visitor's browser.
+      - key: API_BASE_URL
+        fromService:
+          type: web
+          name: enterprise-ai-demo-api
+          property: host
+      - key: PUBLIC_API_BASE_URL
+        fromService:
+          type: web
+          name: enterprise-ai-demo-api
+          property: host

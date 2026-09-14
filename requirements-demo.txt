@@ -1,0 +1,31 @@
+# Demo-mode API (M8 Task 3).
+#
+# This file is the enforcement, not a convenience. "Demo mode makes zero LLM calls and
+# zero database queries" is a claim about what the process *can* do, and the strongest
+# way to make it true is to not install the things that could do it. Absent here, and
+# therefore absent from the demo image:
+#
+#     torch, transformers, sentence-transformers   no model can be loaded
+#     SQLAlchemy, psycopg2-binary                  no PostgreSQL connection
+#     neo4j, qdrant-client                         no graph or vector connection
+#     google-genai                                 no Gemini call
+#     langgraph                                    no workflow to run
+#
+# src/api/main.py imports agentic_workflow and hybrid_retriever only when DEMO_MODE is
+# unset, so the demo image starts cleanly without them and would fail loudly rather
+# than silently if that ever changed.
+#
+# Versions match requirements.txt exactly for every shared package; the drift test in
+# tests/test_container_hygiene.py enforces it.
+
+fastapi==0.139.0
+uvicorn[standard]==0.51.0
+pydantic==2.13.4
+
+# src/observability/otel.py imports the API and SDK unconditionally. The OTLP exporter
+# is imported lazily and only when OTEL_EXPORTER=otlp, but it is installed here so
+# setting that variable on a deployed demo is a configuration change rather than a
+# crash.
+opentelemetry-api==1.44.0
+opentelemetry-sdk==1.44.0
+opentelemetry-exporter-otlp-proto-http==1.44.0

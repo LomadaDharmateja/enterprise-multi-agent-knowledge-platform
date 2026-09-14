@@ -1,0 +1,36 @@
+# TLS termination and routing for the deployed stack (M8 Task 2).
+#
+# Two hostnames rather than a path prefix, so the API keeps the exact paths the
+# tests and docs use: POST /query, GET /health, GET /traces/{run_id}. A /api/*
+# prefix would have meant the deployed URLs differed from every path documented
+# in M6 and M7, which is the kind of small divergence that makes a claim false.
+#
+# sslip.io resolves <anything>.<ip>.sslip.io to <ip>, so a bare Hetzner IP gets a
+# real Let's Encrypt certificate with no domain purchase and no DNS records. Set
+# APP_DOMAIN and API_DOMAIN in deploy/.env to use a real domain instead.
+
+{
+	email {$ACME_EMAIL}
+}
+
+{$APP_DOMAIN} {
+	encode gzip
+
+	# Streamlit needs its websocket upgraded or the app renders once and freezes.
+	reverse_proxy ui:8501 {
+		header_up Host {host}
+		header_up X-Real-IP {remote_host}
+	}
+}
+
+{$API_DOMAIN} {
+	encode gzip
+
+	# The API authenticates POST /query and GET /traces itself (M6 Task 4). This
+	# proxy adds transport security, not authorisation -- it must not be the only
+	# thing standing in front of the endpoints.
+	reverse_proxy api:8000 {
+		header_up Host {host}
+		header_up X-Real-IP {remote_host}
+	}
+}

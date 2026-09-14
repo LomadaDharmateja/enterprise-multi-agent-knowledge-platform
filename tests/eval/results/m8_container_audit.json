@@ -1,0 +1,49 @@
+{
+  "images": {
+    "enterprise-ai-api:before": {
+      "uid": "0",
+      "user": "root",
+      "compilers": "/usr/bin/gcc",
+      "torch": "2.13.0+cu130",
+      "sitepkg_kb": "5790384",
+      "app_entries": "AUDIT.md,Dockerfile.api,Dockerfile.api.before,Dockerfile.api.before.dockerignore,Dockerfile.ui,PROJECT_SUMMARY.md,README.md,REBUILD_PLAN.md,configs,data,database,docker-compose.yml,docs,enterprise_ai.egg-info,pyproject.toml,requirements-ui.txt,requirements.txt,scripts,src,tests",
+      "has_tests": "yes",
+      "has_eval_results": "yes",
+      "has_scripts": "yes",
+      "has_dotenv": "no",
+      "has_git": "no",
+      "model_cached": "no",
+      "content_bytes": 3236751170,
+      "content_gb": 3.24,
+      "disk_size": "9.69GB",
+      "sitepkg_gb": 5.93,
+      "runs_as_root": true,
+      "has_compiler": true
+    },
+    "enterprise-ai-api:after": {
+      "uid": "10001",
+      "user": "appuser",
+      "compilers": "",
+      "torch": "2.13.0+cpu",
+      "sitepkg_kb": "1880228",
+      "app_entries": "reports,src",
+      "has_tests": "no",
+      "has_eval_results": "no",
+      "has_scripts": "no",
+      "has_dotenv": "no",
+      "has_git": "no",
+      "model_cached": "yes",
+      "content_bytes": 668148474,
+      "content_gb": 0.67,
+      "disk_size": "2.87GB",
+      "sitepkg_gb": 1.93,
+      "runs_as_root": false,
+      "has_compiler": false
+    }
+  },
+  "failures": [
+    "enterprise-ai-api:before: runs as root",
+    "enterprise-ai-api:before: compiler present: /usr/bin/gcc",
+    "enterprise-ai-api:before: ships eval results"
+  ]
+}

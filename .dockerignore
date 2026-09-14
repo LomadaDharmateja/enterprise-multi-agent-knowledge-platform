@@ -1,31 +1,74 @@
+# Build context exclusions (M8 Task 1).
+#
+# Two jobs. The obvious one is image size. The one that matters more is that
+# `COPY . .` puts everything the daemon received into a layer, and a layer is
+# readable by anyone who can pull the image -- deleting a file in a later
+# instruction does not remove it from the earlier one. Secrets and measurement
+# data must never enter the context in the first place.
+#
+# The runtime stages now COPY only `src/`, so this is defence in depth rather
+# than the only control. Both are kept: a future COPY that widens its scope
+# should not be able to leak.
+
+# --- Secrets: the reason this file is not optional ---
+.env
+.env.*
+*.pem
+*.key
+secrets/
+
+# --- Version control ---
 .git
 .gitignore
+.github
 
+# --- Python build and cache artefacts ---
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# --- Local environments ---
 .venv
 venv
 env
 
-__pycache__
-*.pyc
-*.pyo
-*.pyd
+# --- Measurement output. Never runtime input. ---
+# reports/ holds the observability JSONL and every generated answer, including the
+# full text of what the LLM produced during evaluation. reports/ is mounted as a
+# volume in compose, so excluding it from the context does not remove it at run
+# time -- it removes it from the image.
+reports/
+tests/eval/results/
 
-.env
-.env.*
+# --- Tests, tooling and data. Nothing under src/ imports any of it. ---
+tests/
+scripts/
+notebooks/
+docs/
+database/
+configs/
+data/
+*.ipynb
 
-reports
-notebooks
-
-data/raw
-data/processed
-data/synthetic
-
+# --- Model caches. The API image bakes the model in the builder stage instead. ---
 .cache
 huggingface
 sentence_transformers
 models
 
+# --- Editor and OS noise ---
 .DS_Store
 Thumbs.db
+.idea/
+.vscode/
 
+# --- Docs and dead files ---
 README_old.md
+*.md
+!README.md

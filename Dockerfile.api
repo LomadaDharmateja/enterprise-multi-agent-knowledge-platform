@@ -1,23 +1,99 @@
-FROM python:3.12-slim
+# Multi-stage build for the FastAPI service (M8 Task 1).
+#
+# The single-stage version this replaces shipped `build-essential` (a full GCC
+# toolchain) in the runtime image, ran as root, and pulled the default PyPI torch
+# wheel -- which bundles the CUDA runtime for a service that has never had a GPU.
+#
+# Stage 1 compiles. Stage 2 runs. Nothing that only the build needed crosses over.
 
-WORKDIR /app
+# ================================================================== builder
+FROM python:3.12-slim AS builder
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONPATH=/app
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
+# psycopg2-binary ships wheels, but sentence-transformers' dependency tree still
+# falls back to a source build on some platforms. The toolchain lives here and
+# nowhere else.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    curl \
+        build-essential \
     && rm -rf /var/lib/apt/lists/*
+
+# A virtualenv, so the runtime stage copies one self-contained directory rather
+# than picking site-packages out of the system Python.
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
 COPY requirements.txt .
 
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
+# torch first, from the CPU index. requirements.txt pins torch==2.13.0 because it
+# decides the numerical output of the embedding model, and the vector store was
+# built on a host running 2.13.0+cpu -- so the CPU wheel is the FAITHFUL one here,
+# not a size shortcut. The default PyPI wheel would install the CUDA build: a
+# different binary from the one that produced the corpus, and ~2 GB of CUDA
+# libraries that a CPU-only container will never execute.
+# `==2.13.0` is satisfied by `2.13.0+cpu` (PEP 440 ignores the local segment), so
+# the requirements.txt install below finds it already present and does not refetch.
+RUN pip install --upgrade pip \
+    && pip install torch==2.13.0 --index-url https://download.pytorch.org/whl/cpu \
+    && pip install -r requirements.txt
 
-COPY . .
+# Bake the embedding model into the image at its pinned revision. Without this the
+# first request after every deploy downloads ~90 MB from Hugging Face -- a cold
+# start that depends on a third party being up, inside a container that otherwise
+# needs no outbound internet except the Gemini API.
+ENV HF_HOME=/opt/hf
+ENV EMBEDDING_MODEL_NAME=sentence-transformers/all-MiniLM-L6-v2 \
+    EMBEDDING_MODEL_REVISION=1110a243fdf4706b3f48f1d95db1a4f5529b4d41
+
+RUN python -c "\
+from sentence_transformers import SentenceTransformer; \
+import os; \
+SentenceTransformer(os.environ['EMBEDDING_MODEL_NAME'], revision=os.environ['EMBEDDING_MODEL_REVISION'])"
+
+# ================================================================== runtime
+FROM python:3.12-slim AS runtime
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app \
+    PATH="/opt/venv/bin:$PATH" \
+    HF_HOME=/opt/hf \
+    HF_HUB_OFFLINE=1
+
+# curl is kept: the compose healthcheck and the deploy probe both use it. No
+# compiler, no headers, no pip cache.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# A container that runs as root is one container escape away from being root on
+# the host. Numeric uid so the runtime is the same whether or not /etc/passwd is
+# consulted.
+RUN groupadd --gid 10001 appuser \
+    && useradd --uid 10001 --gid 10001 --create-home --shell /usr/sbin/nologin appuser
+
+COPY --from=builder --chown=10001:10001 /opt/venv /opt/venv
+COPY --from=builder --chown=10001:10001 /opt/hf /opt/hf
+
+WORKDIR /app
+
+# Only what the service actually imports. `COPY . .` previously brought in tests,
+# scripts, notebooks, the database DDL and the docs -- none of which the API reads,
+# all of which are attack surface and image weight.
+COPY --chown=10001:10001 src/ ./src/
+
+# The JSONL replay log is written here. Owned by appuser so a non-root process can
+# write it, and a volume mount at runtime takes precedence.
+RUN mkdir -p /app/reports/observability && chown -R 10001:10001 /app/reports
+
+USER 10001:10001
 
 EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+    CMD curl -fsS http://localhost:8000/health || exit 1
 
 CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]

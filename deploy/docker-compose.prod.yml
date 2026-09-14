@@ -1,0 +1,136 @@
+# Production stack (M8 Task 2).
+#
+# The difference from the development docker-compose.yml that matters most is not
+# the reverse proxy. It is that the three databases publish NO host ports here.
+#
+# The dev file maps 5432, 7474, 7687, 6333 and 6334 to the host. On a laptop behind
+# NAT that is convenient. On a public VPS it is five internet-facing database ports,
+# and Hetzner instances ship with no firewall enabled by default -- so the dev file
+# deployed as-is would put PostgreSQL and Neo4j on the public internet. They talk to
+# the API over the compose network and are reachable from nowhere else.
+#
+#   docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env up -d
+
+name: enterprise-ai
+
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [backend]
+
+  neo4j:
+    image: neo4j:5-community
+    restart: unless-stopped
+    environment:
+      NEO4J_AUTH: ${NEO4J_USERNAME:?set NEO4J_USERNAME}/${NEO4J_PASSWORD:?set NEO4J_PASSWORD}
+      NEO4J_server_memory_heap_max__size: ${NEO4J_HEAP:-1G}
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:7474 || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+    networks: [backend]
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    restart: unless-stopped
+    environment:
+      QDRANT__SERVICE__API_KEY: ${QDRANT_API_KEY:?set QDRANT_API_KEY}
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    networks: [backend]
+
+  api:
+    image: ${API_IMAGE:-enterprise-ai-api:latest}
+    build:
+      context: ..
+      dockerfile: Dockerfile.api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      NEO4J_URI: bolt://neo4j:7687
+      QDRANT_HOST: qdrant
+      QDRANT_HTTP_PORT: 6333
+      QDRANT_GRPC_PORT: 6334
+      QDRANT_HTTPS: "false"
+      OBSERVABILITY_DIR: /app/reports/observability
+      OTEL_EXPORTER: ${OTEL_EXPORTER:-console}
+      DEMO_MODE: ${DEMO_MODE:-false}
+    volumes:
+      - api_reports:/app/reports
+    depends_on:
+      postgres: {condition: service_healthy}
+      neo4j: {condition: service_healthy}
+      qdrant: {condition: service_started}
+    networks: [backend, frontend]
+
+  ui:
+    image: ${UI_IMAGE:-enterprise-ai-ui:latest}
+    build:
+      context: ..
+      dockerfile: Dockerfile.ui
+    restart: unless-stopped
+    environment:
+      API_BASE_URL: http://api:8000
+      # The UI calls POST /query, which requires the bearer token (M6 Task 4).
+      API_BEARER_TOKEN: ${API_BEARER_TOKEN:?set API_BEARER_TOKEN}
+      PUBLIC_API_BASE_URL: https://${API_DOMAIN}
+    depends_on:
+      - api
+    networks: [frontend]
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    # The only two ports open to the internet.
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:?set APP_DOMAIN}
+      API_DOMAIN: ${API_DOMAIN:?set API_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+      - ui
+    networks: [frontend]
+
+networks:
+  # The databases sit on `backend` only. Caddy sits on `frontend` only. The API is
+  # the single process on both, which is what makes "the databases are unreachable
+  # from the internet" a property of the topology rather than of a firewall rule
+  # someone has to remember.
+  backend:
+    internal: true
+  frontend:
+
+volumes:
+  postgres_data:
+  neo4j_data:
+  neo4j_logs:
+  qdrant_storage:
+  api_reports:
+  caddy_data:
+  caddy_config:

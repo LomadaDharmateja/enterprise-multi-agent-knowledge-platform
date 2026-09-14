@@ -44,7 +44,13 @@ from answer_generator import generate_answer, save_outputs, load_settings
 from observability import new_run_id, record_event, trace_span
 from opentelemetry.trace import Status, StatusCode
 
-from otel import agent_span, record_llm_usage, set_attributes, workflow_span
+from otel import (
+    agent_span,
+    record_llm_usage,
+    run_metrics,
+    set_attributes,
+    workflow_span,
+)
 from llm_usage import collect
 from query_cache import cache_enabled, get_cache
 
@@ -840,6 +846,11 @@ def run_agentic_workflow(
         )
 
     final_response = final_state["final_response"]
+
+    # Read back off the spans, outside the `with` so the root span has ended and its
+    # duration exists. Aggregating the trace rather than keeping a second tally is
+    # what stops /query and /traces/{run_id} from ever disagreeing about cost.
+    final_response["metrics"] = run_metrics(run_id)
 
     workflow_report_path = output_dir / "workflow_report.json"
 

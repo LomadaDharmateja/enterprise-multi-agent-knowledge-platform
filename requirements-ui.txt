@@ -1,0 +1,20 @@
+# The Streamlit UI talks to the API over HTTP and imports nothing from src/.
+#
+# It was previously built from the full requirements.txt, which meant the UI image
+# carried torch, transformers, sentence-transformers, SQLAlchemy, psycopg2, the
+# Neo4j and Qdrant drivers, google-genai and langgraph -- none of which it imports.
+# A UI container holding a database driver it never uses is both dead weight and
+# reachable surface if the container is ever compromised.
+#
+# Versions match requirements.txt exactly for every shared package, so the two
+# images cannot drift apart.
+
+streamlit==1.59.1
+requests==2.34.2
+python-dotenv==1.2.2
+
+# Pulled in transitively by streamlit; pinned here so the resolver cannot pick a
+# different version than the API image uses.
+pandas==3.0.3
+numpy==2.5.1
+pyarrow==25.0.0
