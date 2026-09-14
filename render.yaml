@@ -26,8 +26,17 @@ services:
     dockerContext: .
     plan: free
     region: frankfurt
+    # Pinned explicitly. Without it a service tracks the repository's default branch
+    # regardless of which branch the blueprint was read from -- which is how the first
+    # deploy ended up building from a `main` that had no Dockerfile.demo: the API
+    # never built (Render answered `x-render-routing: no-server`) while the UI built
+    # from main's pre-M8 Dockerfile and served the old page against a dead API.
+    branch: main
     healthCheckPath: /health
-    autoDeploy: false
+    # A push to main redeploys. It was false to avoid surprise deploys, but combined
+    # with the branch mistake above it also meant the fix for a broken deploy would
+    # not have shipped without a manual click.
+    autoDeploy: true
     envVars:
       - key: DEMO_MODE
         value: "true"
@@ -47,8 +56,17 @@ services:
     dockerContext: .
     plan: free
     region: frankfurt
+    # Pinned explicitly. Without it a service tracks the repository's default branch
+    # regardless of which branch the blueprint was read from -- which is how the first
+    # deploy ended up building from a `main` that had no Dockerfile.demo: the API
+    # never built (Render answered `x-render-routing: no-server`) while the UI built
+    # from main's pre-M8 Dockerfile and served the old page against a dead API.
+    branch: main
     healthCheckPath: /_stcore/health
-    autoDeploy: false
+    # A push to main redeploys. It was false to avoid surprise deploys, but combined
+    # with the branch mistake above it also meant the fix for a broken deploy would
+    # not have shipped without a manual click.
+    autoDeploy: true
     envVars:
       # `property: host` yields a bare hostname with no scheme. The UI's
       # normalise_base_url() turns that into https://, so the blueprint needs no
