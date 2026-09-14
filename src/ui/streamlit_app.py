@@ -467,29 +467,39 @@ def main() -> None:
         "Every claim below is shown with the evidence behind it."
     )
 
-    api_base_url, chosen, _ = render_sidebar(API_BASE_URL)
+    api_base_url, chosen, scenarios_payload = render_sidebar(API_BASE_URL)
 
     if "query_text" not in st.session_state:
-        st.session_state.query_text = FALLBACK_EXAMPLES[0]
+        # In demo mode the fallback examples are not recorded, so starting on one
+        # means the first Run a visitor tries returns DEMO_NO_SCENARIO. Default to a
+        # question this deployment can actually answer.
+        recorded = (scenarios_payload or {}).get("scenarios") or []
+        st.session_state.query_text = (
+            recorded[0]["question"] if recorded else FALLBACK_EXAMPLES[0]
+        )
 
     if chosen:
+        # Assigned before the widget below is created, which is the only point at
+        # which Streamlit lets a widget's own session key be set.
         st.session_state.query_text = chosen
+        st.session_state.run_now = True
 
-    query = st.text_area(
-        "Business question",
-        value=st.session_state.query_text,
-        height=100,
-        key="query_text_area",
-    )
+    # Bound to session state by key, with no `value=`. A keyed widget ignores `value`
+    # after its first render, so the previous version updated `query_text` on "Use
+    # this question" and the box on screen never changed -- the click looked like it
+    # did nothing at all.
+    query = st.text_area("Business question", key="query_text", height=100)
 
-    if not st.button("Run", type="primary"):
+    # Picking a question runs it. Two clicks for one intent is what made the first
+    # click look broken.
+    run = st.button("Run", type="primary") or st.session_state.pop("run_now", False)
+
+    if not run:
         return
 
     if not query.strip():
         st.warning("Enter a question.")
         return
-
-    st.session_state.query_text = query
 
     with st.spinner("Running..."):
         try:

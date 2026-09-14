@@ -273,3 +273,27 @@ def test_a_scheme_less_api_host_is_usable(raw, expected):
     import streamlit_app
 
     assert streamlit_app.normalise_base_url(raw) == expected
+
+
+def test_picking_a_recorded_question_loads_it_and_runs_it(monkeypatch, answered, bundle):
+    """One click, and the box actually changes.
+
+    The first version gave `st.text_area` a `key` *and* a `value=`. A keyed widget
+    ignores `value` after its first render, so "Use this question" updated session
+    state while the box on screen kept the old text -- the click looked like it did
+    nothing. It also took a second click on Run, and the default question was not a
+    recorded one, so that second click returned DEMO_NO_SCENARIO.
+    """
+    app = run_app(monkeypatch, answered, bundle, click_run=False)
+
+    # The box starts on a question this deployment can answer, not a fallback example.
+    recorded = {s["question"] for s in bundle["scenarios"]}
+    assert app.text_area[0].value in recorded
+
+    app.selectbox[0].select(f"{answered['id']} — {answered['headline']}").run()
+    next(b for b in app.button if b.label == "Use this question").click().run()
+
+    assert app.text_area[0].value == answered["question"], "the box did not change"
+
+    # And it ran: the answer is on the page without a separate click on Run.
+    assert "Grounded Business Answer" in page_text(app)
