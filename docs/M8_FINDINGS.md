@@ -2,7 +2,9 @@
 
 **Exit criterion:** someone with the link can use it, and you can leave it running.
 
-Test count: **244 → 298**. All 298 pass.
+Test count: **244 → 299**. All 299 pass.
+
+**Live:** https://enterprise-ai-demo-ui.onrender.com (API: https://enterprise-ai-demo-api-77mb.onrender.com)
 
 ---
 
@@ -359,5 +361,99 @@ The corpus measures 2.37 GB (PostgreSQL 442 MB, Neo4j 1.44 GB, Qdrant 483 MB), a
 `import_corpus.sh` verifies restored counts against a manifest rather than assuming the
 transfer worked.
 
-None of it has been run. There is no live URL yet, and this document does not claim one
-until there is.
+None of it has been run — no VPS was provisioned and no corpus was migrated. Those
+scripts are unexercised code, and this document does not claim otherwise.
+
+### The deployment that is live
+
+| | |
+|---|---|
+| **UI** | `https://enterprise-ai-demo-ui.onrender.com` |
+| **API** | `https://enterprise-ai-demo-api-77mb.onrender.com` |
+
+Verified against the live deployment, not against localhost:
+
+| Check | Result |
+|---|---|
+| `GET /health` | **200**, `mode: demo`, `dependencies: {}`, four `not_checked` entries naming why |
+| `GET /demo/scenarios` | **200**, **8 scenarios**, all eight `route_reproduces_today: true` |
+| `POST /query` (recorded question) | **200 PASS**, route `seller_performance` / `seller_ticket_product_paths` / `[support_tickets]`, records 3 / 10 / 5, grounding 5/5 |
+| `POST /query` (unrecorded question) | **200 `DEMO_NO_SCENARIO`** — declines rather than serving the nearest match |
+| `GET /traces/{run_id}` | **200**, 5 spans, root OK, 14,384 ms |
+| `GET /traces/no_such_run` | **404**, not an empty span list |
+| `POST /query` with no token / a wrong token | **200** both — demo mode is open by design |
+| UI | **200**, sidebar reads "Demo mode — replaying recorded runs" |
+
+**Zero LLM calls, demonstrated live.** `metrics.llm_calls: 3` is the *recorded* run's
+count, faithfully preserved — not calls made now. The evidence that nothing was called
+is the gap between the recorded latency and the actual one:
+
+```
+recorded latency_ms   14,408.6
+actual round trip        156        ->  92x faster than the run it replays
+```
+
+A real run cannot return in 156 ms, and `google-genai` is not installed in the image.
+
+**The refusal path, live.** All three refusal scenarios return **200 `REFUSED`** with
+the reason in the body — the defect this milestone found returned 500 for every one of
+them:
+
+| | Status | Reason reaching the caller |
+|---|---|---|
+| D50 | 200 REFUSED | "does not support predictive analytics or churn modeling" |
+| D51 | 200 REFUSED | "does not hold personal identifiable information like home addresses" |
+| E74 | 200 REFUSED | "an attempt to perform a prompt injection attack" |
+
+### Four deployment defects, all mine, all found by deploying
+
+The image was correct from the first build. Everything that broke was in the glue
+between the repository and the platform, and none of it was visible in a test.
+
+1. **`render.yaml` pinned no branch.** A service tracks the repository's default branch
+   regardless of which branch the blueprint was read from. `main` was seven milestones
+   stale, so `Dockerfile.demo` did not exist there: the API never built and Render
+   answered `x-render-routing: no-server`, while the UI built from `main`'s pre-M8
+   single-stage Dockerfile and served the old page against an API that was not there.
+   Fixed by pinning `branch: main` and fast-forwarding `main` to carry M2–M8.
+
+2. **`autoDeploy: false`.** Set to avoid surprise deploys; combined with (1) it meant
+   the fix for a broken deploy would not ship without a manual click.
+
+3. **`fromService: property: host` cannot address a free service.** It handed the UI the
+   bare service name and produced
+   `NameResolutionError: Failed to resolve 'enterprise-ai-demo-api-77mb'`. Two
+   independent reasons, both from Render's own documentation: the blueprint spec exposes
+   only private-network properties (`host`, `port`, `hostport`) and none for a public
+   URL; and *"free web services can send private network requests, but they can't
+   receive them"*, so two free services cannot address each other privately at all. It
+   cannot be hardcoded either — Render appends a random suffix when a service name is
+   taken globally, which is where `-77mb` came from. Now `sync: false`, set once in the
+   dashboard.
+
+4. **The UI's question picker was a silent no-op.** `st.text_area` was given both a
+   `key` and a `value=`; a keyed Streamlit widget ignores `value` after its first
+   render, so "Use this question" updated session state while the box on screen kept its
+   old text. It also required a second click on Run, and the default question was a
+   fallback example rather than a recorded one — so that second click returned
+   `DEMO_NO_SCENARIO` instead of an answer.
+
+   This is the one worth keeping. The 14 UI tests drove the page by calling `set_value()`
+   on the text area and clicking Run directly. They exercised the rendering thoroughly
+   and never once exercised **the path a user actually takes**. The evidence trail was
+   correct; the way in was broken.
+   `test_picking_a_recorded_question_loads_it_and_runs_it` closes that gap.
+
+### Limitations of what is deployed
+
+- **Free instances spin down after 15 minutes idle**, and the next request waits about
+  a minute. Measured cold start on the UI: 22.4 s; warm: 0.16 s.
+- **750 instance-hours per workspace per month**, shared by both services. Two
+  continuously-running services would need ~1,460, so the spin-down is what keeps this
+  inside the allowance.
+- Render documents the free tier as unsuitable for production, and this is a demo.
+- **`DEMO_MODE=true` only.** The live deployment has no database and no Gemini key, so
+  it answers the eight recorded questions and nothing else. The live path is exercised
+  locally and by the test suite, not by this URL.
+- The UI's sidebar text was confirmed by the user in a browser; every other row in the
+  verification table was measured directly over HTTP.
