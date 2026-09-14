@@ -709,7 +709,11 @@ def final_response_node(state: EnterpriseWorkflowState) -> EnterpriseWorkflowSta
 
     final_response = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "overall_status": evaluation_summary.get("overall_status", "PASS"),
+        # AUDIT.md F-18, second half: this defaulted to "PASS" when the evaluation
+        # summary carried no status, so a run whose evaluator never produced a verdict
+        # reported success. The pipeline failed open. An absent verdict is now
+        # "UNKNOWN" -- which is what it is, and which a caller can act on.
+        "overall_status": evaluation_summary.get("overall_status") or "UNKNOWN",
         "query": state["query"],
         "planned_route": state["planned_route"],
         "source_summary": context["source_summary"],

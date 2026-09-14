@@ -193,7 +193,7 @@ CHECKS: dict[int, dict] = {
           "expected": 8},
 
     # ---------------------------------------------------------------- Judgement
-    104: {"check": "test_suite_passes", "minimum": 299},
+    104: {"check": "test_suite_passes", "minimum": 312, "deterministic_only": True},
     105: {"check": "manual", "verdict": "UNVERIFIABLE",
           "evidence": "A claim about who performed the work. No command settles it; "
                       "the git history is the only evidence and it is self-reported."},
@@ -203,6 +203,72 @@ CHECKS: dict[int, dict] = {
           "evidence": "geolocation_cleaned.csv is on disk and loaded into neither store. "
                       "The documentation does not claim otherwise."},
 }
+
+
+# Claims the NEW documentation makes. The 110 above came from the document the first
+# audit tested; these come from README.md, and they are audited for the same reason:
+# a number that is measured once, republished, and never re-checked is exactly how the
+# first eleven contradicted claims came to exist.
+README = "README.md"
+
+NEW_CLAIMS: list[dict] = [
+    {"id": 111, "claim": "312 deterministic tests pass with the full stack running",
+     "check": "test_suite_passes", "minimum": 312, "deterministic_only": True},
+    {"id": 127, "claim": "The README's test count matches what pytest collects",
+     "check": "collected_test_count", "total": 316, "deterministic": 312,
+     "files": [README]},
+    {"id": 126, "claim": "Four tests make a live Gemini call and are non-deterministic "
+                         "by construction; measured at 1 failure in 9 full runs",
+     "check": "consistent_number", "value": "1 failure in 9",
+     "files": [README, "audit/checks.py"]},
+    {"id": 112, "claim": "Routing accuracy 50/53 = 94.3% [84.6, 98.1]",
+     "check": "consistent_number", "value": "50/53 = 94.3% [84.6, 98.1]",
+     "files": [README, "docs/M3_RESULTS.md"]},
+    {"id": 113, "claim": "Single-agent baseline routing 43/53 = 81.1% [68.6, 89.4]",
+     "check": "consistent_number", "value": "43/53 = 81.1% [68.6, 89.4]",
+     "files": [README, "docs/M3_RESULTS.md"]},
+    {"id": 114, "claim": "Refusal recall 19/29 = 65.5% [47.3, 80.1]",
+     "check": "consistent_number", "value": "19/29 = 65.5% [47.3, 80.1]",
+     "files": [README, "docs/M3_RESULTS.md"]},
+    {"id": 115, "claim": "The 82-item run cost $0.2972",
+     "check": "consistent_number", "value": "$0.2972",
+     "files": [README, "docs/M5_COST_TABLE.md"]},
+    {"id": 116, "claim": "The evaluator is 41% of total spend, $0.1218",
+     "check": "consistent_number", "value": "$0.1218",
+     "files": [README, "docs/M5_COST_TABLE.md"]},
+    {"id": 117, "claim": "Judge agreement kappa 0.390",
+     "check": "consistent_number", "value": "0.390",
+     "files": [README, "docs/M3_RESULTS.md"]},
+    {"id": 118, "claim": "Loading the embedding model once saved 1,146 ms per request",
+     "check": "consistent_number", "value": "1,146 ms",
+     "files": [README, "docs/M5_COST_TABLE.md"]},
+    {"id": 119, "claim": "The corpus is 6,098 documents, not 8,152",
+     "check": "qdrant_composition",
+     "expected": {"support_tickets": 3000, "customer_emails": 985,
+                  "logistics_incidents": 1000, "warranty_claims": 1000,
+                  "policy_documents": 40, "troubleshooting_guides": 73},
+     "retired_total": 8152},
+    {"id": 120, "claim": "The README does not repeat a limitation that has since been fixed",
+     "check": "source_absent", "path": README,
+     "patterns": [r"[Nn]o caching", r"[Nn]o automatic replanning",
+                  r"[Nn]o token or cost calculation", r"[Nn]o cloud deployment",
+                  r"[Nn]o single-agent baseline", r"[Nn]o load testing"]},
+    {"id": 121, "claim": "The deployed demo UI is reachable",
+     "check": "url_responds", "url": "https://enterprise-ai-demo-ui.onrender.com/_stcore/health"},
+    {"id": 122, "claim": "The deployed demo API reports demo mode",
+     "check": "url_responds",
+     "url": "https://enterprise-ai-demo-api-77mb.onrender.com/health",
+     "contains": '"mode": "demo"'},
+    {"id": 123, "claim": "Demo mode installs nothing that could reach a model or a database",
+     "check": "pytest_passes",
+     "tests": ["tests/test_demo_mode.py::test_a_demo_request_loads_no_model_and_no_database_driver",
+               "tests/test_container_hygiene.py"]},
+    {"id": 124, "claim": "The runtime PostgreSQL role is read-only and not a superuser",
+     "check": "runtime_is_read_only"},
+    {"id": 125, "claim": "No SQL or Cypher template is assembled at runtime",
+     "check": "pytest_passes", "tests": ["tests/test_allowlist_frozen.py"]},
+]
+
 
 
 def main() -> None:
@@ -227,6 +293,13 @@ def main() -> None:
             "baseline_verdict": row["baseline"],
             "baseline_evidence": row["evidence"],
             **spec,
+        })
+
+    for extra in NEW_CLAIMS:
+        claims.append({
+            "baseline_verdict": "NEW",
+            "baseline_evidence": "Claimed by the rebuilt README; not in the 2026-08-20 audit.",
+            **extra,
         })
 
     executable = sum(1 for c in claims if c["check"] != "manual")

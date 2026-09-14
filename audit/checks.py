@@ -478,12 +478,28 @@ def deterministic_checks_can_fail_a_run(**_) -> tuple[str, str]:
 
 
 @check("test_suite_passes")
-def test_suite_passes(minimum: int, **_) -> tuple[str, str]:
+def test_suite_passes(minimum: int, deterministic_only: bool = False, **_):
     """Claim 104's replacement. "Fully validated" is not a measurable claim; "N tests
-    pass" is."""
+    pass" is.
+
+    `deterministic_only` deselects the four tests that make a live Gemini call. They
+    are not flaky by accident: the planner is an LLM with no pinned temperature, and
+    M7 measured `graph_intent` reproducing on only 10 of 14 replays. Measured here at
+    **1 failure in 9 full runs**, always
+    `test_revenue_question_produces_a_representable_sql_only_plan`.
+
+    A gate that goes red one run in nine for reasons outside the code teaches people
+    to re-run it until it passes, which is worse than not having it. So the gate is
+    the deterministic subset, and the non-deterministic four are measured and
+    reported rather than asserted.
+    """
+    command = [sys.executable, "-m", "pytest", "-q", "--no-header"]
+
+    if deterministic_only:
+        command += ["-m", "not requires_gemini"]
+
     result = subprocess.run(
-        [sys.executable, "-m", "pytest", "-q", "--no-header"],
-        cwd=PROJECT_ROOT, capture_output=True, text=True, timeout=3600,
+        command, cwd=PROJECT_ROOT, capture_output=True, text=True, timeout=3600,
     )
 
     match = re.search(r"(\d+) passed", result.stdout)
@@ -495,7 +511,9 @@ def test_suite_passes(minimum: int, **_) -> tuple[str, str]:
     return verdict, (
         f"{passed} passed"
         + (f", {failed.group(1)} FAILED" if failed else "")
-        + f" (claim requires >= {minimum}, exit {result.returncode})"
+        + f" (claim requires >= {minimum}, exit {result.returncode}"
+        + (", live-LLM tests deselected" if deterministic_only else "")
+        + ")"
     )
 
 
@@ -596,3 +614,117 @@ def qdrant_composition(expected: dict, retired_total: int | None = None, **_):
         )
 
     return CONFIRMED, f"total {total}: {detail}{note}"
+
+
+@check("consistent_number")
+def consistent_number(value: str, files: list[str], **_) -> tuple[str, str]:
+    """A figure quoted in the README must match the artefact that measured it.
+
+    This is the drift check. The audit's own origin story is a number that was
+    measured once, republished, and quietly stopped being true; a README that states
+    `$0.2972` while docs/M5_COST_TABLE.md says something else is that failure
+    starting again. The literal has to appear in every file listed -- the claim and
+    its source -- so they cannot separate.
+    """
+    missing = []
+
+    for relative in files:
+        path = PROJECT_ROOT / relative
+
+        if not path.exists():
+            missing.append(f"{relative} (absent)")
+            continue
+
+        if value not in path.read_text(encoding="utf-8"):
+            missing.append(relative)
+
+    verdict = CONFIRMED if not missing else CONTRADICTED
+
+    return verdict, (
+        f"{value!r} present in all of {files}" if not missing
+        else f"{value!r} MISSING from {missing} -- the README and its source disagree"
+    )
+
+
+@check("url_responds")
+def url_responds(url: str, expect_status: int = 200, contains: str | None = None, **_):
+    """The README says the demo is live. Ask it.
+
+    A network failure is reported UNVERIFIABLE rather than CONTRADICTED -- a laptop
+    with no connection is not evidence that the deployment is down. A reachable
+    service answering the wrong thing is CONTRADICTED.
+    """
+    import urllib.error
+    import urllib.request
+
+    try:
+        with urllib.request.urlopen(url, timeout=120) as response:
+            status = response.status
+            body = response.read(8192).decode("utf-8", "replace")
+    except urllib.error.HTTPError as exc:
+        return CONTRADICTED, f"GET {url} -> HTTP {exc.code} (expected {expect_status})"
+    except Exception as exc:  # noqa: BLE001
+        return UNVERIFIABLE, (
+            f"GET {url} could not be attempted: {type(exc).__name__}: {exc}. "
+            f"Not evidence that the deployment is down."
+        )
+
+    if status != expect_status:
+        return CONTRADICTED, f"GET {url} -> HTTP {status} (expected {expect_status})"
+
+    if contains and contains not in body:
+        # A JSON body may be served compact (`"mode":"demo"`) or pretty
+        # (`"mode": "demo"`). Re-serialising with canonical separators means the
+        # expectation is about the data, not about the server's whitespace -- the
+        # first version of this check reported the live demo CONTRADICTED over a
+        # missing space.
+        matched = False
+
+        try:
+            matched = contains in json.dumps(json.loads(body))
+        except ValueError:
+            matched = False
+
+        if not matched:
+            return CONTRADICTED, f"GET {url} -> {status} but body lacks {contains!r}"
+
+    return CONFIRMED, f"GET {url} -> HTTP {status}" + (
+        f", body contains {contains!r}" if contains else ""
+    )
+
+
+@check("collected_test_count")
+def collected_test_count(total: int, deterministic: int, files: list[str], **_):
+    """The README's test count must match what pytest collects, not merely exceed it.
+
+    `test_suite_passes` asserts a floor, so adding tests keeps it green while the
+    README's number silently goes stale -- which happened during M9 itself: the README
+    said 300 while the suite had grown to 316. A floor is the right gate for "the
+    suite is green"; it is the wrong check for "this number is true".
+    """
+    collected = subprocess.run(
+        [sys.executable, "-m", "pytest", "-q", "--no-header", "--collect-only"],
+        cwd=PROJECT_ROOT, capture_output=True, text=True, timeout=900,
+    ).stdout
+
+    match = re.search(r"(\d+) tests collected", collected)
+    actual = int(match.group(1)) if match else -1
+
+    problems = []
+
+    if actual != total:
+        problems.append(f"pytest collects {actual}, the claim says {total}")
+
+    for relative in files:
+        text = (PROJECT_ROOT / relative).read_text(encoding="utf-8")
+
+        for number, label in ((total, "total"), (deterministic, "deterministic")):
+            if f"{number}" not in text:
+                problems.append(f"{relative} does not state the {label} count {number}")
+
+    verdict = CONFIRMED if not problems else CONTRADICTED
+
+    return verdict, (
+        f"pytest collects {actual}; README states {total} total / {deterministic} "
+        f"deterministic" if not problems else "; ".join(problems)
+    )

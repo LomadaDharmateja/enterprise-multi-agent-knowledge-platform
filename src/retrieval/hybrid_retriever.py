@@ -1431,12 +1431,28 @@ def run_hybrid_retrieval(
             leg_results=[sql_results, graph_results, vector_results],
         )
 
+        # AUDIT.md F-18: this was the literal `"overall_status": "PASS"`, three lines
+        # above the list of legs that failed. After M4 added graceful degradation a
+        # retrieval with PostgreSQL down produced a report that said PASS *and* named
+        # a dead dependency -- the report contradicted itself, and the literal is the
+        # half a reader trusts. Same root cause as the M7 span defect: a status that
+        # asserts success instead of measuring it.
+        unavailable_legs = [
+            {
+                "source": leg["source"],
+                "dependency": leg.get("unavailable_dependency"),
+                "reason": leg.get("unavailable_reason"),
+            }
+            for leg in (sql_results, graph_results, vector_results)
+            if leg.get("unavailable")
+        ]
+
         report = {
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "query": query,
             "route_plan": route_plan,
             "summary": {
-                "overall_status": "PASS",
+                "overall_status": "DEGRADED" if unavailable_legs else "PASS",
                 "sql_records": sql_results["record_count"],
                 "graph_records": graph_results["record_count"],
                 "vector_records": vector_results["record_count"],
@@ -1445,15 +1461,7 @@ def run_hybrid_retrieval(
                 "sql_evidence_link_bypassed": sql_bypass,
                 "evidence_linked_ids": {k: len(v) for k, v in harvested.items()},
                 "evidence_quality": evidence_quality,
-                "unavailable_legs": [
-                    {
-                        "source": leg["source"],
-                        "dependency": leg.get("unavailable_dependency"),
-                        "reason": leg.get("unavailable_reason"),
-                    }
-                    for leg in (sql_results, graph_results, vector_results)
-                    if leg.get("unavailable")
-                ],
+                "unavailable_legs": unavailable_legs,
                 "circuit_breakers": breaker_states(),
             },
             "retrieval_results": {

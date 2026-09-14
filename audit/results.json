@@ -1,20 +1,20 @@
 {
-  "generated_at": "2026-09-14T05:16:08+0200",
+  "generated_at": "2026-09-15T00:29:09+0200",
   "baseline_audit": {
     "date": "2026-08-20",
     "commit": "f8dc45c",
     "source": "AUDIT.md",
-    "total": 110
+    "total": 127
   },
   "coverage": {
-    "executable": 70,
+    "executable": 87,
     "manual_judged": 5,
     "inherited_unchecked": 35
   },
   "counts": {
     "SUPERSEDED": 11,
     "CAVEAT": 13,
-    "CONFIRMED": 82,
+    "CONFIRMED": 99,
     "NOT_CLAIMED": 2,
     "UNVERIFIABLE": 2
   },
@@ -31,7 +31,7 @@
       "expected": 99441,
       "verdict": "CONFIRMED",
       "evidence": "SELECT count(*) FROM ecommerce.customers -> 99441 (expected 99441)",
-      "elapsed_ms": 9019.6
+      "elapsed_ms": 19873.9
     },
     {
       "id": 2,
@@ -43,7 +43,7 @@
       "expected": 3095,
       "verdict": "CONFIRMED",
       "evidence": "SELECT count(*) FROM ecommerce.sellers -> 3095 (expected 3095)",
-      "elapsed_ms": 2.2
+      "elapsed_ms": 5.6
     },
     {
       "id": 3,
@@ -55,7 +55,7 @@
       "expected": 32340,
       "verdict": "CONFIRMED",
       "evidence": "SELECT count(*) FROM ecommerce.products -> 32340 (expected 32340)",
-      "elapsed_ms": 3.9
+      "elapsed_ms": 8.1
     },
     {
       "id": 4,
@@ -67,7 +67,7 @@
       "expected": 99441,
       "verdict": "CONFIRMED",
       "evidence": "SELECT count(*) FROM ecommerce.orders -> 99441 (expected 99441)",
-      "elapsed_ms": 7.7
+      "elapsed_ms": 16.3
     },
     {
       "id": 5,
@@ -79,7 +79,7 @@
       "expected": 111046,
       "verdict": "CONFIRMED",
       "evidence": "SELECT count(*) FROM ecommerce.order_items -> 111046 (expected 111046)",
-      "elapsed_ms": 8.4
+      "elapsed_ms": 18.3
     },
     {
       "id": 6,
@@ -91,7 +91,7 @@
       "expected": 103886,
       "verdict": "CONFIRMED",
       "evidence": "SELECT count(*) FROM ecommerce.payments -> 103886 (expected 103886)",
-      "elapsed_ms": 6.8
+      "elapsed_ms": 18.6
     },
     {
       "id": 7,
@@ -103,7 +103,7 @@
       "expected": 99224,
       "verdict": "CONFIRMED",
       "evidence": "SELECT count(*) FROM ecommerce.reviews -> 99224 (expected 99224)",
-      "elapsed_ms": 7.1
+      "elapsed_ms": 16.9
     },
     {
       "id": 8,
@@ -116,7 +116,7 @@
       "note": "The first audit found this NULL in 73/73 (F-04) and gave the claim a CAVEAT. Now populated 73/73, so the caveat is retired.",
       "verdict": "CONFIRMED",
       "evidence": "SELECT count(*) FROM ecommerce.product_category_translations WHERE product_category_name_english IS NOT NULL -> 73 (expected 73)",
-      "elapsed_ms": 1.9
+      "elapsed_ms": 4.9
     },
     {
       "id": 9,
@@ -130,7 +130,7 @@
       ],
       "verdict": "CONFIRMED",
       "evidence": "present: 2/2",
-      "elapsed_ms": 0.1
+      "elapsed_ms": 0.2
     },
     {
       "id": 10,
@@ -142,7 +142,7 @@
       "expected": 6,
       "verdict": "CONFIRMED",
       "evidence": "SELECT count(*) FROM pg_views WHERE schemaname = 'ecommerce' -> 6 (expected 6)",
-      "elapsed_ms": 2.7
+      "elapsed_ms": 6.4
     },
     {
       "id": 11,
@@ -167,7 +167,7 @@
       "minimum": 9,
       "verdict": "CONFIRMED",
       "evidence": "CALL db.labels() YIELD label RETURN count(label) -> 15 (>= 9)",
-      "elapsed_ms": 68.6
+      "elapsed_ms": 77.1
     },
     {
       "id": 13,
@@ -179,7 +179,7 @@
       "minimum": 8,
       "verdict": "CONFIRMED",
       "evidence": "CALL db.relationshipTypes() YIELD relationshipType RETURN count(relationshipType) -> 25 (>= 8)",
-      "elapsed_ms": 4.3
+      "elapsed_ms": 7.9
     },
     {
       "id": 14,
@@ -191,7 +191,7 @@
       "expected": 99441,
       "verdict": "CONFIRMED",
       "evidence": "MATCH ()-[r:PLACED]->() RETURN count(r) -> 99441 (expected 99441)",
-      "elapsed_ms": 3.1
+      "elapsed_ms": 6.0
     },
     {
       "id": 15,
@@ -203,7 +203,7 @@
       "minimum": 1,
       "verdict": "CONFIRMED",
       "evidence": "SHOW CONSTRAINTS YIELD name RETURN count(name) -> 15 (>= 1)",
-      "elapsed_ms": 6.5
+      "elapsed_ms": 22.1
     },
     {
       "id": 16,
@@ -216,7 +216,7 @@
       ],
       "verdict": "CONFIRMED",
       "evidence": "present: 1/1",
-      "elapsed_ms": 0.1
+      "elapsed_ms": 0.2
     },
     {
       "id": 17,
@@ -228,7 +228,7 @@
       "minimum": 1,
       "verdict": "CONFIRMED",
       "evidence": "MATCH (c:Customer)-[:PLACED]->(o:Order)-[:HAS_PAYMENT]->(p:Payment) RETURN count(*) -> 103886 (>= 1)",
-      "elapsed_ms": 186.4
+      "elapsed_ms": 915.1
     },
     {
       "id": 18,
@@ -240,7 +240,7 @@
       "minimum": 1,
       "verdict": "CONFIRMED",
       "evidence": "MATCH (c:Customer)-[:PLACED]->(o:Order)-[:HAS_REVIEW]->(r:Review) RETURN count(*) -> 99224 (>= 1)",
-      "elapsed_ms": 136.9
+      "elapsed_ms": 307.4
     },
     {
       "id": 19,
@@ -253,7 +253,7 @@
       "note": "SOLD_BY hangs off OrderItem, not Product -- an order item is what a seller sells. The first version of this check walked Product-[:SOLD_BY]->Seller, matched 0, and reported the claim CONTRADICTED. The path is real: 17,756 traversals from reviews scoring <= 2.",
       "verdict": "CONFIRMED",
       "evidence": "MATCH (r:Review)<-[:HAS_REVIEW]-(o:Order)-[:CONTAINS_ITEM]->(i:OrderItem)-[:REFERENCES_PRODUCT]->(p:Product) MATCH (i)-[:SOLD_BY]->(s:Seller) WHERE r.review_score <= 2 RETURN count(*) -> 17756 (>= 1)",
-      "elapsed_ms": 148.3
+      "elapsed_ms": 182.6
     },
     {
       "id": 20,
@@ -265,7 +265,7 @@
       "expected": 0,
       "verdict": "CONFIRMED",
       "evidence": "MATCH (o:Order) WHERE NOT (o)<-[:PLACED]-() RETURN count(o) -> 0 (expected 0)",
-      "elapsed_ms": 64.4
+      "elapsed_ms": 130.0
     },
     {
       "id": 21,
@@ -279,7 +279,7 @@
       ],
       "verdict": "CONFIRMED",
       "evidence": "support_tickets: n=200; seller_id on 200",
-      "elapsed_ms": 300.7
+      "elapsed_ms": 646.4
     },
     {
       "id": 22,
@@ -353,7 +353,7 @@
       "retired_total": 8152,
       "verdict": "CONFIRMED",
       "evidence": "total 6098: customer_emails=985, logistics_incidents=1000, policy_documents=40, support_tickets=3000, troubleshooting_guides=73, warranty_claims=1000. The first audit's 8,152 was retired in docs/CORPUS_DESIGN.md during M1; the reduction is intentional",
-      "elapsed_ms": 429.1
+      "elapsed_ms": 817.2
     },
     {
       "id": 28,
@@ -364,7 +364,7 @@
       "min_fraction": 0.5,
       "verdict": "CONFIRMED",
       "evidence": "395/400 sampled points carry an Olist entity id (98.8%); first audit measured 0/8152",
-      "elapsed_ms": 22.6
+      "elapsed_ms": 55.9
     },
     {
       "id": 29,
@@ -375,7 +375,7 @@
       "min_fraction": 0.5,
       "verdict": "CONFIRMED",
       "evidence": "395/400 sampled points carry an Olist entity id (98.8%); first audit measured 0/8152",
-      "elapsed_ms": 0.3
+      "elapsed_ms": 0.5
     },
     {
       "id": 30,
@@ -390,7 +390,7 @@
       ],
       "verdict": "CONFIRMED",
       "evidence": "warranty_claims: n=200; product_id on 200, seller_id on 200",
-      "elapsed_ms": 22.2
+      "elapsed_ms": 53.4
     },
     {
       "id": 31,
@@ -404,7 +404,7 @@
       ],
       "verdict": "CONFIRMED",
       "evidence": "src/retrieval/hybrid_retriever.py: matched 1/1",
-      "elapsed_ms": 0.4
+      "elapsed_ms": 0.7
     },
     {
       "id": 32,
@@ -415,7 +415,7 @@
       "expected": 384,
       "verdict": "CONFIRMED",
       "evidence": "live collection vector size = 384 (expected 384)",
-      "elapsed_ms": 29.0
+      "elapsed_ms": 13.4
     },
     {
       "id": 33,
@@ -434,7 +434,7 @@
       "retired_total": 8152,
       "verdict": "CONFIRMED",
       "evidence": "total 6098: customer_emails=985, logistics_incidents=1000, policy_documents=40, support_tickets=3000, troubleshooting_guides=73, warranty_claims=1000. The first audit's 8,152 was retired in docs/CORPUS_DESIGN.md during M1; the reduction is intentional",
-      "elapsed_ms": 315.1
+      "elapsed_ms": 640.4
     },
     {
       "id": 34,
@@ -445,7 +445,7 @@
       "min_fraction": 0.5,
       "verdict": "CONFIRMED",
       "evidence": "395/400 sampled points carry an Olist entity id (98.8%); first audit measured 0/8152",
-      "elapsed_ms": 0.4
+      "elapsed_ms": 1.4
     },
     {
       "id": 35,
@@ -459,7 +459,7 @@
       ],
       "verdict": "CONFIRMED",
       "evidence": "src/retrieval/hybrid_retriever.py: matched 1/1",
-      "elapsed_ms": 0.5
+      "elapsed_ms": 1.0
     },
     {
       "id": 36,
@@ -491,7 +491,7 @@
       "check": "legs_can_be_skipped",
       "verdict": "CONFIRMED",
       "evidence": "run_hybrid_retrieval guards each leg on the plan (skipped_leg_result + per-leg None/[] guards present: 3/3)",
-      "elapsed_ms": 8.3
+      "elapsed_ms": 20.5
     },
     {
       "id": 39,
@@ -503,8 +503,8 @@
         "tests/test_allowlist_frozen.py"
       ],
       "verdict": "CONFIRMED",
-      "evidence": "tests/test_allowlist_frozen.py -> \u001b[32m\u001b[32m\u001b[1m22 passed\u001b[0m\u001b[32m in 0.31s\u001b[0m\u001b[0m",
-      "elapsed_ms": 1512.0
+      "evidence": "tests/test_allowlist_frozen.py -> 22 passed in 0.56s",
+      "elapsed_ms": 3230.0
     },
     {
       "id": 40,
@@ -516,8 +516,8 @@
         "tests/test_workflow_routing.py::test_templates_are_static_literals_not_assembled_strings"
       ],
       "verdict": "CONFIRMED",
-      "evidence": "tests/test_workflow_routing.py::test_templates_are_static_literals_not_assembled_strings -> \u001b[32m\u001b[32m\u001b[1m1 passed\u001b[0m\u001b[32m in 0.04s\u001b[0m\u001b[0m",
-      "elapsed_ms": 1242.3
+      "evidence": "tests/test_workflow_routing.py::test_templates_are_static_literals_not_assembled_strings -> 1 passed in 0.09s",
+      "elapsed_ms": 2652.7
     },
     {
       "id": 41,
@@ -538,7 +538,7 @@
       "check": "legs_can_be_skipped",
       "verdict": "CONFIRMED",
       "evidence": "run_hybrid_retrieval guards each leg on the plan (skipped_leg_result + per-leg None/[] guards present: 3/3)",
-      "elapsed_ms": 7.9
+      "elapsed_ms": 23.0
     },
     {
       "id": 43,
@@ -554,7 +554,7 @@
       ],
       "verdict": "CONFIRMED",
       "evidence": "src/orchestration/agentic_workflow.py: matched 3/3",
-      "elapsed_ms": 0.4
+      "elapsed_ms": 0.8
     },
     {
       "id": 44,
@@ -568,7 +568,7 @@
       ],
       "verdict": "CONFIRMED",
       "evidence": "src/orchestration/agentic_workflow.py: matched 1/1",
-      "elapsed_ms": 0.2
+      "elapsed_ms": 0.5
     },
     {
       "id": 45,
@@ -582,7 +582,7 @@
       ],
       "verdict": "CONFIRMED",
       "evidence": "src/orchestration/agentic_workflow.py: matched 1/1",
-      "elapsed_ms": 0.2
+      "elapsed_ms": 0.6
     },
     {
       "id": 46,
@@ -625,7 +625,7 @@
       "check": "sql_only_plan_is_representable",
       "verdict": "CONFIRMED",
       "evidence": "validate_and_normalize_plan accepts sql_intent with graph_intent=None and vector_artifact_groups=[] -- a single-store plan is representable",
-      "elapsed_ms": 1.9
+      "elapsed_ms": 3.4
     },
     {
       "id": 50,
@@ -640,7 +640,7 @@
       ],
       "verdict": "CONFIRMED",
       "evidence": "src/planning/gemini_query_planner.py: matched 2/2",
-      "elapsed_ms": 0.4
+      "elapsed_ms": 0.7
     },
     {
       "id": 51,
@@ -652,8 +652,8 @@
         "tests/test_plan_parameters.py"
       ],
       "verdict": "CONFIRMED",
-      "evidence": "tests/test_plan_parameters.py -> \u001b[32m\u001b[32m\u001b[1m21 passed\u001b[0m\u001b[32m in 0.19s\u001b[0m\u001b[0m",
-      "elapsed_ms": 1334.0
+      "evidence": "tests/test_plan_parameters.py -> 21 passed in 0.47s",
+      "elapsed_ms": 3023.5
     },
     {
       "id": 52,
@@ -665,8 +665,8 @@
         "tests/test_context_builder_grouping.py"
       ],
       "verdict": "CONFIRMED",
-      "evidence": "tests/test_context_builder_grouping.py -> \u001b[32m\u001b[32m\u001b[1m10 passed\u001b[0m\u001b[32m in 8.77s\u001b[0m\u001b[0m",
-      "elapsed_ms": 11127.0
+      "evidence": "tests/test_context_builder_grouping.py -> 10 passed in 19.79s",
+      "elapsed_ms": 24447.6
     },
     {
       "id": 53,
@@ -731,7 +731,7 @@
       "check": "deterministic_checks_can_fail_a_run",
       "verdict": "CONFIRMED",
       "evidence": "deterministic checks: 1 at severity=high (can fail a run), 2 at medium (advisory). First audit: 0 high, only len>=1000 decisive",
-      "elapsed_ms": 0.7
+      "elapsed_ms": 1.1
     },
     {
       "id": 59,
@@ -749,7 +749,7 @@
       "milestone": "M4",
       "verdict": "SUPERSEDED",
       "evidence": "M4 implemented this; the limitation no longer holds (evidence: ['def replan_node', 'should_replan'] in src/orchestration/agentic_workflow.py)",
-      "elapsed_ms": 0.4
+      "elapsed_ms": 0.7
     },
     {
       "id": 60,
@@ -764,7 +764,7 @@
       ],
       "verdict": "CONFIRMED",
       "evidence": "src/api/main.py: matched 2/2",
-      "elapsed_ms": 0.4
+      "elapsed_ms": 0.6
     },
     {
       "id": 61,
@@ -774,7 +774,7 @@
       "check": "health_reports_real_dependencies",
       "verdict": "CONFIRMED",
       "evidence": "/health probes ['_check_postgres', '_check_neo4j', '_check_qdrant'] and returns 503 when any fails: True",
-      "elapsed_ms": 0.5
+      "elapsed_ms": 0.7
     },
     {
       "id": 62,
@@ -789,7 +789,7 @@
       ],
       "verdict": "CONFIRMED",
       "evidence": "src/api/main.py: matched 2/2",
-      "elapsed_ms": 0.4
+      "elapsed_ms": 0.5
     },
     {
       "id": 63,
@@ -805,7 +805,7 @@
       ],
       "verdict": "CONFIRMED",
       "evidence": "src/api/main.py: matched 3/3",
-      "elapsed_ms": 0.4
+      "elapsed_ms": 0.6
     },
     {
       "id": 64,
@@ -827,8 +827,8 @@
         "tests/test_ui_evidence_trail.py"
       ],
       "verdict": "CONFIRMED",
-      "evidence": "tests/test_ui_evidence_trail.py -> \u001b[32m\u001b[32m\u001b[1m15 passed\u001b[0m\u001b[32m in 3.95s\u001b[0m\u001b[0m",
-      "elapsed_ms": 5140.2
+      "evidence": "tests/test_ui_evidence_trail.py -> 15 passed in 9.24s",
+      "elapsed_ms": 11869.8
     },
     {
       "id": 66,
@@ -845,7 +845,7 @@
       ],
       "verdict": "CONFIRMED",
       "evidence": "src/ui/streamlit_app.py: none of ['import psycopg2', 'from sqlalchemy', 'import neo4j', 'qdrant_client'] present",
-      "elapsed_ms": 0.5
+      "elapsed_ms": 1.6
     },
     {
       "id": 67,
@@ -859,7 +859,7 @@
       ],
       "verdict": "CONFIRMED",
       "evidence": "src/observability/observability.py: matched 1/1",
-      "elapsed_ms": 0.2
+      "elapsed_ms": 0.7
     },
     {
       "id": 68,
@@ -899,7 +899,7 @@
       "milestone": "M5/M7",
       "verdict": "SUPERSEDED",
       "evidence": "M5/M7 implemented this; the limitation no longer holds (evidence: ['cost_usd', 'input_tokens'] in src/observability/otel.py)",
-      "elapsed_ms": 0.2
+      "elapsed_ms": 0.8
     },
     {
       "id": 71,
@@ -914,7 +914,7 @@
       ],
       "verdict": "CONFIRMED",
       "evidence": "present: 3/3",
-      "elapsed_ms": 0.1
+      "elapsed_ms": 0.3
     },
     {
       "id": 72,
@@ -929,7 +929,7 @@
       ],
       "verdict": "CONFIRMED",
       "evidence": "docker-compose.yml: matched 2/2",
-      "elapsed_ms": 0.2
+      "elapsed_ms": 0.7
     },
     {
       "id": 73,
@@ -996,8 +996,8 @@
         "tests/test_allowlist_frozen.py"
       ],
       "verdict": "CONFIRMED",
-      "evidence": "tests/test_allowlist_frozen.py -> \u001b[32m\u001b[32m\u001b[1m22 passed\u001b[0m\u001b[32m in 0.26s\u001b[0m\u001b[0m",
-      "elapsed_ms": 1533.8
+      "evidence": "tests/test_allowlist_frozen.py -> 22 passed in 0.56s",
+      "elapsed_ms": 3225.9
     },
     {
       "id": 79,
@@ -1009,8 +1009,8 @@
         "tests/test_allowlist_frozen.py"
       ],
       "verdict": "CONFIRMED",
-      "evidence": "tests/test_allowlist_frozen.py -> \u001b[32m\u001b[32m\u001b[1m22 passed\u001b[0m\u001b[32m in 0.24s\u001b[0m\u001b[0m",
-      "elapsed_ms": 1376.6
+      "evidence": "tests/test_allowlist_frozen.py -> 22 passed in 0.58s",
+      "elapsed_ms": 3334.7
     },
     {
       "id": 80,
@@ -1022,8 +1022,8 @@
         "tests/test_workflow_routing.py::test_templates_are_static_literals_not_assembled_strings"
       ],
       "verdict": "CONFIRMED",
-      "evidence": "tests/test_workflow_routing.py::test_templates_are_static_literals_not_assembled_strings -> \u001b[32m\u001b[32m\u001b[1m1 passed\u001b[0m\u001b[32m in 0.04s\u001b[0m\u001b[0m",
-      "elapsed_ms": 1154.3
+      "evidence": "tests/test_workflow_routing.py::test_templates_are_static_literals_not_assembled_strings -> 1 passed in 0.11s",
+      "elapsed_ms": 2770.3
     },
     {
       "id": 81,
@@ -1035,8 +1035,8 @@
         "tests/test_allowlist_frozen.py"
       ],
       "verdict": "CONFIRMED",
-      "evidence": "tests/test_allowlist_frozen.py -> \u001b[32m\u001b[32m\u001b[1m22 passed\u001b[0m\u001b[32m in 0.23s\u001b[0m\u001b[0m",
-      "elapsed_ms": 1391.6
+      "evidence": "tests/test_allowlist_frozen.py -> 22 passed in 0.59s",
+      "elapsed_ms": 3296.3
     },
     {
       "id": 82,
@@ -1046,7 +1046,7 @@
       "check": "runtime_is_read_only",
       "verdict": "CONFIRMED",
       "evidence": "role 'enterprise_readonly': superuser=False, SELECT=True, INSERT=False; read-only transactions=True, read-mode Neo4j sessions=True",
-      "elapsed_ms": 9.1
+      "elapsed_ms": 21.2
     },
     {
       "id": 83,
@@ -1086,7 +1086,7 @@
       "milestone": "M6",
       "verdict": "SUPERSEDED",
       "evidence": "M6 implemented this; the limitation no longer holds (evidence: ['HTTPBearer', 'require_bearer_token'] in src/api/main.py)",
-      "elapsed_ms": 0.3
+      "elapsed_ms": 0.9
     },
     {
       "id": 86,
@@ -1180,7 +1180,7 @@
       "milestone": "M3",
       "verdict": "SUPERSEDED",
       "evidence": "M3 implemented this; the limitation no longer holds (evidence: ['items'] in tests/eval/eval_set_v1.json)",
-      "elapsed_ms": 0.4
+      "elapsed_ms": 1.3
     },
     {
       "id": 94,
@@ -1197,7 +1197,7 @@
       "milestone": "M3",
       "verdict": "SUPERSEDED",
       "evidence": "M3 implemented this; the limitation no longer holds (evidence: ['single-agent baseline|baseline'] in docs/M3_RESULTS.md)",
-      "elapsed_ms": 0.3
+      "elapsed_ms": 1.0
     },
     {
       "id": 95,
@@ -1215,7 +1215,7 @@
       "milestone": "M4",
       "verdict": "SUPERSEDED",
       "evidence": "M4 implemented this; the limitation no longer holds (evidence: ['def replan_node', 'should_replan'] in src/orchestration/agentic_workflow.py)",
-      "elapsed_ms": 0.2
+      "elapsed_ms": 0.8
     },
     {
       "id": 96,
@@ -1244,7 +1244,7 @@
       "milestone": "M5",
       "verdict": "SUPERSEDED",
       "evidence": "M5 implemented this; the limitation no longer holds (evidence: ['class InMemoryLRUCache', 'class QueryCache'] in src/observability/query_cache.py)",
-      "elapsed_ms": 0.3
+      "elapsed_ms": 0.8
     },
     {
       "id": 98,
@@ -1262,7 +1262,7 @@
       "milestone": "M4",
       "verdict": "SUPERSEDED",
       "evidence": "M4 implemented this; the limitation no longer holds (evidence: ['backoff', 'circuit|breaker'] in src/observability/resilience.py)",
-      "elapsed_ms": 0.3
+      "elapsed_ms": 0.8
     },
     {
       "id": 99,
@@ -1279,7 +1279,7 @@
       "milestone": "M5",
       "verdict": "SUPERSEDED",
       "evidence": "M5 implemented this; the limitation no longer holds (evidence: ['concurren'] in tests/eval/results/m5_cache_concurrency.json)",
-      "elapsed_ms": 0.4
+      "elapsed_ms": 0.6
     },
     {
       "id": 100,
@@ -1297,7 +1297,7 @@
       "milestone": "M5/M7",
       "verdict": "SUPERSEDED",
       "evidence": "M5/M7 implemented this; the limitation no longer holds (evidence: ['INPUT_USD_PER_TOKEN', 'cost_usd'] in src/observability/otel.py)",
-      "elapsed_ms": 0.3
+      "elapsed_ms": 0.7
     },
     {
       "id": 101,
@@ -1325,7 +1325,7 @@
       "milestone": "M8",
       "verdict": "SUPERSEDED",
       "evidence": "M8 implemented this; the limitation no longer holds (evidence: ['enterprise-ai-demo-api'] in render.yaml)",
-      "elapsed_ms": 0.2
+      "elapsed_ms": 0.6
     },
     {
       "id": 103,
@@ -1344,10 +1344,11 @@
       "baseline_verdict": "CONTRADICTED",
       "baseline_evidence": "The retrieval layer is untested by anything (F-12), the five cases test the planner on its own answer key, and the only decisive deterministic gate is a string-length check",
       "check": "test_suite_passes",
-      "minimum": 299,
+      "minimum": 312,
+      "deterministic_only": true,
       "verdict": "CONFIRMED",
-      "evidence": "299 passed (claim requires >= 299, exit 0)",
-      "elapsed_ms": 81213.4
+      "evidence": "312 passed (claim requires >= 312, exit 0, live-LLM tests deselected)",
+      "elapsed_ms": 127223.8
     },
     {
       "id": 105,
@@ -1379,7 +1380,7 @@
       "minimum": 1,
       "verdict": "CONFIRMED",
       "evidence": "SELECT count(*) FROM ecommerce.orders -> 99441 (>= 1)",
-      "elapsed_ms": 6.1
+      "elapsed_ms": 15.1
     },
     {
       "id": 108,
@@ -1391,7 +1392,7 @@
       "expected": 8,
       "verdict": "CONFIRMED",
       "evidence": "SELECT count(*) FROM information_schema.tables WHERE table_schema='ecommerce' AND table_type='BASE TABLE' -> 8 (expected 8)",
-      "elapsed_ms": 3.7
+      "elapsed_ms": 9.3
     },
     {
       "id": 109,
@@ -1413,6 +1414,251 @@
       "evidence": "Inherited from the 2026-08-20 audit; no executable check written. Counted as unchecked in the coverage figure.",
       "inherited": true,
       "elapsed_ms": 0.0
+    },
+    {
+      "baseline_verdict": "NEW",
+      "baseline_evidence": "Claimed by the rebuilt README; not in the 2026-08-20 audit.",
+      "id": 111,
+      "claim": "312 deterministic tests pass with the full stack running",
+      "check": "test_suite_passes",
+      "minimum": 312,
+      "deterministic_only": true,
+      "verdict": "CONFIRMED",
+      "evidence": "312 passed (claim requires >= 312, exit 0, live-LLM tests deselected)",
+      "elapsed_ms": 125606.8
+    },
+    {
+      "baseline_verdict": "NEW",
+      "baseline_evidence": "Claimed by the rebuilt README; not in the 2026-08-20 audit.",
+      "id": 127,
+      "claim": "The README's test count matches what pytest collects",
+      "check": "collected_test_count",
+      "total": 316,
+      "deterministic": 312,
+      "files": [
+        "README.md"
+      ],
+      "verdict": "CONFIRMED",
+      "evidence": "pytest collects 316; README states 316 total / 312 deterministic",
+      "elapsed_ms": 26982.1
+    },
+    {
+      "baseline_verdict": "NEW",
+      "baseline_evidence": "Claimed by the rebuilt README; not in the 2026-08-20 audit.",
+      "id": 126,
+      "claim": "Four tests make a live Gemini call and are non-deterministic by construction; measured at 1 failure in 9 full runs",
+      "check": "consistent_number",
+      "value": "1 failure in 9",
+      "files": [
+        "README.md",
+        "audit/checks.py"
+      ],
+      "verdict": "CONFIRMED",
+      "evidence": "'1 failure in 9' present in all of ['README.md', 'audit/checks.py']",
+      "elapsed_ms": 1.0
+    },
+    {
+      "baseline_verdict": "NEW",
+      "baseline_evidence": "Claimed by the rebuilt README; not in the 2026-08-20 audit.",
+      "id": 112,
+      "claim": "Routing accuracy 50/53 = 94.3% [84.6, 98.1]",
+      "check": "consistent_number",
+      "value": "50/53 = 94.3% [84.6, 98.1]",
+      "files": [
+        "README.md",
+        "docs/M3_RESULTS.md"
+      ],
+      "verdict": "CONFIRMED",
+      "evidence": "'50/53 = 94.3% [84.6, 98.1]' present in all of ['README.md', 'docs/M3_RESULTS.md']",
+      "elapsed_ms": 0.9
+    },
+    {
+      "baseline_verdict": "NEW",
+      "baseline_evidence": "Claimed by the rebuilt README; not in the 2026-08-20 audit.",
+      "id": 113,
+      "claim": "Single-agent baseline routing 43/53 = 81.1% [68.6, 89.4]",
+      "check": "consistent_number",
+      "value": "43/53 = 81.1% [68.6, 89.4]",
+      "files": [
+        "README.md",
+        "docs/M3_RESULTS.md"
+      ],
+      "verdict": "CONFIRMED",
+      "evidence": "'43/53 = 81.1% [68.6, 89.4]' present in all of ['README.md', 'docs/M3_RESULTS.md']",
+      "elapsed_ms": 0.9
+    },
+    {
+      "baseline_verdict": "NEW",
+      "baseline_evidence": "Claimed by the rebuilt README; not in the 2026-08-20 audit.",
+      "id": 114,
+      "claim": "Refusal recall 19/29 = 65.5% [47.3, 80.1]",
+      "check": "consistent_number",
+      "value": "19/29 = 65.5% [47.3, 80.1]",
+      "files": [
+        "README.md",
+        "docs/M3_RESULTS.md"
+      ],
+      "verdict": "CONFIRMED",
+      "evidence": "'19/29 = 65.5% [47.3, 80.1]' present in all of ['README.md', 'docs/M3_RESULTS.md']",
+      "elapsed_ms": 0.9
+    },
+    {
+      "baseline_verdict": "NEW",
+      "baseline_evidence": "Claimed by the rebuilt README; not in the 2026-08-20 audit.",
+      "id": 115,
+      "claim": "The 82-item run cost $0.2972",
+      "check": "consistent_number",
+      "value": "$0.2972",
+      "files": [
+        "README.md",
+        "docs/M5_COST_TABLE.md"
+      ],
+      "verdict": "CONFIRMED",
+      "evidence": "'$0.2972' present in all of ['README.md', 'docs/M5_COST_TABLE.md']",
+      "elapsed_ms": 0.8
+    },
+    {
+      "baseline_verdict": "NEW",
+      "baseline_evidence": "Claimed by the rebuilt README; not in the 2026-08-20 audit.",
+      "id": 116,
+      "claim": "The evaluator is 41% of total spend, $0.1218",
+      "check": "consistent_number",
+      "value": "$0.1218",
+      "files": [
+        "README.md",
+        "docs/M5_COST_TABLE.md"
+      ],
+      "verdict": "CONFIRMED",
+      "evidence": "'$0.1218' present in all of ['README.md', 'docs/M5_COST_TABLE.md']",
+      "elapsed_ms": 0.8
+    },
+    {
+      "baseline_verdict": "NEW",
+      "baseline_evidence": "Claimed by the rebuilt README; not in the 2026-08-20 audit.",
+      "id": 117,
+      "claim": "Judge agreement kappa 0.390",
+      "check": "consistent_number",
+      "value": "0.390",
+      "files": [
+        "README.md",
+        "docs/M3_RESULTS.md"
+      ],
+      "verdict": "CONFIRMED",
+      "evidence": "'0.390' present in all of ['README.md', 'docs/M3_RESULTS.md']",
+      "elapsed_ms": 0.9
+    },
+    {
+      "baseline_verdict": "NEW",
+      "baseline_evidence": "Claimed by the rebuilt README; not in the 2026-08-20 audit.",
+      "id": 118,
+      "claim": "Loading the embedding model once saved 1,146 ms per request",
+      "check": "consistent_number",
+      "value": "1,146 ms",
+      "files": [
+        "README.md",
+        "docs/M5_COST_TABLE.md"
+      ],
+      "verdict": "CONFIRMED",
+      "evidence": "'1,146 ms' present in all of ['README.md', 'docs/M5_COST_TABLE.md']",
+      "elapsed_ms": 0.8
+    },
+    {
+      "baseline_verdict": "NEW",
+      "baseline_evidence": "Claimed by the rebuilt README; not in the 2026-08-20 audit.",
+      "id": 119,
+      "claim": "The corpus is 6,098 documents, not 8,152",
+      "check": "qdrant_composition",
+      "expected": {
+        "support_tickets": 3000,
+        "customer_emails": 985,
+        "logistics_incidents": 1000,
+        "warranty_claims": 1000,
+        "policy_documents": 40,
+        "troubleshooting_guides": 73
+      },
+      "retired_total": 8152,
+      "verdict": "CONFIRMED",
+      "evidence": "total 6098: customer_emails=985, logistics_incidents=1000, policy_documents=40, support_tickets=3000, troubleshooting_guides=73, warranty_claims=1000. The first audit's 8,152 was retired in docs/CORPUS_DESIGN.md during M1; the reduction is intentional",
+      "elapsed_ms": 798.3
+    },
+    {
+      "baseline_verdict": "NEW",
+      "baseline_evidence": "Claimed by the rebuilt README; not in the 2026-08-20 audit.",
+      "id": 120,
+      "claim": "The README does not repeat a limitation that has since been fixed",
+      "check": "source_absent",
+      "path": "README.md",
+      "patterns": [
+        "[Nn]o caching",
+        "[Nn]o automatic replanning",
+        "[Nn]o token or cost calculation",
+        "[Nn]o cloud deployment",
+        "[Nn]o single-agent baseline",
+        "[Nn]o load testing"
+      ],
+      "verdict": "CONFIRMED",
+      "evidence": "README.md: none of ['[Nn]o caching', '[Nn]o automatic replanning', '[Nn]o token or cost calculation', '[Nn]o cloud deployment', '[Nn]o single-agent baseline', '[Nn]o load testing'] present",
+      "elapsed_ms": 2.0
+    },
+    {
+      "baseline_verdict": "NEW",
+      "baseline_evidence": "Claimed by the rebuilt README; not in the 2026-08-20 audit.",
+      "id": 121,
+      "claim": "The deployed demo UI is reachable",
+      "check": "url_responds",
+      "url": "https://enterprise-ai-demo-ui.onrender.com/_stcore/health",
+      "verdict": "CONFIRMED",
+      "evidence": "GET https://enterprise-ai-demo-ui.onrender.com/_stcore/health -> HTTP 200",
+      "elapsed_ms": 341.6
+    },
+    {
+      "baseline_verdict": "NEW",
+      "baseline_evidence": "Claimed by the rebuilt README; not in the 2026-08-20 audit.",
+      "id": 122,
+      "claim": "The deployed demo API reports demo mode",
+      "check": "url_responds",
+      "url": "https://enterprise-ai-demo-api-77mb.onrender.com/health",
+      "contains": "\"mode\": \"demo\"",
+      "verdict": "CONFIRMED",
+      "evidence": "GET https://enterprise-ai-demo-api-77mb.onrender.com/health -> HTTP 200, body contains '\"mode\": \"demo\"'",
+      "elapsed_ms": 257.2
+    },
+    {
+      "baseline_verdict": "NEW",
+      "baseline_evidence": "Claimed by the rebuilt README; not in the 2026-08-20 audit.",
+      "id": 123,
+      "claim": "Demo mode installs nothing that could reach a model or a database",
+      "check": "pytest_passes",
+      "tests": [
+        "tests/test_demo_mode.py::test_a_demo_request_loads_no_model_and_no_database_driver",
+        "tests/test_container_hygiene.py"
+      ],
+      "verdict": "CONFIRMED",
+      "evidence": "tests/test_demo_mode.py::test_a_demo_request_loads_no_model_and_no_database_driver tests/test_container_hygiene.py -> 21 passed, 1 warning in 2.41s",
+      "elapsed_ms": 4937.1
+    },
+    {
+      "baseline_verdict": "NEW",
+      "baseline_evidence": "Claimed by the rebuilt README; not in the 2026-08-20 audit.",
+      "id": 124,
+      "claim": "The runtime PostgreSQL role is read-only and not a superuser",
+      "check": "runtime_is_read_only",
+      "verdict": "CONFIRMED",
+      "evidence": "role 'enterprise_readonly': superuser=False, SELECT=True, INSERT=False; read-only transactions=True, read-mode Neo4j sessions=True",
+      "elapsed_ms": 15.0
+    },
+    {
+      "baseline_verdict": "NEW",
+      "baseline_evidence": "Claimed by the rebuilt README; not in the 2026-08-20 audit.",
+      "id": 125,
+      "claim": "No SQL or Cypher template is assembled at runtime",
+      "check": "pytest_passes",
+      "tests": [
+        "tests/test_allowlist_frozen.py"
+      ],
+      "verdict": "CONFIRMED",
+      "evidence": "tests/test_allowlist_frozen.py -> 22 passed in 0.57s",
+      "elapsed_ms": 3202.9
     }
   ]
 }
