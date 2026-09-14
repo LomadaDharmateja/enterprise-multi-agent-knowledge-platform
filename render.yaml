@@ -68,16 +68,29 @@ services:
     # not have shipped without a manual click.
     autoDeploy: true
     envVars:
-      # `property: host` yields a bare hostname with no scheme. The UI's
-      # normalise_base_url() turns that into https://, so the blueprint needs no
-      # hand-edited URL and the trace links are clickable from the visitor's browser.
+      # Set these in the dashboard, once, to the API service's PUBLIC url --
+      # https://<api-service>.onrender.com. Render prompts for `sync: false` values
+      # when the blueprint is applied.
+      #
+      # This cannot be derived from the blueprint, for two independent reasons:
+      #
+      #   1. `fromService` offers only `host`, `port` and `hostport`, and all three
+      #      are private-network addresses. There is no property for a public URL.
+      #   2. Even if there were, the private network is not an option here: Render
+      #      documents that "free web services can send private network requests, but
+      #      they can't receive them". Two free services cannot talk privately at all.
+      #
+      # The first attempt used `property: host`, which handed the UI the bare service
+      # name `enterprise-ai-demo-api-77mb` and produced
+      # `NameResolutionError: Failed to resolve 'enterprise-ai-demo-api-77mb'`.
+      #
+      # It also cannot be hardcoded: Render appends a random suffix when the service
+      # name is already taken globally, so the hostname is not knowable until the
+      # service exists.
       - key: API_BASE_URL
-        fromService:
-          type: web
-          name: enterprise-ai-demo-api
-          property: host
+        sync: false
+      # The same value. Kept separate because in a paid deployment behind a reverse
+      # proxy the internal address and the address a visitor's browser must reach for
+      # the trace links are genuinely different.
       - key: PUBLIC_API_BASE_URL
-        fromService:
-          type: web
-          name: enterprise-ai-demo-api
-          property: host
+        sync: false
