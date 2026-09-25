@@ -19,56 +19,40 @@ reproducible from a command in this repository, and the numbered claims — `#41
 python scripts/audit_claims.py      # exits non-zero if any claim is contradicted
 ```
 
-## Why this document is shaped this way
+**At a glance**
 
-An independent audit in August 2026 tested 110 claims made by an earlier write-up of
-this project and found **11 of them contradicted by the running system** (`AUDIT.md`).
-Not small ones: the vector store held no entity IDs, so "retrieved documents link back
-to SQL and graph evidence" was false; SQL and graph retrieval returned the same rows
-regardless of the question; `/health` was a hardcoded `ok` that stayed green while every
-dependency was down; and the "read-only runtime" ran as a PostgreSQL superuser through
-committing read-write transactions.
-
-The response was a ten-milestone rebuild (`REBUILD_PLAN.md`) under one rule: **every
-exit criterion is a number or a passing test.** The audit was then re-run against the
-finished system, mechanically.
-
-| | 2026-08-20 | 2026-09-14 |
-|---|---:|---:|
-| CONFIRMED | 78 | 82 |
-| CONFIRMED WITH CAVEAT | 18 | 13 |
-| **CONTRADICTED** | **11** | **0** |
-| SUPERSEDED — true then, fixed since | — | 11 |
-| NOT_CLAIMED — dropped, with a reason | — | 2 |
-| UNVERIFIABLE | 3 | 2 |
+- Multi-agent workflow in LangGraph: planner, retrieval over PostgreSQL + Neo4j +
+  Qdrant, a refusal gate, an answer agent and an evaluator agent.
+- Routing accuracy on 53 held-out questions: **50/53 = 94.3% [84.6, 98.1]**
+  against **43/53 = 81.1% [68.6, 89.4]** for a single-agent baseline.
+- The LLM never writes a query: it picks an intent from a frozen allowlist of
+  parameterised SQL and Cypher templates.
+- Cost measured per run: **$0.2972** for the full 82-question evaluation on
+  `gemini-3.1-flash-lite`.
+- Read-only database role, bearer-token auth, `/health` that probes every store,
+  OpenTelemetry spans carrying cost and tokens.
+- **316 tests**; CI green; non-root multi-stage Docker images; live demo.
 
 ---
 
 ## What it is
 
+```mermaid
+flowchart TB
+    q["Question"] --> planner["Planner agent<br/>picks an intent per store, or refuses<br/>output validated against a frozen allowlist"]
+    planner --> pg[("PostgreSQL<br/>parameterised SQL templates")]
+    planner --> neo[("Neo4j<br/>parameterised Cypher templates")]
+    planner --> qd[("Qdrant<br/>semantic search, filtered")]
+    pg & neo & qd --> gate{"Refusal gate<br/>does the evidence answer it?"}
+    gate -- no --> refuse["Refusal with reason"]
+    gate -- yes --> answer["Answer agent<br/>writes only from retrieved evidence"]
+    answer --> evaluator["Evaluator agent<br/>grounding, completeness,<br/>business readiness, 1-5"]
+    evaluator --> resp["Response + evidence trail"]
+    planner & answer & evaluator -.-> otel["OpenTelemetry trace<br/>cost and tokens per span"]
 ```
-question
-   │
-   ▼
-planner agent ──────────── picks an intent per store, or refuses
-   │                       (Gemini; output validated against a frozen allowlist)
-   ▼
-retrieval ─── PostgreSQL ─ one of N parameterised SQL templates
-          ├── Neo4j ────── one of N parameterised Cypher templates
-          └── Qdrant ───── semantic search, filtered to artifact groups
-   │
-   ▼
-refusal gate ───────────── stops here if the evidence does not answer the question
-   │
-   ▼
-answer agent ───────────── writes only from the retrieved evidence
-   │
-   ▼
-evaluator agent ────────── grounding / completeness / business-readiness, 1-5
-   │
-   ▼
-response + OpenTelemetry trace
-```
+
+Orchestrated as a LangGraph `StateGraph`
+(`src/orchestration/agentic_workflow.py`); all three agents run on Gemini.
 
 **The LLM never writes a query.** It selects an *intent* — `seller_performance`,
 `warranty_product_seller_paths` — and the intent maps to a static, parameterised SQL or
@@ -82,6 +66,27 @@ Cypher, shell or Python text produced by a model is ever executed `#39 #40 #78-8
 **6,098 documents** (support tickets, customer emails, logistics incidents, warranty
 claims, policies, troubleshooting guides) carrying Olist entity IDs so a retrieved
 document joins back to a real row `#27-30`.
+
+---
+
+## Quickstart
+
+**Demo, from a clean clone: no database, no API key.** Replays the eight
+recorded runs the live demo serves.
+
+```bash
+python -m venv venv && source venv/bin/activate    # Windows: venv\Scripts\activate
+pip install -r requirements-demo.txt
+DEMO_MODE=true PYTHONPATH=. uvicorn src.api.main:app --port 8000
+curl localhost:8000/demo/scenarios                  # the eight recorded questions
+```
+
+**Tests, from a clean clone.** `pip install -r requirements.txt`, then
+`pytest -q`: 316 collected; without the data services **237 pass and 79 skip**.
+
+**Full stack** (PostgreSQL, Neo4j, Qdrant, Gemini): `docs/SETUP.md` walks
+through the dataset download, cleaning and loading order, then
+`docker compose up -d`. See [Deployment](#deployment).
 
 ---
 
@@ -171,8 +176,6 @@ code teaches people to re-run it until it passes, which is worse than not having
 
 ## What it cannot do
 
-This section is the reason the rest is credible.
-
 **The evaluator's agreement with a human is poor.** Linear weighted Cohen's kappa
 **0.390, 95% CI [0.000, 0.788], n=25** — below the 0.7 floor the milestone set. It was
 left unadjusted rather than tuned mid-measurement. Read the 1–5 grounding scores as a
@@ -214,6 +217,31 @@ whole corpus is one dataset in one language.
 
 ---
 
+## How the claims were checked
+
+An independent audit in August 2026 tested 110 claims made by an earlier write-up of
+this project and found **11 of them contradicted by the running system** (`AUDIT.md`).
+Not small ones: the vector store held no entity IDs, so "retrieved documents link back
+to SQL and graph evidence" was false; SQL and graph retrieval returned the same rows
+regardless of the question; `/health` was a hardcoded `ok` that stayed green while every
+dependency was down; and the "read-only runtime" ran as a PostgreSQL superuser through
+committing read-write transactions.
+
+The response was a ten-milestone rebuild (`REBUILD_PLAN.md`) under one rule: **every
+exit criterion is a number or a passing test.** The audit was then re-run against the
+finished system, mechanically.
+
+| | 2026-08-20 | 2026-09-14 |
+|---|---:|---:|
+| CONFIRMED | 78 | 82 |
+| CONFIRMED WITH CAVEAT | 18 | 13 |
+| **CONTRADICTED** | **11** | **0** |
+| SUPERSEDED — true then, fixed since | — | 11 |
+| NOT_CLAIMED — dropped, with a reason | — | 2 |
+| UNVERIFIABLE | 3 | 2 |
+
+---
+
 ## Deployment
 
 | | |
@@ -241,8 +269,6 @@ pytest -q                       # 312 deterministic tests; 4 more need GEMINI_AP
 `docs/SETUP.md` has the data-loading order. Images are multi-stage and run as a
 non-root user; `tests/test_container_hygiene.py` fails the build if that regresses.
 
----
-
 ## Reproducing the numbers
 
 | Claim | Command |
@@ -254,8 +280,6 @@ non-root user; `tests/test_container_hygiene.py` fails the build if that regress
 | Cost table | `docs/M5_COST_TABLE.md` |
 | Container hygiene, before/after | `python scripts/verify_container.py <before> <after>` |
 | Replay a recorded run | `python scripts/replay_run.py --item C33` |
-
----
 
 ## Documents
 
