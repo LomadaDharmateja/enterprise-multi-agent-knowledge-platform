@@ -164,7 +164,7 @@ LLM with no pinned temperature, and M7 measured `graph_intent` reproducing on on
 14 replays. Measured over nine consecutive full runs: **1 failure in 9**, always
 `test_revenue_question_produces_a_representable_sql_only_plan`.
 
-The audit gates on the 296. A gate that goes red one run in nine for reasons outside the
+The audit gates on the 312 deterministic tests. A gate that goes red one run in nine for reasons outside the
 code teaches people to re-run it until it passes, which is worse than not having one.
 
 ---
@@ -235,7 +235,7 @@ Local, full stack:
 ```bash
 cp .env.example .env            # fill in every value; nothing has a working default
 docker compose up -d            # postgres, neo4j, qdrant, api, ui
-pytest -q                       # 300 tests with the stack up
+pytest -q                       # 312 deterministic tests; 4 more need GEMINI_API_KEY
 ```
 
 `docs/SETUP.md` has the data-loading order. Images are multi-stage and run as a
