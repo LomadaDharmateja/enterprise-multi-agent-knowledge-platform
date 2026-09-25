@@ -217,6 +217,18 @@ whole corpus is one dataset in one language.
 
 ---
 
+## In progress
+
+Being built now, and **not yet in the code** measured above:
+
+- **MongoDB** as a fourth store, for semi-structured records.
+- **Reranking** of retrieved evidence before it reaches the answer agent.
+
+Neither is counted in any number in this README. Each will get its own
+measurement when it lands.
+
+---
+
 ## How the claims were checked
 
 An independent audit in August 2026 tested 110 claims made by an earlier write-up of
